@@ -32,6 +32,8 @@ public:
     bool isEmpty() const { return ((length <= 0) ? true : false); }
     void setRowCol(int r, int c, int ch=1);
     jbMat copy();
+    static jbMat ones(int r, int c, int ch= 1);
+    static jbMat zeros(int r, int c, int ch= 1);
 
     //-- overloading operators
     jbMat operator+(const jbMat& other);
