@@ -539,7 +539,7 @@ jbMat jbMat::copy() {
 
 jbMat jbMat::ones(int r, int c, int ch){
     if( r < 0 || c < 0 || ch < 0){
-        fprintf(stdout,"In ones method: r , c and ch are to be larger than 0 ");
+        fprintf(stdout,"In ones method: arguments r , c and ch are to be larger than 0 ");
         return jbMat();
     }
 
@@ -556,7 +556,7 @@ jbMat jbMat::ones(int r, int c, int ch){
 
 jbMat jbMat::zeros(int r, int c, int ch){
     if( r < 0 || c < 0 || ch < 0){
-        fprintf(stdout,"In ones method: r , c and ch are to be larger than 0 ");
+        fprintf(stdout,"In zeros method: arguments r , c and ch are to be larger than 0 ");
         return jbMat();
     }
 
