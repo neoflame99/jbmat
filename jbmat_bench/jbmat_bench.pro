@@ -16,14 +16,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-    ../../jblib/jbMat.cpp \
-    ../../jblib/jbmath.cpp \
-    ../../jblib/qimmat.cpp
+    ../jblib/jbMat.cpp \
+    ../jblib/jbmath.cpp \
+    ../jblib/qimmat.cpp
 
 HEADERS += \
-    ../../jblib/jbMat.h \
-    ../../jblib/jbmath.h \
-    ../../jblib/qimmat.h
+    ../jblib/jbMat.h \
+    ../jblib/jbmath.h \
+    ../jblib/qimmat.h
 
 macx{
     DEFINES += _MACOS_

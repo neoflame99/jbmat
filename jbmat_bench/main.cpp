@@ -1,11 +1,12 @@
 //#include <QCoreApplication>
-#include "../../jblib/jbMat.h"
-#include "../../jblib/jbmath.h"
-#include "../../jblib/qimmat.h"
+#include "../jblib/jbMat.h"
+#include "../jblib/jbmath.h"
+#include "../jblib/qimmat.h"
 
 #include <QImage>
 #include <QString>
-//#include <memory
+#include <QDir>
+#include <QDebug>
 
 int main(int argc, char *argv[])
 {
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
     me.printMat();
     mf.printMat();
     md.printMat();
-
+/*
     for(int k=1; k<=3;k++ ){
         QString fname1 = QString("../%1.bmp").arg(k);
         QString fname2 = QString("../%1_1.bmp").arg(k);
@@ -65,7 +66,18 @@ int main(int argc, char *argv[])
         QImage cvim = QimMat::jbmat2qim(matIm);
         cvim.save(fname2);
     }
+*/
 
+    qDebug() << QDir::currentPath();
+
+    QString fname1 = QString("../jbmat_bench/test.jpg");
+    QString fname2 = QString("../jbmat_bench/test_filt.bmp");
+    QImage img(fname1);
+    jbMat matIm = QimMat::qim2jbmat(img);
+    jbMat filt  = jbMat::ones(5,5,matIm.Nch)/25;
+    jbMat FiltIm = jbMath::conv2d(matIm, filt,"zero","same");
+    QImage cvim = QimMat::jbmat2qim(FiltIm);
+    cvim.save(fname2);
 
     return 0;
 }
