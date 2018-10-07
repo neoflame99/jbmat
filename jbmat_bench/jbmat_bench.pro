@@ -18,13 +18,16 @@ SOURCES += \
         main.cpp \
     ../jblib/jbMat.cpp \
     ../jblib/jbmath.cpp \
-    ../jblib/qimmat.cpp
+    ../jblib/qimmat.cpp \
+    ../jblib/jbimgproc.cpp
 
 HEADERS += \
     ../jblib/jbMat.h \
     ../jblib/jbmath.h \
-    ../jblib/qimmat.h
+    ../jblib/qimmat.h \
+    ../jblib/jbimgproc.h
 
 macx{
     DEFINES += _MACOS_
+    message("Mac OS")
 }

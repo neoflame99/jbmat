@@ -2,6 +2,7 @@
 #include "../jblib/jbMat.h"
 #include "../jblib/jbmath.h"
 #include "../jblib/qimmat.h"
+#include "../jblib/jbimgproc.h"
 
 #include <QImage>
 #include <QString>
@@ -10,6 +11,7 @@
 
 int main(int argc, char *argv[])
 {
+
 //    QCoreApplication a(argc, argv);
 //    return a.exec();
     int row = 7;
@@ -22,7 +24,7 @@ int main(int argc, char *argv[])
     for(int c=0; c < ch; c++){
         for(int i=0; i < row; i++){
             for( int j=0; j < col; j++)
-                a[(i*ma.col+j)*ch+c] = k++;
+                a[(i*ma.getCol()+j)*ch+c] = k++;
         }
     }
 
@@ -32,10 +34,10 @@ int main(int argc, char *argv[])
     jbMat mc(5,5,2);
     //double *b = mb.getMat();
     double* b = mb.getMat().get();
-    for(int c=0; c < mb.Nch; c++)
+    for(int c=0; c < mb.getChannel(); c++)
         for(int i=0; i < 5; i++)
             for(int j=0; j < 5; j++){
-                b[(i*mb.col+j)*mb.Nch+c] = 100+k++;
+                b[(i*mb.getCol()+j)*mb.getChannel()+c] = 100+k++;
                 mc(i,j,c) = k;
             }
     mb.printMat();
@@ -74,10 +76,41 @@ int main(int argc, char *argv[])
     QString fname2 = QString("../jbmat_bench/test_filt.bmp");
     QImage img(fname1);
     jbMat matIm = QimMat::qim2jbmat(img);
-    jbMat filt  = jbMat::ones(5,5,matIm.Nch)/25;
+    jbMat filt  = jbMat::ones(5,5,matIm.getChannel())/25;
     jbMat FiltIm = jbMath::conv2d(matIm, filt,"zero","same");
     QImage cvim = QimMat::jbmat2qim(FiltIm);
     cvim.save(fname2);
 
+    jbMat mg(1,7,3) ;
+    mg(0,0,0) = 1;
+    mg(0,0,1) = 1;
+    mg(0,0,2) = 1;
+    mg(0,1,0) = 1;
+    mg(0,1,1) = 0;
+    mg(0,1,2) = 0;
+    mg(0,2,0) = 0;
+    mg(0,2,1) = 1;
+    mg(0,2,2) = 0;
+    mg(0,3,0) = 0;
+    mg(0,3,1) = 0;
+    mg(0,3,2) = 1;
+    mg(0,4,0) = 1;
+    mg(0,4,1) = 0;
+    mg(0,4,2) = 1;
+    mg(0,5,0) = 1;
+    mg(0,5,1) = 1;
+    mg(0,5,2) = 0;
+    mg(0,6,0) = 0;
+    mg(0,6,1) = 1;
+    mg(0,6,2) = 1;
+
+    mg.printMat();
+    jbMat mh = jbImgproc::rgb2ycc(mg,1);
+    mh.printMat();
+    jbMat mi = jbImgproc::ycc2rgb(mh,1);
+    mi.printMat();
+    jbMat mj = jbImgproc::rgb2gray(mg);
+    mj.printMat();
+/**/
     return 0;
 }

@@ -35,11 +35,11 @@ jbMat::jbMat(int r, int c, int ch):mA(nullptr),row(r),col(c),Nch(ch){
 }
 
 jbMat::jbMat(const jbMat& mat){
-    row = mat.row;
-    col = mat.col;
-    Nch = mat.Nch;
-    length    = mat.length;
-    lenRowCol = mat.lenRowCol;
+    row = mat.getRow();
+    col = mat.getCol();
+    Nch = mat.getChannel();
+    length    = mat.getLength();
+    lenRowCol = row*col;
     mA = mat.getMat();
 
     /* -- deep copying
@@ -139,9 +139,9 @@ to create an object local to the ‘operator=()’.
 Than the value of the temp object is swapped with ‘*this’ object
 */
     fprintf(stdout,"Assign operator\n");
-    row = other.row;
-    col = other.col;
-    Nch = other.Nch;
+    row = other.getRow();
+    col = other.getCol();
+    Nch = other.getChannel();
     length = other.getLength();
     lenRowCol = row*col;
     mA  = other.getMat();
@@ -167,7 +167,7 @@ Than the value of the temp object is swapped with ‘*this’ object
 }
 
 jbMat jbMat::operator+(const jbMat& other){
-    if(this->row != other.row || this->col != other.col || this->Nch != other.Nch){
+    if(this->row != other.getRow() || this->col != other.getCol()|| this->Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
         return jbMat();
     }else if(this->isEmpty()){
@@ -195,7 +195,7 @@ jbMat jbMat::operator+(const double scalar){
 }
 jbMat& jbMat::operator+=(const jbMat& other){
 
-    if(this->row != other.row || this->col != other.col || this->Nch != other.Nch){
+    if(this->row != other.getRow() || this->col != other.getCol() || this->Nch != other.getChannel()){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
         return *this;
     }else if(this->isEmpty()){
@@ -221,7 +221,7 @@ jbMat& jbMat::operator+=(const double scalar){
     }
 }
 jbMat jbMat::operator-(const jbMat& other){
-    if(this->row != other.row || this->col != other.col || this->Nch != other.Nch){
+    if(this->row != other.getRow() || this->col != other.getCol() || this->Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
         return jbMat();
     }else if(this->isEmpty()){
@@ -249,7 +249,7 @@ jbMat jbMat::operator-(const double scalar){
 }
 jbMat& jbMat::operator-=(const jbMat& other){
 
-    if(this->row != other.row || this->col != other.col || this->Nch != other.Nch){
+    if(this->row != other.getRow() || this->col != other.getCol() || this->Nch != other.getChannel()){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
         return *this;
     }else if(this->isEmpty()){
@@ -275,7 +275,7 @@ jbMat& jbMat::operator-=(const double scalar){
     }
 }
 jbMat jbMat::operator*(const jbMat& other){
-    if(this->row != other.row || this->col != other.col || this->Nch != other.Nch){
+    if(this->row != other.getRow() || this->col != other.getCol() || this->Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
         return jbMat();
     }else if(this->isEmpty()){
@@ -303,7 +303,7 @@ jbMat jbMat::operator*(const double scalar){
 }
 jbMat& jbMat::operator*=(const jbMat& other){
 
-    if(this->row != other.row || this->col != other.col || this->Nch != other.Nch){
+    if(this->row != other.getRow() || this->col != other.getCol() || this->Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
         return *this;
     }else if(this->isEmpty()){
@@ -329,7 +329,7 @@ jbMat& jbMat::operator*=(const double scalar){
     }
 }
 jbMat jbMat::operator/(const jbMat& other){
-    if(this->row != other.row || this->col != other.col || this->Nch != other.Nch){
+    if(this->row != other.getRow() || this->col != other.getCol() || this->Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
         return jbMat();
     }else if(this->isEmpty()){
@@ -357,7 +357,7 @@ jbMat jbMat::operator/(const double scalar){
 }
 jbMat& jbMat::operator/=(const jbMat& other){
 
-    if(this->row != other.row || this->col != other.col || this->Nch != other.Nch){
+    if(this->row != other.getRow() || this->col != other.getCol() || this->Nch != other.getChannel()){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
         return *this;
     }else if(this->isEmpty()){

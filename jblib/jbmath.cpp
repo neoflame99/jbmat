@@ -18,24 +18,24 @@ jbMath::~jbMath()
 
 jbMat jbMath::mulMatrix(const jbMat& mA,const jbMat& mB){
 
-    if(mA.col != mB.row){
+    if(mA.getCol() != mB.getRow() ){
         fprintf(stderr," The number of columns of mA and the number of rows of mB are not match!\n");
         return jbMat();
-    }else if( mA.Nch != mB.Nch){
+    }else if( mA.getChannel() != mB.getChannel()){
         fprintf(stderr," The numbers of channels of both mA and mB are not match!\n");
         return jbMat();
     }
 
-    int aRow = mA.row;
-    int aCol = mA.col;
-    int bCol = mB.col;
-    int ch   = mA.Nch;
+    int aRow = mA.getRow();
+    int aCol = mA.getCol();
+    int bCol = mB.getCol();
+    int ch   = mA.getChannel();
     int i,j;
     double *matA;
     double *matB;
     double *matO;
 
-    jbMat mO(aRow,bCol, mA.Nch);
+    jbMat mO(aRow,bCol, ch );
 
     matA = mA.getMat().get();
     matB = mB.getMat().get();
@@ -68,10 +68,10 @@ jbMat jbMath::mulMatrix(const jbMat& mA,const jbMat& mB){
 
 jbMat jbMath::triu(const jbMat& mA)
 {
-    int pivtmax = (mA.row < mA.col) ? mA.row : mA.col;
-    int rows = mA.row;
-    int cols = mA.col;
-    int ch   = mA.Nch;
+    int pivtmax = (mA.getRow() < mA.getCol() ) ? mA.getRow() : mA.getCol();
+    int rows = mA.getRow();
+    int cols = mA.getCol();
+    int ch   = mA.getChannel();
 
     jbMat utri = mA;
     double* utri_ma = utri.getMat().get();
@@ -105,9 +105,9 @@ jbMat jbMath::triu(const jbMat& mA)
 
 jbMat jbMath::tril(const jbMat& srcmat)
 {
-    int rows = srcmat.row;
-    int cols = srcmat.col;
-    int ch   = srcmat.Nch;
+    int rows = srcmat.getRow();
+    int cols = srcmat.getCol();
+    int ch   = srcmat.getChannel();
     int pivtmax = (rows < cols) ? rows : cols;
 
     jbMat ltri = srcmat;
@@ -140,9 +140,9 @@ jbMat jbMath::tril(const jbMat& srcmat)
 jbMat jbMath::augmentMatrix(const jbMat& srcmat)
 {
     int i,j;
-    int rows = srcmat.row;
-    int cols = srcmat.col;
-    int ch   = srcmat.Nch;
+    int rows = srcmat.getRow();
+    int cols = srcmat.getCol();
+    int ch   = srcmat.getChannel();
     int pivmax = (rows < cols)? rows : cols;
     int augmentCols = cols + pivmax;
 
@@ -172,8 +172,8 @@ jbMat jbMath::augmentMatrix(const jbMat& srcmat)
 }
 
 jbMat jbMath::inverse(const jbMat& srcmat){
-    int rows = srcmat.row;
-    int cols = srcmat.col;
+    int rows = srcmat.getRow();
+    int cols = srcmat.getCol();
     if(rows != cols) {
         std::cout << "The inverse matrix cannot be computed because source matrix is not square!";
         return jbMat();
@@ -183,24 +183,25 @@ jbMat jbMath::inverse(const jbMat& srcmat){
     jbMat mataug = augmentMatrix(srcmat);
     jbMat utri = triu(mataug);
     jbMat ltri = tril(utri);
-
+    int ltri_col = ltri.getCol();
     int pv,j, pvr;
+
     double pivot;
     double* mat = ltri.getMat().get();
-    for(pv=0;pv<pvmax;pv++){
-        pvr   = pv*ltri.col;
+    for( pv=0 ; pv<pvmax ; pv++){
+        pvr   = pv * ltri_col;
         pivot = mat[pvr+pv];
         if(pivot==0.0) continue;
-        for(j=0;j<ltri.col;j++)
+        for(j=0 ; j < ltri_col ; j++)
             mat[pvr+j] /= pivot;
     }
 
     jbMat invmat(rows,cols);
     int cr;
-    for(int i=0;i<rows;i++){
-        pvr = i*ltri.col+cols;
-        cr  = i* cols;
-        for( j=0;j<cols;j++){
+    for(int i=0; i < rows ; i++){
+        pvr = i * ltri_col + cols;
+        cr  = i * cols;
+        for( j=0 ; j < cols ; j++){
             invmat[cr+j] = ltri[pvr+j];
         }
     }
@@ -231,9 +232,10 @@ void jbMath::printMat(const jbMat& Mat)
     char buf[bufsz]="\0";
     char tmp[bufsz];
     int i,j;
-    int rows = Mat.row;
-    int cols = Mat.col;
-    int ch   = Mat.Nch;
+//    int rows = Mat.getRow();
+    int cols = Mat.getCol();
+    int ch   = Mat.getChannel();
+    int len  = Mat.getLength();
     double *mat = Mat.getMat().get();
     const double neg_max_double = -DBL_EPSILON ;
     const double pos_min_double = DBL_EPSILON ;
@@ -242,7 +244,7 @@ void jbMath::printMat(const jbMat& Mat)
     int k;
     for( k=0; k < ch; k++){
         fprintf(stdout,"channel: %d \n",k);
-        for( i=0; i< rows*cols*ch; i+= cols*ch){
+        for( i=0; i< len ; i+= cols*ch){
             snprintf(buf,bufsz,"[");
             for( j=0; j< cols*ch; j+=ch){
                 val = mat[i+j+k];
@@ -267,16 +269,16 @@ jbMat jbMath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std
     }else if(mB.isEmpty()){
         fprintf(stderr, "mB is empty\n ");
         return jbMat();
-    }else if( mA.Nch != mB.Nch){
+    }else if( mA.getChannel() != mB.getChannel() ){
         fprintf(stderr, " channels of mA and mB are not the same! \n");
         return jbMat();
     }
 
     int tX , tY;
     int xdummy , ydummy;
-    int mbHcol = mB.col/2;
-    int mbHrow = mB.row/2;
-    int ch = mA.Nch;
+    int mbHcol = mB.getCol()/2;
+    int mbHrow = mB.getRow()/2;
+    int ch = mA.getChannel();
     bool fullout = false;
     jbMat tmpO;
 
@@ -284,19 +286,19 @@ jbMat jbMath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std
         fullout = true;
 
     if(fullout){
-        xdummy = mB.col-1;
-        ydummy = mB.row-1;
-        tX = mA.col + xdummy*2;
-        tY = mA.row + ydummy*2;
+        xdummy = mB.getCol() -1;
+        ydummy = mB.getRow() -1;
+        tX = mA.getCol() + xdummy*2;
+        tY = mA.getRow() + ydummy*2;
 
     }else{
-        tX = mA.col + mB.col-1;
-        tY = mA.row + mB.row-1;
+        tX = mA.getCol() + mB.getCol() -1;
+        tY = mA.getRow() + mB.getRow() -1;
     }
 
     jbMat tmpA = jbMat(tY, tX, ch);
     if(fullout){
-        tmpO = jbMat(mA.row+mB.row-1, mA.col+mB.col-1,ch);
+        tmpO = jbMat(mA.getRow() + mB.getRow() -1, mA.getCol() + mB.getCol() -1, ch);
     }else{  // 'same'
         tmpO = jbMat(mA);
     }
@@ -321,37 +323,37 @@ jbMat jbMath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std
                         if( y < mbHrow && x < mbHcol )         // left top corner
                             tmpA(y,x,ich) = mA(mbHrow-y-1, mbHcol-x-1, ich);
                         else if( y < mbHrow && x >= tX-mbHcol) // right top corner
-                            tmpA(y,x,ich) = mA(mbHrow-y-1, mA.col-x-mbHcol+tX-1, ich);
+                            tmpA(y,x,ich) = mA(mbHrow-y-1, mA.getCol()-x-mbHcol+tX-1, ich);
                         else if( y < mbHrow)                   // top
                             tmpA(y,x,ich) = mA(mbHrow-y-1, x-mbHcol, ich);
                         else if( y >= tY-mbHrow && x < mbHcol) // left bottom corner
-                            tmpA(y,x,ich) = mA(mA.row-y-mbHrow+tY-1, mbHcol-x-1,ich);
+                            tmpA(y,x,ich) = mA(mA.getRow()-y-mbHrow+tY-1, mbHcol-x-1,ich);
                         else if( y >= tY-mbHrow && x >= tX-mbHcol) // right bottom corner
-                            tmpA(y,x,ich) = mA(mA.row-y-mbHrow+tY-1, mA.col-x-mbHcol+tX-1, ich);
+                            tmpA(y,x,ich) = mA(mA.getRow()-y-mbHrow+tY-1, mA.getCol()-x-mbHcol+tX-1, ich);
                         else if( y >= tY-mbHrow)               // bottom
-                            tmpA(y,x,ich) = mA(mA.row-y-mbHrow+tY-1, x-mbHcol, ich);
+                            tmpA(y,x,ich) = mA(mA.getRow()-y-mbHrow+tY-1, x-mbHcol, ich);
                         else if( x < mbHcol )                  // left
                             tmpA(y,x,ich) = mA(y-mbHrow, mbHcol-x-1, ich);
                         else if( x >= tX - mbHcol)             // right
-                            tmpA(y,x,ich) = mA(y-mbHrow, mA.col-x-mbHcol+tX-1, ich);
+                            tmpA(y,x,ich) = mA(y-mbHrow, mA.getCol()-x-mbHcol+tX-1, ich);
                         else                                   // main
                             tmpA(y,x,ich) = mA(y-mbHrow,x-mbHcol,ich);
                     }else if(opt_conv.substr(0,4).compare("circ")==0){
 
                         if( y < mbHrow && x < mbHcol )         // left top corner
-                            tmpA(y,x,ich) = mA(mA.row-mbHrow+y, mA.col-mbHcol+x, ich);
+                            tmpA(y,x,ich) = mA(mA.getRow()-mbHrow+y, mA.getCol()-mbHcol+x, ich);
                         else if( y < mbHrow && x >= tX-mbHcol) // right top corner
-                            tmpA(y,x,ich) = mA(mA.row-mbHrow+y, mbHcol-tX+x, ich);
+                            tmpA(y,x,ich) = mA(mA.getRow()-mbHrow+y, mbHcol-tX+x, ich);
                         else if( y < mbHrow)                   // top
-                            tmpA(y,x,ich) = mA(mA.row-mbHrow+y, x-mbHcol, ich);
+                            tmpA(y,x,ich) = mA(mA.getRow()-mbHrow+y, x-mbHcol, ich);
                         else if( y >= tY-mbHrow && x < mbHcol) // left bottom corner
-                            tmpA(y,x,ich) = mA(mbHrow-tY+y, mA.col-mbHcol+x,ich);
+                            tmpA(y,x,ich) = mA(mbHrow-tY+y, mA.getCol()-mbHcol+x,ich);
                         else if( y >= tY-mbHrow && x >= tX-mbHcol) // right bottom corner
                             tmpA(y,x,ich) = mA(mbHrow-tY+y, mbHcol-tX+x, ich);
                         else if( y >= tY-mbHrow)               // bottom
                             tmpA(y,x,ich) = mA(mbHrow-tY+y, x-mbHcol, ich);
                         else if( x < mbHcol )                  // left
-                            tmpA(y,x,ich) = mA(y-mbHrow, mA.col-mbHcol+x, ich);
+                            tmpA(y,x,ich) = mA(y-mbHrow, mA.getCol()-mbHcol+x, ich);
                         else if( x >= tX - mbHcol)             // right
                             tmpA(y,x,ich) = mA(y-mbHrow, mbHcol-tX+x, ich);
                         else                                   // main
@@ -377,8 +379,8 @@ jbMat jbMath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std
             for(int y=ydummy; y < tY; y++){
                 for(int x=xdummy; x < tX; x++){
                     sum = 0.0;
-                    for(int m= mB.row-1; m >= 0; m--){
-                        for(int n= mB.col-1; n >= 0; n--){
+                    for(int m= mB.getRow()-1; m >= 0; m--){
+                        for(int n= mB.getCol()-1; n >= 0; n--){
                             sum += (tmpA(y-m,x-n,ich)* mB(m,n,ich));
                             //a = tmpA(y-mbHrow+m,x-mbHcol+n,ich);
                             //b = mB(m,n,ich);
@@ -394,8 +396,8 @@ jbMat jbMath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std
             for(int y=mbHrow; y < tY-mbHrow; y++){
                 for(int x=mbHcol; x < tX-mbHcol; x++){
                     sum = 0.0;
-                    for(int m= mB.row-1; m >= 0; m--){
-                        for(int n= mB.col-1; n >= 0; n--){
+                    for(int m= mB.getRow()-1; m >= 0; m--){
+                        for(int n= mB.getCol()-1; n >= 0; n--){
                             //sum += (tmpA(y-m,x-n,ich)* mB(-m+mbHrow,-n+mbHcol,ich));
                             sum += (tmpA(y+mbHrow-m,x+mbHcol-n,ich)* mB(m,n,ich));
                             //a = tmpA(y-mbHrow+m,x-mbHcol+n,ich);

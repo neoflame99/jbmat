@@ -15,9 +15,9 @@ private:
     int length;
     int lenRowCol;
     void alloc(int len);
+    int row, col, Nch;
 
 public:
-    int row, col, Nch;
 
     jbMat();
     jbMat(int r, int c, int ch=1);
@@ -34,6 +34,7 @@ public:
     jbMat copy();
     static jbMat ones(int r, int c, int ch= 1);
     static jbMat zeros(int r, int c, int ch= 1);
+
 
     //-- overloading operators
     jbMat operator+(const jbMat& other);
@@ -58,6 +59,9 @@ public:
     double& operator()(int r, int c) const;
     double& operator()(int r, int c, int ch) const;
     int getLength() const{ return length; }
+    int getRow() const { return row; }
+    int getCol() const { return col; }
+    int getChannel() const { return Nch; }
     int reshape(int r, int c, int ch=1);
     void transpose();
     void printMat() const;

@@ -53,16 +53,16 @@ jbMat QimMat::qim2jbmat(const QImage& src){
 
 QImage QimMat::jbmat2qim(const jbMat& src){
     QImage::Format fmt;
-    if(src.Nch==1)
+    if(src.getChannel()==1)
         fmt = QImage::Format_Grayscale8;
-    else if(src.Nch==3 || src.Nch==4)
+    else if(src.getChannel()==3 || src.getChannel()==4)
         fmt = QImage::Format_RGB32;
     else{
         fprintf(stdout,"jbmat2qim is not supporting format\n");
         return QImage();
     }
 
-    QImage qim(src.col, src.row, fmt);
+    QImage qim(src.getCol(), src.getRow(), fmt);
     qim.fill(0);
     unsigned char* qim_dat = qim.bits();
     double* mat_dat = src.getMat().get();
