@@ -8,6 +8,7 @@
 #include <QString>
 #include <QDir>
 #include <QDebug>
+#include <stdlib.h>
 
 int main(int argc, char *argv[])
 {
@@ -17,14 +18,14 @@ int main(int argc, char *argv[])
     int row = 7;
     int col = 7;
     int ch = 2;
+    int rowcol = row*col;
     jbMat ma(row,col,ch);
     //double* a = ma.getMat();
     double* a = ma.getMat().get();
     int k = 1;
     for(int c=0; c < ch; c++){
-        for(int i=0; i < row; i++){
-            for( int j=0; j < col; j++)
-                a[(i*ma.getCol()+j)*ch+c] = k++;
+        for(int i=0; i < row*col; i++){
+            a[c*rowcol + i] = k++;
         }
     }
 
@@ -34,12 +35,14 @@ int main(int argc, char *argv[])
     jbMat mc(5,5,2);
     //double *b = mb.getMat();
     double* b = mb.getMat().get();
-    for(int c=0; c < mb.getChannel(); c++)
-        for(int i=0; i < 5; i++)
-            for(int j=0; j < 5; j++){
-                b[(i*mb.getCol()+j)*mb.getChannel()+c] = 100+k++;
+    for(int c=0; c < mb.getChannel(); c++){
+        for(int i=0; i < 5; i++){
+            for (int j=0; j < 5; j++){
+                b[i*5+j+c*25] = 100+k++;
                 mc(i,j,c) = k;
             }
+        }
+    }
     mb.printMat();
     fprintf(stdout,"1) full\n");
     jbMat convO = jbMath::conv2d(ma,mb,"zero","full");
@@ -78,7 +81,9 @@ int main(int argc, char *argv[])
     jbMat matIm = QimMat::qim2jbmat(img);
     jbMat filt  = jbMat::ones(5,5,matIm.getChannel())/25;
     jbMat FiltIm = jbMath::conv2d(matIm, filt,"zero","same");
+    //jbMat FiltIm = jbMath::conv2d(matIm, filt,"zero","full");
     QImage cvim = QimMat::jbmat2qim(FiltIm);
+    //QImage cvim = QimMat::jbmat2qim(matIm);
     cvim.save(fname2);
 
     jbMat mg(1,7,3) ;
@@ -112,5 +117,17 @@ int main(int argc, char *argv[])
     jbMat mj = jbImgproc::rgb2gray(mg);
     mj.printMat();
 /**/
+    jbMat mk(3,4,1);
+    jbMat ml(4,3,1);
+    for(int i=0; i < 12; i++){
+        mk[i] = rand() % 50;
+        ml[i] = rand() % 80;
+    }
+    jbMat mm = jbMath::mulMatrix(mk,ml);
+    mk.printMat(std::string("mk"));
+    ml.printMat(std::string("ml"));
+    mm.printMat(std::string("mm"));
+    mm.transpose();
+    mm.printMat(std::string("mm_transposed"));
     return 0;
 }

@@ -296,11 +296,11 @@ jbMat jbMath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std
         tY = mA.getRow() + mB.getRow() -1;
     }
 
-    jbMat tmpA = jbMat(tY, tX, ch);
+    jbMat tmpA(tY, tX, ch);
     if(fullout){
         tmpO = jbMat(mA.getRow() + mB.getRow() -1, mA.getCol() + mB.getCol() -1, ch);
     }else{  // 'same'
-        tmpO = jbMat(mA);
+        tmpO = mA.copy();
     }
 
     if( fullout ){

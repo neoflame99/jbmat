@@ -1,5 +1,5 @@
-#include "jbMat.h"
 #include <stdio.h>
+#include "jbMat.h"
 #include <float.h>
 #include <iostream>
 #ifdef _MACOS_
@@ -130,22 +130,14 @@ void jbMat::setRowCol(int r, int c, int ch){
 
 }
 
-
+/*
 //-- overloading operators : it calls copy constructor
-jbMat& jbMat::operator=(jbMat other){
-/*
-The parameter to the ‘operator=()’ is passed by value which calls copy constructor
-to create an object local to the ‘operator=()’.
-Than the value of the temp object is swapped with ‘*this’ object
-*/
-    fprintf(stdout,"Assign operator\n");
-    row = other.getRow();
-    col = other.getCol();
-    Nch = other.getChannel();
-    length = other.getLength();
-    lenRowCol = row*col;
-    mA  = other.getMat();
-/*
+jbMat& jbMat::operator=( jbMat other){
+
+//The parameter to the ‘operator=()’ is passed by value which calls copy constructor
+//to create an object local to the ‘operator=()’.
+//Than the value of the temp object is swapped with ‘*this’ object
+//
     std::swap(row,other.row);
     std::swap(col,other.col);
     std::swap(Nch,other.Nch);
@@ -153,15 +145,21 @@ Than the value of the temp object is swapped with ‘*this’ object
     std::swap(length,other.length);
     std::swap(lenRowCol,other.lenRowCol);
     std::swap(mA,other.mA); // swapping mA pointer
+
+    return *this;
+}
 */
 
-    /*
-    if(this != &other){
-        length = row*col;
-        double *tmA = new double[length];
-        std::copy(other_ma,other_ma+length, tmA);
-        mA = tmA;
-    } */
+// call by reference
+jbMat& jbMat::operator=(const jbMat& other){
+
+    fprintf(stdout,"Assign operator\n");
+    row = other.getRow();
+    col = other.getCol();
+    Nch = other.getChannel();
+    length = other.getLength();
+    lenRowCol = row*col;
+    mA  = other.getMat();
 
     return *this;
 }
@@ -384,28 +382,21 @@ jbMat& jbMat::operator/=(const double scalar){
 }
 double& jbMat::operator[] (int i) const{
     if(isEmpty()) return *mA.get(); //*mA;
-    int rc    = row * col;
-    int chidx = i / rc; // chidx is used to start offset of data buffer
-    int rcidx = chidx + (i - rc*chidx)*Nch;
+
     if(i >= length){
         fprintf(stderr,"The Index of jbMat is out of bound\n");
         i = length-1;
     }
 
-    //return *(mA+rcidx);
-    return (mA.get())[rcidx];
+    return (mA.get())[i];
 }
 double& jbMat::operator() (int i) const{
     if(isEmpty()) return *mA.get(); //*mA;
-    int rc    = row * col;
-    int chidx = i / rc; // chidx is used to start offset of data buffer
-    int rcidx = chidx + (i - rc*chidx)*Nch;
     if(i >= length){
         fprintf(stderr,"The Index of jbMat is out of bound\n");
         i = length-1;
     }
-    //return *(mA+rcidx);
-    return (mA.get())[rcidx];
+    return (mA.get())[i];
 }
 double& jbMat::operator() (int r, int c) const{
     if(isEmpty()) return *mA.get(); //*mA;
@@ -414,18 +405,18 @@ double& jbMat::operator() (int r, int c) const{
         fprintf(stderr,"The Index of jbMat is out of bound\n");
         idx = length-1;
     }
-    //return *(mA+idx);
+
     return (mA.get())[idx];
 }
 
 double& jbMat::operator() (int r, int c, int ch) const{
     if(isEmpty()) return *mA.get(); //*mA;
-    int idx = ch + (r*col + c)*Nch;
+    int idx = ch*lenRowCol + (r*col + c);
     if(idx >= length) {
         fprintf(stderr,"The Index of jbMat is out of bound\n");
         idx = length-1;
     }
-    //return *(mA+idx);
+
     return (mA.get())[idx];
 }
 
@@ -436,6 +427,7 @@ int jbMat::reshape(int r, int c, int ch){
         fprintf(stderr," reshape argument is not correct!\n");
         return -1;
     }
+    /*
     int itch, itrc, k;
     if( ch != Nch ){
         double *tmA;
@@ -459,6 +451,7 @@ int jbMat::reshape(int r, int c, int ch){
         mA.reset(tmA,std::default_delete<double[]>());
 
     }
+    */
     row = r;
     col = c;
     Nch = ch;
@@ -472,6 +465,7 @@ void jbMat::transpose(){
         fprintf(stderr," Transpose: This jbMat is empty\n");
         return ;
     }
+
     double *tmA;
     try{
         tmA= new double[static_cast<unsigned long>(length)];
@@ -480,21 +474,25 @@ void jbMat::transpose(){
         return;
     }
     double *mdat = mA.get();
-    int i, j, k;
+    int i, j, k, ch_offset, i_row, j_row;
     for(k=0; k < Nch; k++){
+        ch_offset = k* lenRowCol;
         for(i=0; i < row; i++){
             for(j=0; j<col; j++)
-                tmA[k+(j*row+i)*Nch] = mdat[k+(i*col+j)*Nch];
+                tmA[ch_offset + j*row+i] = mdat[ch_offset + i*col+j];
         }
     }
     mA.reset(tmA,std::default_delete<double[]>());
 
-    int rows = col;
+    int row_tr = col;
     col = row;
-    row = rows;
+    row = row_tr;
 }
 
-void jbMat::printMat() const
+void jbMat::printMat() const {
+    printMat(std::string(""));
+}
+void jbMat::printMat(const std::string objname) const
 {
     const int bufsz = 2049;
     char buf[bufsz]="\0";
@@ -507,6 +505,7 @@ void jbMat::printMat() const
     double val;
     int k;
     double* mdat = mA.get();
+    /*
     for( k=0; k < Nch; k++){      
         fprintf(stdout,"channel: %d \n",k);
 
@@ -522,11 +521,30 @@ void jbMat::printMat() const
             strncat(buf,"]",1);
             fprintf(stdout,"%s\n",buf);
         }
+    } */
+    if(!objname.empty())
+        fprintf(stdout,"object : %s \n", objname.c_str());
 
+    int ch_offset;
+    for( k=0; k < Nch; k++){
+        fprintf(stdout,"channel: %d \n",k);
+        ch_offset = k*lenRowCol;
+        for( i=0; i < lenRowCol; i+=col){ // rows
+            snprintf(buf,bufsz,"[");
+            for( j=0; j < col; j++){ // columns
+                val = mdat[i+j+ch_offset];
+                if( val >= neg_max_double && val <= pos_min_double)
+                    val = 0.0;
+                snprintf(tmp,bufsz," %.4f ",val);
+                strncat(buf,tmp,bufsz);
+            }
+            strncat(buf,"]",1);
+            fprintf(stdout,"%s\n",buf);
+        }
     }
 }
 
-jbMat jbMat::copy() {
+jbMat jbMat::copy() const{
     jbMat A(row, col, Nch);
 
     double *pt_matdat  = A.getMat().get();
@@ -538,7 +556,7 @@ jbMat jbMat::copy() {
 }
 
 jbMat jbMat::ones(int r, int c, int ch){
-    if( r < 0 || c < 0 || ch < 0){
+    if( r <= 0 || c <= 0 || ch <= 0){
         fprintf(stdout,"In ones method: arguments r , c and ch are to be larger than 0 ");
         return jbMat();
     }
@@ -546,7 +564,7 @@ jbMat jbMat::ones(int r, int c, int ch){
     jbMat A(r, c, ch);
 
     double* pt_dat = A.getMat().get();
-    for(int i=0; i < r*c*ch; i ++){
+    for(int i=0; i < r*c*ch; i++){
         pt_dat[i] = 1.0;
     }
 
@@ -555,7 +573,7 @@ jbMat jbMat::ones(int r, int c, int ch){
 
 
 jbMat jbMat::zeros(int r, int c, int ch){
-    if( r < 0 || c < 0 || ch < 0){
+    if( r <= 0 || c <= 0 || ch <= 0){
         fprintf(stdout,"In zeros method: arguments r , c and ch are to be larger than 0 ");
         return jbMat();
     }

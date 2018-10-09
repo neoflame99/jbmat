@@ -7,7 +7,7 @@ QimMat::QimMat()
 
 jbMat QimMat::qim2jbmat(const QImage& src){
     QImage::Format fmt = src.format();
-    int ch;
+    int ch = 0;
     if(fmt == QImage::Format_Grayscale8 ){
         ch = 1;
         fprintf(stdout,"image format: grayscale\n");
@@ -23,29 +23,34 @@ jbMat QimMat::qim2jbmat(const QImage& src){
     }
     int row = src.height();
     int col = src.width();
-    int len = row*col*ch;
+    int lenRowCol  = row*col;
+    int lenRowCol2 = lenRowCol << 1;
+
     jbMat mat(row, col, ch);
 
     const unsigned char* qim_dat = src.bits();
     double *mat_dat = mat.getMat().get();
     int y, k;
     if( fmt == QImage::Format_ARGB32 || fmt == QImage::Format_RGB32){
-        for( y=0,k=0; y < len; y+=3, k+=4){
+     /* for( y=0,k=0; y < len; y+=3, k+=4){
             mat_dat[y  ] = qim_dat[k+2]; // r
             mat_dat[y+1] = qim_dat[k+1]; // g
             mat_dat[y+2] = qim_dat[k  ]; // b
+        } */
+        for( y=0,k=0; y < lenRowCol; y++, k+=4){
+                 mat_dat[y           ] = qim_dat[k+2]; // r
+                 mat_dat[y+lenRowCol ] = qim_dat[k+1]; // g
+                 mat_dat[y+lenRowCol2] = qim_dat[k  ]; // b
         }
     }else if( fmt == QImage::Format_RGB888){
-        int rowcol = row*col ;
-        int rowcol2= rowcol*2;
-        for( y=0, k=0; y < rowcol; y++, k+=3){
-            mat(y        ) = qim_dat[k  ];
-            mat(y+rowcol ) = qim_dat[k+1];
-            mat(y+rowcol2) = qim_dat[k+2];
+        for( y=0, k=0; y < lenRowCol; y++, k+=3){
+            mat_dat[y           ] = qim_dat[k+2];  // r
+            mat_dat[y+lenRowCol ] = qim_dat[k+1];  // g
+            mat_dat[y+lenRowCol2] = qim_dat[k  ];  // b
         }
     }else {
-        for( y=0; y < len; y++)
-            mat[y] = qim_dat[y];
+        for( y=0; y < lenRowCol; y++)
+            mat_dat[y] = qim_dat[y];
     }
 
     return mat;
@@ -62,26 +67,25 @@ QImage QimMat::jbmat2qim(const jbMat& src){
         return QImage();
     }
 
-    QImage qim(src.getCol(), src.getRow(), fmt);
+    int col = src.getCol();
+    int row = src.getRow();
+    QImage qim(col, row, fmt);
     qim.fill(0);
     unsigned char* qim_dat = qim.bits();
     double* mat_dat = src.getMat().get();
     int y, k;
-    int len = src.getLength();
-
+    int lenRowCol  = row*col;
+    int lenRowCol2 = lenRowCol << 1;
     double a,b,c;
 
     if(fmt == QImage::Format_RGB32){
-        for( y=0, k=0 ; y < len; y+=3, k+=4){
-            a = mat_dat[y  ]; // r
-            b = mat_dat[y+1]; // g
-            c = mat_dat[y+2]; // b
-            if(a > 255) a = 255;
-            else if( a < 0) a = 0;
-            if(b > 255) b = 255;
-            else if( b < 0) b = 0;
-            if(c > 255) c = 255;
-            else if( c < 0) c = 0;
+        for( y=0, k=0 ; y < lenRowCol; y++, k+=4){
+            a = mat_dat[y           ]; // r
+            b = mat_dat[y+lenRowCol ]; // g
+            c = mat_dat[y+lenRowCol2]; // b
+            if(a > 255) a = 255; else if( a < 0) a = 0;
+            if(b > 255) b = 255; else if( b < 0) b = 0;
+            if(c > 255) c = 255; else if( c < 0) c = 0;
 
             qim_dat[k  ] = static_cast<unsigned char>(c);
             qim_dat[k+1] = static_cast<unsigned char>(b);
@@ -89,26 +93,22 @@ QImage QimMat::jbmat2qim(const jbMat& src){
             qim_dat[k+3] = 255;
         }
     }else if(fmt==QImage::Format_RGB888){
-        for( y=0 ; y < len; y+=3){
-            a = mat_dat[y  ];
-            b = mat_dat[y+1];
-            c = mat_dat[y+2];
-            if(a > 255) a = 255;
-            else if( a < 0) a = 0;
-            if(b > 255) b = 255;
-            else if( b < 0) b = 0;
-            if(c > 255) c = 255;
-            else if( c < 0) c = 0;
+        for( y=0, k=0 ; y < lenRowCol; y++, k+=3 ){
+            a = mat_dat[y           ]; // r
+            b = mat_dat[y+lenRowCol ]; // g
+            c = mat_dat[y+lenRowCol2]; // b
+            if(a > 255) a = 255; else if( a < 0) a = 0;
+            if(b > 255) b = 255; else if( b < 0) b = 0;
+            if(c > 255) c = 255; else if( c < 0) c = 0;
 
-            qim_dat[y  ] = static_cast<unsigned char>(a);
-            qim_dat[y+1] = static_cast<unsigned char>(b);
-            qim_dat[y+2] = static_cast<unsigned char>(c);
+            qim_dat[k  ] = static_cast<unsigned char>(c);
+            qim_dat[k+1] = static_cast<unsigned char>(b);
+            qim_dat[k+2] = static_cast<unsigned char>(a);
         }
     }else if(fmt==QImage::Format_Grayscale8){
-        for( y=0 ; y < len ; y++){
+        for( y=0 ; y < lenRowCol ; y++){
             a = mat_dat[y];
-            if(a > 255) a = 255;
-            else if( a < 0) a = 0;
+            if(a > 255) a = 255; else if( a < 0) a = 0;
             qim_dat[y] = static_cast<unsigned char>(a);
         }
     }
