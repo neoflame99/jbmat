@@ -117,11 +117,14 @@ int main(int argc, char *argv[])
     jbMat mj = jbImgproc::rgb2gray(mg);
     mj.printMat();
 /**/
-    jbMat mk(3,4,1);
-    jbMat ml(4,3,1);
-    for(int i=0; i < 12; i++){
+    jbMat mk(3,4,2);
+    jbMat ml(4,3,2);
+    jbMat mn(4,4,1);
+    for(int i=0; i < 24; i++){
         mk[i] = rand() % 50;
         ml[i] = rand() % 80;
+        if(i < 16)
+            mn[i] = rand() % 100;
     }
     jbMat mm = jbMath::mulMatrix(mk,ml);
     mk.printMat(std::string("mk"));
@@ -129,5 +132,22 @@ int main(int argc, char *argv[])
     mm.printMat(std::string("mm"));
     mm.transpose();
     mm.printMat(std::string("mm_transposed"));
+    mk.reshape(12,2,1);
+    mk.printMat(std::string("mk reshape"));
+    mn.printMat(std::string("mn"));
+    //mn = jbMath::inverse(mn);
+    //mn.printMat(std::string("mn inverse"));
+    jbMat Y = jbImgproc::rgb2gray(matIm);
+    jbMat mt = jbImgproc::histoPmf(Y);
+    jbMat ms = jbImgproc::histoCmf(Y);
+    if(!mt.isEmpty()){
+        for(int i=0; i < 256; i++ ){
+            fprintf(stdout," %3d:%6d,%7d  ", i, (int)mt[i],(int)ms[i]);
+            if(i%3==2)
+                fprintf(stdout,"\n");
+        }
+        fprintf(stdout,"\n");
+    }
+
     return 0;
 }

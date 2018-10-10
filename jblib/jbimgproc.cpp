@@ -171,7 +171,7 @@ jbMat jbImgproc::histoPmf(const jbMat& src){
         return jbMat();
     }
 
-    jbMat A = jbMat::ones(1,255,1);
+    jbMat A = jbMat::zeros(1,256,1);
     double *tarDat_pt = A.getMat().get();
     double *srcDat_pt = src.getMat().get();
 
@@ -180,7 +180,32 @@ jbMat jbImgproc::histoPmf(const jbMat& src){
     for(k=0; k < len ; k++){
         d = static_cast<int>(srcDat_pt[k]);
         d = (d > 255) ? 255 : (d < 0) ? 0 : d;
-        (tarDat_pt[d])++;
+        tarDat_pt[d]++;
     }
     return A;
+}
+
+jbMat jbImgproc::histoCmf(const jbMat& src){
+    int ch  = src.getChannel();
+//    int row = src.getRow();
+//    int col = src.getCol();
+    if( src.isEmpty() ){
+        fprintf(stdout,"histoCmf : src argument is empty matrix\n");
+        return jbMat();
+    }else if( ch != 1) {
+        fprintf(stdout,"histoCmf : src is not 1 channel matrix\n");
+        return jbMat();
+    }
+    jbMat pmf = jbImgproc::histoPmf(src);
+    if( pmf.isEmpty()){
+        fprintf(stdout,"histoPmf is empty matrix\n");
+        return jbMat();
+    }
+
+    double *srcDat_pt = pmf.getMat().get();
+
+    for(int k=1; k < 256 ; k++)
+        srcDat_pt[k] += srcDat_pt[k-1];
+
+    return pmf;
 }

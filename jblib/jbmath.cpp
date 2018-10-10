@@ -85,8 +85,8 @@ jbMat jbMath::triu(const jbMat& mA)
             for(i = pv+1 ; i < rows ; i++){
                 cr = i* cols + cc;
                 fact = utri_ma[cr+pv] / utri_ma[pvr+pv];
-                std::cout << "cr= " << cr <<", i = " << i << ", pv= " << pv << " pvr= " << pvr <<" fact = " << fact << " ";
-                std::cout << "utri_ma[cr+pv] = " << utri_ma[cr+pv] <<" utri_ma[pvr+pv] = " << utri_ma[pvr+pv] << "\n";
+                //std::cout << "cr= " << cr <<", i = " << i << ", pv= " << pv << " pvr= " << pvr <<" fact = " << fact << " ";
+                //std::cout << "utri_ma[cr+pv] = " << utri_ma[cr+pv] <<" utri_ma[pvr+pv] = " << utri_ma[pvr+pv] << "\n";
                 for(j=0 ; j<cols ; j++){
                     if(utri_ma[pvr+pv] == 0.0){ std::cout << "Singular Matrix!"; break; }
                     utri_ma[cr+j] = (pv==j) ? 0 : utri_ma[cr+j] - utri_ma[pvr+j] * fact;
