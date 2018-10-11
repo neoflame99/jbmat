@@ -137,7 +137,20 @@ int main(int argc, char *argv[])
     mn.printMat(std::string("mn"));
     //mn = jbMath::inverse(mn);
     //mn.printMat(std::string("mn inverse"));
-    jbMat Y = jbImgproc::rgb2gray(matIm);
+    jbMat Y  = jbImgproc::rgb2gray(matIm);
+    jbMat yccIm = jbImgproc::rgb2ycc(matIm);
+    jbMat ms = jbImgproc::clip_HistoCmf(Y, 1000);
+
+    ms /= ms[255];
+    ms *= 255;
+    jbMat mv = jbImgproc::clip_HistoEqual(Y,ms);
+    for(int i=0; i < Y.getRow()*Y.getCol(); i++)
+        yccIm[i] = mv[i] ;
+    jbMat histEqIm = jbImgproc::ycc2rgb(yccIm);
+    QImage cvim2 = QimMat::jbmat2qim(histEqIm);
+    //QImage cvim = QimMat::jbmat2qim(matIm);
+    cvim2.save(QString("../jbmat_bench/test_histEq.bmp"));
+    /*
     jbMat mt = jbImgproc::histoPmf(Y);
     jbMat ms = jbImgproc::histoCmf(Y);
     if(!mt.isEmpty()){
@@ -148,6 +161,7 @@ int main(int argc, char *argv[])
         }
         fprintf(stdout,"\n");
     }
+    */
 
     return 0;
 }

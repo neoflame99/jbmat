@@ -12,8 +12,9 @@ public:
     static jbMat rgb2gray(const jbMat& rgbIm, const int HowToGray = 0);
     static jbMat histoPmf(const jbMat& src);
     static jbMat histoCmf(const jbMat& src);
-    static jbMat clip_HistoPmf(const jbMat& src, const int clipVal);
-    static jbMat clip_HistoCmf(const jbMat& src, const int clipVal);
+    static jbMat clip_HistoPmf(const jbMat& src, const unsigned int clipVal);
+    static jbMat clip_HistoCmf(const jbMat& src, const unsigned int clipVal);
+    static jbMat clip_HistoEqual(const jbMat& src, const jbMat& histCmf);
 };
 
 #endif // JBIMGPROC_H

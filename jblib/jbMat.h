@@ -32,7 +32,8 @@ public:
     bool isEmpty() const { return ((length <= 0) ? true : false); }
     void setRowCol(int r, int c, int ch=1);
     jbMat copy() const;
-//    jbMat copyChannel(const int NoCh=-1);
+//    jbMat getChannelN(const unsigned int NoCh=0);
+    jbMat copyChannelN(const unsigned int NoCh=0);
 //    jbMat copySubMat(const int r_start, const int r_end, const int c_start, const int c_end, const int ch_start, const int ch_end);
     static jbMat ones(int r, int c, int ch= 1);
     static jbMat zeros(int r, int c, int ch= 1);

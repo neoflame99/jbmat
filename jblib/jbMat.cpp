@@ -587,3 +587,33 @@ jbMat jbMat::zeros(int r, int c, int ch){
 
     return A;
 }
+
+/*
+jbMat jbMat::getChannelN(const unsigned int NoCh){
+    jbMat A(*this);
+    int numCh = NoCh;
+    if(numCh >= A.getChannel()){
+        fprintf(stdout,"channel number of getNchannel() is out of bound\n The last channel is selected\n");
+        numCh = A.getChannel()-1;
+    }
+
+    A.mA = A.mA+A.lenRowCol*numCh;
+    return A;
+}*/
+
+jbMat jbMat::copyChannelN(const unsigned int NoCh){
+    jbMat A(row,col,1);
+
+    int numCh = NoCh;
+    if(numCh >= A.getChannel()){
+        fprintf(stdout,"channel number of getNchannel() is out of bound\n The last channel is selected\n");
+        numCh = A.getChannel()-1;
+    }
+    double *srcDat_pt = mA.get();
+    double *tarDat_pt = A.mA.get();
+    int offset = numCh*lenRowCol;
+    for(int i=0; i < lenRowCol; i++ )
+        tarDat_pt[i] = srcDat_pt[offset+i];
+
+    return A;
+}

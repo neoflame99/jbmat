@@ -100,17 +100,27 @@ jbMat jbImgproc::ycc2rgb(const jbMat& rgbIm, const int sel_eq){
     int ch_offset1 = imsize ;
     int ch_offset2 = imsize << 1;
     int x;
+    double tmp1, tmp2, tmp3;
     if( sel_eq == 0){
         for(x= 0 ; x < imsize; x++){
-            tarDat_pt[x           ] = bt601_y2r[0][0] * rgbDat_pt[x  ] + bt601_y2r[0][1] * rgbDat_pt[x+ch_offset1] + bt601_y2r[0][2] * rgbDat_pt[x+ch_offset2];
-            tarDat_pt[x+ch_offset1] = bt601_y2r[1][0] * rgbDat_pt[x  ] + bt601_y2r[1][1] * rgbDat_pt[x+ch_offset1] + bt601_y2r[1][2] * rgbDat_pt[x+ch_offset2];
-            tarDat_pt[x+ch_offset2] = bt601_y2r[2][0] * rgbDat_pt[x  ] + bt601_y2r[2][1] * rgbDat_pt[x+ch_offset1] + bt601_y2r[2][2] * rgbDat_pt[x+ch_offset2];
+            tmp1 = bt601_y2r[0][0] * rgbDat_pt[x  ] + bt601_y2r[0][1] * rgbDat_pt[x+ch_offset1] + bt601_y2r[0][2] * rgbDat_pt[x+ch_offset2];
+            tmp2 = bt601_y2r[1][0] * rgbDat_pt[x  ] + bt601_y2r[1][1] * rgbDat_pt[x+ch_offset1] + bt601_y2r[1][2] * rgbDat_pt[x+ch_offset2];
+            tmp3 = bt601_y2r[2][0] * rgbDat_pt[x  ] + bt601_y2r[2][1] * rgbDat_pt[x+ch_offset1] + bt601_y2r[2][2] * rgbDat_pt[x+ch_offset2];
+
+            tarDat_pt[x           ] = (tmp1 < 0 ) ? 0 : tmp1;
+            tarDat_pt[x+ch_offset1] = (tmp2 < 0 ) ? 0 : tmp2;
+            tarDat_pt[x+ch_offset2] = (tmp3 < 0 ) ? 0 : tmp3;
         }
     }else if( sel_eq == 1){
         for(x= 0 ; x < imsize; x++){
-            tarDat_pt[x           ] = bt709_y2r[0][0] * rgbDat_pt[x  ] + bt709_y2r[0][1] * rgbDat_pt[x+ch_offset1] + bt709_y2r[0][2] * rgbDat_pt[x+ch_offset2];
-            tarDat_pt[x+ch_offset1] = bt709_y2r[1][0] * rgbDat_pt[x  ] + bt709_y2r[1][1] * rgbDat_pt[x+ch_offset1] + bt709_y2r[1][2] * rgbDat_pt[x+ch_offset2];
-            tarDat_pt[x+ch_offset2] = bt709_y2r[2][0] * rgbDat_pt[x  ] + bt709_y2r[2][1] * rgbDat_pt[x+ch_offset1] + bt709_y2r[2][2] * rgbDat_pt[x+ch_offset2];
+            tmp1 = bt709_y2r[0][0] * rgbDat_pt[x  ] + bt709_y2r[0][1] * rgbDat_pt[x+ch_offset1] + bt709_y2r[0][2] * rgbDat_pt[x+ch_offset2];
+            tmp2 = bt709_y2r[1][0] * rgbDat_pt[x  ] + bt709_y2r[1][1] * rgbDat_pt[x+ch_offset1] + bt709_y2r[1][2] * rgbDat_pt[x+ch_offset2];
+            tmp3 = bt709_y2r[2][0] * rgbDat_pt[x  ] + bt709_y2r[2][1] * rgbDat_pt[x+ch_offset1] + bt709_y2r[2][2] * rgbDat_pt[x+ch_offset2];
+
+            tarDat_pt[x           ] = (tmp1 < 0 ) ? 0 : tmp1;
+            tarDat_pt[x+ch_offset1] = (tmp2 < 0 ) ? 0 : tmp2;
+            tarDat_pt[x+ch_offset2] = (tmp3 < 0 ) ? 0 : tmp3;
+
         }
     }
     return A;
@@ -161,8 +171,7 @@ jbMat jbImgproc::rgb2gray(const jbMat& rgbIm, const int HowToGray){
 
 jbMat jbImgproc::histoPmf(const jbMat& src){
     int ch  = src.getChannel();
-//    int row = src.getRow();
-//    int col = src.getCol();
+
     if( src.isEmpty() ){
         fprintf(stdout,"histoPmf : src argument is empty matrix\n");
         return jbMat();
@@ -187,8 +196,7 @@ jbMat jbImgproc::histoPmf(const jbMat& src){
 
 jbMat jbImgproc::histoCmf(const jbMat& src){
     int ch  = src.getChannel();
-//    int row = src.getRow();
-//    int col = src.getCol();
+
     if( src.isEmpty() ){
         fprintf(stdout,"histoCmf : src argument is empty matrix\n");
         return jbMat();
@@ -196,6 +204,32 @@ jbMat jbImgproc::histoCmf(const jbMat& src){
         fprintf(stdout,"histoCmf : src is not 1 channel matrix\n");
         return jbMat();
     }
+
+    jbMat cmf = jbImgproc::histoPmf(src);
+    if( cmf.isEmpty()){
+        fprintf(stdout,"histoPmf is empty matrix\n");
+        return jbMat();
+    }
+
+    double *srcDat_pt = cmf.getMat().get();
+
+    for(int k=1; k < 256 ; k++)
+        srcDat_pt[k] += srcDat_pt[k-1];
+
+
+    return cmf;
+}
+
+jbMat jbImgproc::clip_HistoPmf(const jbMat& src,const unsigned int clipVal){
+    int ch  = src.getChannel();
+    if( src.isEmpty() ){
+        fprintf(stdout,"clip_histoPmf : src argument is empty matrix\n");
+        return jbMat();
+    }else if( ch != 1) {
+        fprintf(stdout,"clip_histoPmf : src is not 1 channel matrix\n");
+        return jbMat();
+    }
+
     jbMat pmf = jbImgproc::histoPmf(src);
     if( pmf.isEmpty()){
         fprintf(stdout,"histoPmf is empty matrix\n");
@@ -204,8 +238,94 @@ jbMat jbImgproc::histoCmf(const jbMat& src){
 
     double *srcDat_pt = pmf.getMat().get();
 
+    // clipping
+    unsigned int sum_clipped =0;
+    unsigned int binval;
+    for(int k=0; k < 256 ; k++){
+        binval = (unsigned int)srcDat_pt[k];
+        if( binval > clipVal){
+            sum_clipped += binval - clipVal;
+            srcDat_pt[k] = clipVal;
+        }
+    }
+    sum_clipped >>= 8; // divided by 256
+    // distributing the clipped sum
+    for(int k=0; k < 256 ; k++){
+        srcDat_pt[k] += sum_clipped;
+    }
+
+    return pmf;
+}
+
+jbMat jbImgproc::clip_HistoCmf(const jbMat& src,const unsigned int clipVal){
+    int ch  = src.getChannel();
+
+    if( src.isEmpty() ){
+        fprintf(stdout,"histoCmf : src argument is empty matrix\n");
+        return jbMat();
+    }else if( ch != 1) {
+        fprintf(stdout,"histoCmf : src is not 1 channel matrix\n");
+        return jbMat();
+    }
+
+    jbMat cmf = jbImgproc::histoPmf(src);
+    if( cmf.isEmpty()){
+        fprintf(stdout,"histoPmf is empty matrix\n");
+        return jbMat();
+    }
+
+    double *srcDat_pt = cmf.getMat().get();
+
+    // clipping
+    unsigned int sum_clipped =0;
+    unsigned int binval;
+    for(int k=0; k < 256 ; k++){
+        binval = (unsigned int)srcDat_pt[k];
+        if( binval > clipVal){
+            sum_clipped += binval - clipVal;
+            srcDat_pt[k] = clipVal;
+        }
+    }
+    sum_clipped >>= 8; // divided by 256
+    // distributing the clipped sum
+    for(int k=0; k < 256 ; k++){
+        srcDat_pt[k] += sum_clipped;
+    }
+
+    // making cumiltive data
     for(int k=1; k < 256 ; k++)
         srcDat_pt[k] += srcDat_pt[k-1];
 
-    return pmf;
+    return cmf;
+}
+
+jbMat jbImgproc::clip_HistoEqual(const jbMat& src,const jbMat& histCmf){
+    int ch  = src.getChannel();
+
+    if( src.isEmpty() ){
+        fprintf(stdout,"histoEqual : src argument is empty matrix\n");
+        return jbMat();
+    }else if( ch != 1) {
+        fprintf(stdout,"histoEqual : src is not 1 channel matrix\n");
+        return jbMat();
+    }else if( histCmf.isEmpty()){
+        fprintf(stdout,"histCmf is empty \n");
+        return jbMat();
+    }
+
+    jbMat A = src.copy();
+
+    double *srcDat_pt = src.getMat().get();
+    double *mapDat_pt = histCmf.getMat().get();
+    double *tarDat_pt = A.getMat().get();
+    unsigned int dat;
+    unsigned int binCnt = histCmf.getLength();
+    for(int i=0; i < src.getLength(); i++){
+        dat = static_cast<unsigned int>(srcDat_pt[i]);
+        if(binCnt < dat )
+            dat = binCnt;
+        tarDat_pt[i] = mapDat_pt[dat];
+    }
+
+    return A;
 }
