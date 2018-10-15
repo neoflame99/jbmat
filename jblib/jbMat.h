@@ -5,9 +5,15 @@
 #include <memory>
 #include <initializer_list>
 #include <vector>
+#ifdef _MACOS_
+    #include <string>
+#else
+    #include <string.h>
+#endif
 
 //-- shallow copy version & using shared_ptr
 typedef std::shared_ptr<double> ptr_double;
+typedef unsigned int uint;
 
 class jbMat{
 private:    
@@ -42,14 +48,15 @@ public:
     jbMat( std::initializer_list<int> list );
     jbMat( std::initializer_list<float> list );
     ~jbMat();
-    //double *getMat() const { return mA; }
+
     ptr_double getMat() const { return mA; }
     bool isEmpty() const { return ((length <= 0) ? true : false); }
     void setRowCol(int r, int c, int ch=1);
     jbMat copy() const;
-    jbMat copyChannelN(const unsigned int NoCh=0) const;
-    void setChannelN(const jbMat& src, const unsigned int srcCh=0, const unsigned int tarCh=0);
-    void setChannelN(const jbMat& src, const unsigned int srcfromCh=0,const unsigned int Channels=1, const unsigned int tarToCh=0);
+    jbMat copyChannelN(const uint NoCh=0) const;
+    jbMat copySubMat(const uint startRow, const uint endRow, const uint startCol, const uint endCol) const;
+    void setChannelN(const jbMat& src, const uint srcCh=0, const uint tarCh=0);
+    void setChannelN(const jbMat& src, const uint srcfromCh=0,const uint Channels=1, const uint tarToCh=0);
     void setName(std::string name);
 
     static jbMat ones(int r, int c, int ch= 1);

@@ -162,6 +162,12 @@ int main(int argc, char *argv[])
         fprintf(stdout,"\n");
     }
     */
+    jbMat mx = matIm.copySubMat(1,4,100,104);
+    mx.setName("mx_subMat");
+    mx.printMat();
+    jbMat my = matIm.copyChannelN(0);
+    jbMat mz = my.copySubMat(1,4,100,104);
+    mz.printMat();
 
     return 0;
 }

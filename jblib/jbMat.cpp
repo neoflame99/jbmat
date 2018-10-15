@@ -3,11 +3,6 @@
 #include <float.h>
 #include <iostream>
 
-#ifdef _MACOS_
-    #include <string>
-#else
-    #include <string.h>
-#endif
 
 int jbMat::instant_count = 0;
 
@@ -605,20 +600,8 @@ jbMat jbMat::zeros(int r, int c, int ch){
     return A;
 }
 
-/*
-jbMat jbMat::getChannelN(const unsigned int NoCh){
-    jbMat A(*this);
-    int numCh = NoCh;
-    if(numCh >= A.getChannel()){
-        fprintf(stdout,"channel number of getNchannel() is out of bound\n The last channel is selected\n");
-        numCh = A.getChannel()-1;
-    }
 
-    A.mA = A.mA+A.lenRowCol*numCh;
-    return A;
-}*/
-
-jbMat jbMat::copyChannelN(const unsigned int NoCh) const{
+jbMat jbMat::copyChannelN(const uint NoCh) const{
     jbMat A(row,col,1);
 
     int numCh = NoCh;
@@ -636,7 +619,7 @@ jbMat jbMat::copyChannelN(const unsigned int NoCh) const{
     return A;
 }
 
-void jbMat::setChannelN(const jbMat& src, const unsigned int srcCh, const unsigned int tarCh){
+void jbMat::setChannelN(const jbMat& src, const uint srcCh, const uint tarCh){
     if(src.getChannel()-1 < srcCh){
         fprintf(stdout,"setChannelN(): src argument has less channel than argument srcCh\n");
         return ;
@@ -662,7 +645,7 @@ void jbMat::setChannelN(const jbMat& src, const unsigned int srcCh, const unsign
 
 }
 
-void jbMat::setChannelN(const jbMat& src, const unsigned int srcFromCh,const unsigned int Channels, const unsigned int tarToCh){
+void jbMat::setChannelN(const jbMat& src, const uint srcFromCh,const uint Channels, const uint tarToCh){
     if(src.getChannel()-1 < srcFromCh+Channels ){
         fprintf(stdout,"setChannelN(): srcFromCh and Channels are not correct! \n");
         return ;
@@ -683,7 +666,7 @@ void jbMat::setChannelN(const jbMat& src, const unsigned int srcFromCh,const uns
     int src_offset = srcFromCh*lenRowCol;
     int tar_offset = tar_ch*lenRowCol;
 
-    for(int j=0; j < Channels ; j++){
+    for(uint j=0; j < Channels ; j++){
         for(int i=0; i < lenRowCol; i++ )
             dat_ptr[tar_offset+i] = srcdat_ptr[src_offset+i];
         src_offset += lenRowCol;
@@ -694,4 +677,32 @@ void jbMat::setChannelN(const jbMat& src, const unsigned int srcFromCh,const uns
 
 void jbMat::setName(std::string name){
     obj_name = name;
+}
+
+jbMat jbMat::copySubMat(const uint startRow, const uint endRow, const uint startCol, const uint endCol) const {
+    if( startRow > row || endRow > row || startCol > col || endCol > col){
+        fprintf(stdout,"copySubMat() : one or more arguments are out of bound from *this mat \n");
+        return jbMat();
+    }
+
+    int new_row = endRow-startRow+1;
+    int new_col = endCol-startCol+1;
+    jbMat A( new_row, new_col, Nch);
+    double *tardat_ptr = A.getMat().get();
+
+    int ch_offset = 0 ;
+    int k = 0;
+    uint r, c, ch;
+    uint offset;
+    for( ch=0; ch < Nch; ch++){
+        for( r = startRow; r <= endRow; r++ ){
+            offset = ch_offset + r*col ;
+            for( c = startCol; c <= endCol ; c++){
+                tardat_ptr[k++] = dat_ptr[offset + c];
+            }
+        }
+        ch_offset += lenRowCol;
+    }
+
+    return A;
 }
