@@ -8,19 +8,34 @@
 
 //-- shallow copy version & using shared_ptr
 typedef std::shared_ptr<double> ptr_double;
+
 class jbMat{
 private:    
     ptr_double mA;
+    double *dat_ptr;
 
     int length;
     int lenRowCol;
     void alloc(int len);
     int row, col, Nch;
 
+    std::string obj_name;
+
+private:
+    void sync_data_ptr(){
+        if( mA.get() != dat_ptr)
+            dat_ptr = mA.get();
+    }
+    void init(int r, int c, int ch);
+    void initName();
+public:
+
+
 public:
 
     jbMat();
     jbMat(int r, int c, int ch=1);
+    jbMat(int r, int c, int ch, std::string name);
     jbMat(int rc );
     jbMat(const jbMat& mat);
     jbMat( std::initializer_list<double> list );
@@ -32,11 +47,14 @@ public:
     bool isEmpty() const { return ((length <= 0) ? true : false); }
     void setRowCol(int r, int c, int ch=1);
     jbMat copy() const;
-//    jbMat getChannelN(const unsigned int NoCh=0);
-    jbMat copyChannelN(const unsigned int NoCh=0);
-//    jbMat copySubMat(const int r_start, const int r_end, const int c_start, const int c_end, const int ch_start, const int ch_end);
+    jbMat copyChannelN(const unsigned int NoCh=0) const;
+    void setChannelN(const jbMat& src, const unsigned int srcCh=0, const unsigned int tarCh=0);
+    void setChannelN(const jbMat& src, const unsigned int srcfromCh=0,const unsigned int Channels=1, const unsigned int tarToCh=0);
+    void setName(std::string name);
+
     static jbMat ones(int r, int c, int ch= 1);
     static jbMat zeros(int r, int c, int ch= 1);
+    static int instant_count;
 
 
     //-- overloading operators

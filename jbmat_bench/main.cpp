@@ -117,9 +117,9 @@ int main(int argc, char *argv[])
     jbMat mj = jbImgproc::rgb2gray(mg);
     mj.printMat();
 /**/
-    jbMat mk(3,4,2);
-    jbMat ml(4,3,2);
-    jbMat mn(4,4,1);
+    jbMat mk(3,4,2,"mk");
+    jbMat ml(4,3,2,"ml");
+    jbMat mn(4,4,1,"mn");
     for(int i=0; i < 24; i++){
         mk[i] = rand() % 50;
         ml[i] = rand() % 80;
@@ -127,9 +127,9 @@ int main(int argc, char *argv[])
             mn[i] = rand() % 100;
     }
     jbMat mm = jbMath::mulMatrix(mk,ml);
-    mk.printMat(std::string("mk"));
-    ml.printMat(std::string("ml"));
-    mm.printMat(std::string("mm"));
+    mk.printMat(); //std::string("mk"));
+    ml.printMat(); //std::string("ml"));
+    mm.printMat(); //std::string("mm"));
     mm.transpose();
     mm.printMat(std::string("mm_transposed"));
     mk.reshape(12,2,1);

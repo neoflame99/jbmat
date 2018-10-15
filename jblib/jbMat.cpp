@@ -2,17 +2,25 @@
 #include "jbMat.h"
 #include <float.h>
 #include <iostream>
+
 #ifdef _MACOS_
     #include <string>
 #else
     #include <string.h>
 #endif
 
-//-- shallow copy version & using shared_ptr
+int jbMat::instant_count = 0;
 
+//-- shallow copy version & using shared_ptr
 void jbMat::alloc(int len){
 
-    mA = ptr_double (new double[len], std::default_delete<double[]>());
+    if(len < 0){
+        mA = nullptr;
+        dat_ptr = nullptr;
+    }else{
+        mA = ptr_double (new double[len], std::default_delete<double[]>());
+        dat_ptr = mA.get();
+    }
     /*
     try{
         mA = (len==0)? nullptr : new double[len];
@@ -22,16 +30,36 @@ void jbMat::alloc(int len){
     }
     */
 }
-
-jbMat::jbMat():mA(nullptr),row(0),col(0),Nch(0){length =0; lenRowCol=0; }
-jbMat::jbMat(int rc ):mA(nullptr){
-    jbMat(rc, rc, 1);
-}
-jbMat::jbMat(int r, int c, int ch):mA(nullptr),row(r),col(c),Nch(ch){
+void jbMat::init(int r, int c, int ch){
+    row = r;
+    col = c;
+    Nch = ch;
     lenRowCol = r*c;
-    length    = lenRowCol*ch;
-
+    length = lenRowCol * ch;
     alloc(length);
+}
+void jbMat::initName(){
+    obj_name =std::string( "jbMat_") + std::to_string (instant_count);
+    instant_count++;
+}
+
+jbMat::jbMat():mA(nullptr){
+    init(0,0,0);
+    initName();
+
+}
+jbMat::jbMat(int rc ):mA(nullptr){
+    init(rc, rc, 1);
+    initName();
+}
+jbMat::jbMat(int r, int c, int ch):mA(nullptr){
+    init(r, c, ch);
+    initName();
+}
+
+jbMat::jbMat(int r, int c, int ch, std::string name):mA(nullptr){
+    init(r, c, ch);
+    obj_name = name;
 }
 
 jbMat::jbMat(const jbMat& mat){
@@ -40,7 +68,9 @@ jbMat::jbMat(const jbMat& mat){
     Nch = mat.getChannel();
     length    = mat.getLength();
     lenRowCol = row*col;
-    mA = mat.getMat();
+    mA      = mat.getMat();
+    sync_data_ptr();
+    initName();
 
     /* -- deep copying
     alloc(length);
@@ -55,59 +85,44 @@ jbMat::jbMat(const jbMat& mat){
 }
 
 jbMat::jbMat( std::initializer_list<double> list ){
-    //-- Making a vector by column vector type
-    length = list.size();
-    row    = length;
-    col    = 1;
-    Nch    = 1;
-    lenRowCol = length;
+    //-- Making a vector by column vector type    
+    init(list.size(),1,1);
 
-    alloc(length);
-    double* pt_mdat = mA.get();
+    dat_ptr = mA.get();
     if(mA!=nullptr){
         std::vector<double> v;
         v.insert(v.end(),list.begin(),list.end());
 
         for(int i=0;i<length;i++){
-            pt_mdat[i] = v.at(i);
+            dat_ptr[i] = v.at(i);
         }
     }
 }
 jbMat::jbMat( std::initializer_list<int> list ){
     //-- Making a vector by column vector type
-    length = list.size();
-    row    = length;
-    col    = 1;
-    Nch    = 1;
-    lenRowCol= length;
+    init(list.size(),1,1);
 
-    alloc(length);
-    double* pt_mdat = mA.get();
+    dat_ptr = mA.get();
     if(mA!=nullptr){
         std::vector<int> v;
         v.insert(v.end(),list.begin(),list.end());
 
         for(int i=0;i<length;i++){
-            pt_mdat[i] = v.at(i);
+            dat_ptr[i] = v.at(i);
         }
     }
 }
 jbMat::jbMat( std::initializer_list<float> list ){
     //-- Making a vector by column vector type
-    length = list.size();
-    row    = length;
-    col    = 1;
-    Nch    = 1;
-    lenRowCol= length;
+    init(list.size(),1,1);
 
-    alloc(length);
-    double* pt_mdat = mA.get();
+    dat_ptr = mA.get();
     if(mA!=nullptr){
         std::vector<float> v;
         v.insert(v.end(),list.begin(),list.end());
 
         for(int i=0;i<length;i++){
-            pt_mdat[i] = v.at(i);
+            dat_ptr[i] = v.at(i);
         }
     }
 }
@@ -127,7 +142,7 @@ void jbMat::setRowCol(int r, int c, int ch){
     Nch = ch;
     lenRowCol = lenrc;
     length = len;
-
+    sync_data_ptr();
 }
 
 /*
@@ -160,6 +175,7 @@ jbMat& jbMat::operator=(const jbMat& other){
     length = other.getLength();
     lenRowCol = row*col;
     mA  = other.getMat();
+    sync_data_ptr();
 
     return *this;
 }
@@ -474,7 +490,7 @@ void jbMat::transpose(){
         return;
     }
     double *mdat = mA.get();
-    int i, j, k, ch_offset, i_row, j_row;
+    int i, j, k, ch_offset;
     for(k=0; k < Nch; k++){
         ch_offset = k* lenRowCol;
         for(i=0; i < row; i++){
@@ -483,6 +499,7 @@ void jbMat::transpose(){
         }
     }
     mA.reset(tmA,std::default_delete<double[]>());
+    sync_data_ptr();
 
     int row_tr = col;
     col = row;
@@ -490,7 +507,7 @@ void jbMat::transpose(){
 }
 
 void jbMat::printMat() const {
-    printMat(std::string(""));
+    printMat(obj_name);
 }
 void jbMat::printMat(const std::string objname) const
 {
@@ -601,7 +618,7 @@ jbMat jbMat::getChannelN(const unsigned int NoCh){
     return A;
 }*/
 
-jbMat jbMat::copyChannelN(const unsigned int NoCh){
+jbMat jbMat::copyChannelN(const unsigned int NoCh) const{
     jbMat A(row,col,1);
 
     int numCh = NoCh;
@@ -609,6 +626,7 @@ jbMat jbMat::copyChannelN(const unsigned int NoCh){
         fprintf(stdout,"channel number of getNchannel() is out of bound\n The last channel is selected\n");
         numCh = A.getChannel()-1;
     }
+
     double *srcDat_pt = mA.get();
     double *tarDat_pt = A.mA.get();
     int offset = numCh*lenRowCol;
@@ -616,4 +634,64 @@ jbMat jbMat::copyChannelN(const unsigned int NoCh){
         tarDat_pt[i] = srcDat_pt[offset+i];
 
     return A;
+}
+
+void jbMat::setChannelN(const jbMat& src, const unsigned int srcCh, const unsigned int tarCh){
+    if(src.getChannel()-1 < srcCh){
+        fprintf(stdout,"setChannelN(): src argument has less channel than argument srcCh\n");
+        return ;
+    }
+
+    int tar_ch;
+    if(isEmpty()){
+        init(src.getRow(),src.getCol(), 1);
+        tar_ch = 0;
+    }else if( src.getRow() != row && src.getCol() != col && src.getChannel() != Nch){
+        fprintf(stdout,"*this and src are not equal size. *this:(%d, %d, %d) != src(%d, %d, %d)\n",row,col,Nch,src.getRow(),src.getCol(),src.getChannel());
+        return ;
+    }else
+        tar_ch = tarCh;
+
+    sync_data_ptr();
+    double *srcdat_ptr = src.getMat().get();
+    int src_offset = srcCh*lenRowCol;
+    int tar_offset = tar_ch*lenRowCol;
+
+    for(int i=0; i < lenRowCol; i++ )
+        dat_ptr[tar_offset+i] = srcdat_ptr[src_offset+i];
+
+}
+
+void jbMat::setChannelN(const jbMat& src, const unsigned int srcFromCh,const unsigned int Channels, const unsigned int tarToCh){
+    if(src.getChannel()-1 < srcFromCh+Channels ){
+        fprintf(stdout,"setChannelN(): srcFromCh and Channels are not correct! \n");
+        return ;
+    }
+
+    int tar_ch;
+    if(isEmpty()){
+        init(src.getRow(),src.getCol(), Channels );
+        tar_ch = 0;
+    }else if( src.getRow() != row && src.getCol() != col && src.getChannel() != Nch){
+        fprintf(stdout,"*this and src are not equal size. *this:(%d, %d, %d) != src(%d, %d, %d)\n",row,col,Nch,src.getRow(),src.getCol(),src.getChannel());
+        return ;
+    }else
+        tar_ch = tarToCh;
+
+    sync_data_ptr();
+    double *srcdat_ptr = src.getMat().get();
+    int src_offset = srcFromCh*lenRowCol;
+    int tar_offset = tar_ch*lenRowCol;
+
+    for(int j=0; j < Channels ; j++){
+        for(int i=0; i < lenRowCol; i++ )
+            dat_ptr[tar_offset+i] = srcdat_ptr[src_offset+i];
+        src_offset += lenRowCol;
+        tar_offset += lenRowCol;
+    }
+
+}
+
+void jbMat::setName(std::string name){
+    obj_name = name;
 }
