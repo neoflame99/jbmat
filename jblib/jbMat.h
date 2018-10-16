@@ -55,7 +55,6 @@ public:
     jbMat copy() const;
     jbMat copyChannelN(const uint NoCh=0) const;
     jbMat copySubMat(const uint startRow, const uint endRow, const uint startCol, const uint endCol) const;
-    void setChannelN(const jbMat& src, const uint srcCh=0, const uint tarCh=0);
     void setChannelN(const jbMat& src, const uint srcfromCh=0,const uint Channels=1, const uint tarToCh=0);
     void setName(std::string name);
 

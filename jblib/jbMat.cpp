@@ -618,7 +618,7 @@ jbMat jbMat::copyChannelN(const uint NoCh) const{
 
     return A;
 }
-
+/*
 void jbMat::setChannelN(const jbMat& src, const uint srcCh, const uint tarCh){
     if(src.getChannel()-1 < srcCh){
         fprintf(stdout,"setChannelN(): src argument has less channel than argument srcCh\n");
@@ -629,7 +629,10 @@ void jbMat::setChannelN(const jbMat& src, const uint srcCh, const uint tarCh){
     if(isEmpty()){
         init(src.getRow(),src.getCol(), 1);
         tar_ch = 0;
-    }else if( src.getRow() != row && src.getCol() != col && src.getChannel() != Nch){
+    }else if( Nch-1 < tarCh){
+        fprintf(stdout,"setChannelN(): tarCh is out of channel bound \n");
+        return ;
+    }else if( src.getRow() != row && src.getCol() != col ){
         fprintf(stdout,"*this and src are not equal size. *this:(%d, %d, %d) != src(%d, %d, %d)\n",row,col,Nch,src.getRow(),src.getCol(),src.getChannel());
         return ;
     }else
@@ -642,11 +645,10 @@ void jbMat::setChannelN(const jbMat& src, const uint srcCh, const uint tarCh){
 
     for(int i=0; i < lenRowCol; i++ )
         dat_ptr[tar_offset+i] = srcdat_ptr[src_offset+i];
-
-}
+}*/
 
 void jbMat::setChannelN(const jbMat& src, const uint srcFromCh,const uint Channels, const uint tarToCh){
-    if(src.getChannel()-1 < srcFromCh+Channels ){
+    if(src.getChannel() < srcFromCh+Channels ){
         fprintf(stdout,"setChannelN(): srcFromCh and Channels are not correct! \n");
         return ;
     }
@@ -655,7 +657,10 @@ void jbMat::setChannelN(const jbMat& src, const uint srcFromCh,const uint Channe
     if(isEmpty()){
         init(src.getRow(),src.getCol(), Channels );
         tar_ch = 0;
-    }else if( src.getRow() != row && src.getCol() != col && src.getChannel() != Nch){
+    }else if( Nch < tarToCh+Channels){
+        fprintf(stdout,"setChannelN(): tarToCh and Channels are not correct! \n");
+        return ;
+    }else if( src.getRow() != row && src.getCol() != col){
         fprintf(stdout,"*this and src are not equal size. *this:(%d, %d, %d) != src(%d, %d, %d)\n",row,col,Nch,src.getRow(),src.getCol(),src.getChannel());
         return ;
     }else

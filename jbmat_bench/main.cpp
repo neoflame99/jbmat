@@ -9,6 +9,11 @@
 #include <QDir>
 #include <QDebug>
 #include <stdlib.h>
+#ifdef _MACOS_
+    #include <string>
+#else
+    #include <string.h>
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -140,16 +145,21 @@ int main(int argc, char *argv[])
     jbMat Y  = jbImgproc::rgb2gray(matIm);
     jbMat yccIm = jbImgproc::rgb2ycc(matIm);
     jbMat ms = jbImgproc::clip_HistoCmf(Y, 1000);
-
     ms /= ms[255];
     ms *= 255;
     jbMat mv = jbImgproc::clip_HistoEqual(Y,ms);
-    for(int i=0; i < Y.getRow()*Y.getCol(); i++)
-        yccIm[i] = mv[i] ;
+    yccIm.setChannelN(mv,0,1,0);
+    jbMat mvv;
+    mvv.setName("mvv");
+    mvv.setChannelN(Y,0,1,0);
+    //for(int i=0; i < Y.getRow()*Y.getCol(); i++)
+    //    yccIm[i] = mv[i] ;
     jbMat histEqIm = jbImgproc::ycc2rgb(yccIm);
     QImage cvim2 = QimMat::jbmat2qim(histEqIm);
     //QImage cvim = QimMat::jbmat2qim(matIm);
     cvim2.save(QString("../jbmat_bench/test_histEq.bmp"));
+    QImage cvim3 = QimMat::jbmat2qim(mvv);
+    cvim3.save(QString("../jbmat_bench/test_y.bmp"));
     /*
     jbMat mt = jbImgproc::histoPmf(Y);
     jbMat ms = jbImgproc::histoCmf(Y);
