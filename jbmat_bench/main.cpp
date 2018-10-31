@@ -1,8 +1,10 @@
-//#include <QCoreApplication>
+
 #include "../jblib/jbMat.h"
-#include "../jblib/jbmath.h"
-#include "../jblib/qimmat.h"
-#include "../jblib/jbimgproc.h"
+//#include "../jblib/template_sp.h"
+//#include "../jblib/jbMat.cpp"
+//#include "../jblib/jbmath.h"
+//#include "../jblib/qimmat.h"
+//#include "../jblib/jbimgproc.h"
 
 #include <QImage>
 #include <QString>
@@ -18,28 +20,34 @@
 int main(int argc, char *argv[])
 {
 
-//    QCoreApplication a(argc, argv);
-//    return a.exec();
     int row = 7;
     int col = 7;
     int ch = 2;
     int rowcol = row*col;
-    jbMat ma(row,col,ch);
+    jbMat ma(DTYP::DOUBLE, row,col,ch);
     //double* a = ma.getMat();
-    double* a = ma.getMat().get();
+    double* a = (double *)ma.getMat().get();
     int k = 1;
     for(int c=0; c < ch; c++){
         for(int i=0; i < row*col; i++){
             a[c*rowcol + i] = k++;
         }
     }
-
-    k=0;
     ma.printMat();
+    ma += 10;
+    ma.printMat();
+    jbMat maa = ma.copy();
+    maa.plusMat(ma);
+    maa.printMat();
+    double* b = ma.getDataPtr<double>();
+    ma.at<double>(0) = 1000;
+    ma.printMat();
+/*
+    k=0;
     jbMat mb(5,5,2);
     jbMat mc(5,5,2);
     //double *b = mb.getMat();
-    double* b = mb.getMat().get();
+    double* b = (double *)mb.getMat().get();
     for(int c=0; c < mb.getChannel(); c++){
         for(int i=0; i < 5; i++){
             for (int j=0; j < 5; j++){
@@ -67,16 +75,6 @@ int main(int argc, char *argv[])
     me.printMat();
     mf.printMat();
     md.printMat();
-/*
-    for(int k=1; k<=3;k++ ){
-        QString fname1 = QString("../%1.bmp").arg(k);
-        QString fname2 = QString("../%1_1.bmp").arg(k);
-        QImage img(fname1);
-        jbMat matIm = QimMat::qim2jbmat(img);
-        QImage cvim = QimMat::jbmat2qim(matIm);
-        cvim.save(fname2);
-    }
-*/
 
     qDebug() << QDir::currentPath();
 
@@ -115,13 +113,13 @@ int main(int argc, char *argv[])
     mg(0,6,2) = 1;
 
     mg.printMat();
-    jbMat mh = jbImgproc::rgb2ycc(mg,1);
+    jbMat mh = jbimgproc::rgb2ycc(mg,1);
     mh.printMat();
-    jbMat mi = jbImgproc::ycc2rgb(mh,1);
+    jbMat mi = jbimgproc::ycc2rgb(mh,1);
     mi.printMat();
-    jbMat mj = jbImgproc::rgb2gray(mg);
+    jbMat mj = jbimgproc::rgb2gray(mg);
     mj.printMat();
-/**/
+
     jbMat mk(3,4,2,"mk");
     jbMat ml(4,3,2,"ml");
     jbMat mn(4,4,1,"mn");
@@ -142,42 +140,30 @@ int main(int argc, char *argv[])
     mn.printMat(std::string("mn"));
     //mn = jbMath::inverse(mn);
     //mn.printMat(std::string("mn inverse"));
-    jbMat Y  = jbImgproc::rgb2gray(matIm);
-    jbMat yccIm = jbImgproc::rgb2ycc(matIm);
-    jbMat ms = jbImgproc::clip_HistoCmf(Y, 1000);
+    jbMat Y  = jbimgproc::rgb2gray(matIm);
+    jbMat yccIm = jbimgproc::rgb2ycc(matIm);
+    jbMat ms = jbimgproc::clip_HistoCmf(Y, 1000);
     ms /= ms[255];
     ms *= 255;
-    jbMat mv = jbImgproc::clip_HistoEqual(Y,ms);
+    jbMat mv = jbimgproc::clip_HistoEqual(Y,ms);
     yccIm.setChannelN(mv,0,1,0);
     jbMat mvv;
     mvv.setName("mvv");
     mvv.setChannelN(Y,0,1,0);
     //for(int i=0; i < Y.getRow()*Y.getCol(); i++)
     //    yccIm[i] = mv[i] ;
-    jbMat histEqIm = jbImgproc::ycc2rgb(yccIm);
+    jbMat histEqIm = jbimgproc::ycc2rgb(yccIm);
     QImage cvim2 = QimMat::jbmat2qim(histEqIm);
     //QImage cvim = QimMat::jbmat2qim(matIm);
     cvim2.save(QString("../jbmat_bench/test_histEq.bmp"));
     QImage cvim3 = QimMat::jbmat2qim(mvv);
     cvim3.save(QString("../jbmat_bench/test_y.bmp"));
-    /*
-    jbMat mt = jbImgproc::histoPmf(Y);
-    jbMat ms = jbImgproc::histoCmf(Y);
-    if(!mt.isEmpty()){
-        for(int i=0; i < 256; i++ ){
-            fprintf(stdout," %3d:%6d,%7d  ", i, (int)mt[i],(int)ms[i]);
-            if(i%3==2)
-                fprintf(stdout,"\n");
-        }
-        fprintf(stdout,"\n");
-    }
-    */
     jbMat mx = matIm.copySubMat(1,4,100,104);
     mx.setName("mx_subMat");
     mx.printMat();
     jbMat my = matIm.copyChannelN(0);
     jbMat mz = my.copySubMat(1,4,100,104);
     mz.printMat();
-
+*/
     return 0;
 }

@@ -16,16 +16,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-    ../jblib/jbMat.cpp \
-    ../jblib/jbmath.cpp \
-    ../jblib/qimmat.cpp \
-    ../jblib/jbimgproc.cpp
+    ../jblib/jbMat.cpp
+#    ../jblib/jbmath.cpp \
+#    ../jblib/qimmat.cpp \
+#    ../jblib/jbimgproc.cpp
 
 HEADERS += \
     ../jblib/jbMat.h \
-    ../jblib/jbmath.h \
-    ../jblib/qimmat.h \
-    ../jblib/jbimgproc.h
+#    ../jblib/template_sp.h
+#    ../jblib/jbmath.h \
+#    ../jblib/qimmat.h \
+#    ../jblib/jbimgproc.h
 
 macx{
     DEFINES += _MACOS_
