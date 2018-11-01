@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     int ch = 2;
     int rowcol = row*col;
     jbMat ma(DTYP::DOUBLE, row,col,ch);
-    //double* a = ma.getMat();
+
     double* a = (double *)ma.getMat().get();
     int k = 1;
     for(int c=0; c < ch; c++){
@@ -33,15 +33,27 @@ int main(int argc, char *argv[])
             a[c*rowcol + i] = k++;
         }
     }
+
     ma.printMat();
     ma += 10;
     ma.printMat();
     jbMat maa = ma.copy();
-    maa.plusMat(ma);
+    //maa.plusMat(ma);
+    maa += ma;
     maa.printMat();
     double* b = ma.getDataPtr<double>();
     ma.at<double>(0) = 1000;
     ma.printMat();
+    ma.changeDType(DTYP::INT);
+    ma.printMat();
+    ma.at<int>(2,2,1) = 2000;
+    ma.printMat();
+    jbMat mab = ma*ma;
+    mab.printMat();
+    jbMat mac = ma/ma;
+    mac.printMat();
+    jbMat mad = ma -maa;
+    mad.printMat();
 /*
     k=0;
     jbMat mb(5,5,2);

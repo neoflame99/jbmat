@@ -190,263 +190,137 @@ jbMat& jbMat::operator=(const jbMat& other){
 }
 
 jbMat& jbMat::operator+=(const jbMat& other){
-    if(isEmpty() || other.isEmpty()) {
-        fprintf(stdout, "plusMat method : either of this or other is empty\n");
-        return *this;
-    }else if(length != other.getLength()){
-        fprintf(stdout, "plusMat method : this and other are not the same size\n");
-        return *this;
-    }else if(datT != other.getDatType()) {
-        fprintf(stdout, "plusMat method : datT's of this and other are not the same\n");
-        return *this;
-    }
-    switch ( datT ){
-    case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-    case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-    case DTYP::INT    : _plus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-    case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    }
-    return *this;
+    return plusMat(other);
 }
 
 jbMat& jbMat::operator+=(const double scalar){
-    if(isEmpty()){
-        fprintf(stderr," operator+= : this mat is empty \n");
-        return *this;
-    }    
-    switch(datT){
-    case DTYP::DOUBLE : _plus_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _plus_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _plus_scalar<int   ,double>(getDataPtr<int   >(), scalar, length); break;
-    case DTYP::UCHAR  : _plus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _plus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
-    }
-    return *this;
+    return plusScalar(scalar);
 }
 
 jbMat& jbMat::operator-=(const jbMat& other){
-    if(isEmpty() || other.isEmpty()) {
-        fprintf(stdout, "plusMat method : either of this or other is empty\n");
-        return *this;
-    }else if(length != other.getLength()){
-        fprintf(stdout, "plusMat method : this and other are not the same size\n");
-        return *this;
-    }else if(datT != other.getDatType()) {
-        fprintf(stdout, "plusMat method : datT's of this and other are not the same\n");
-        return *this;
-    }
-    switch ( datT ){
-    case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-    case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-    case DTYP::INT    : _minus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-    case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    }
-    return *this;
+    return minusMat(other);
 }
 
-jbMat& jbMat::operator-=(const double scalar){
-    if(isEmpty()){
-        fprintf(stderr," operator+= : this mat is empty \n");
-        return *this;
-    }
-    switch(datT){
-    case DTYP::DOUBLE : _minus_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _minus_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _minus_scalar<int   ,double>(getDataPtr<int   >(), scalar, length); break;
-    case DTYP::UCHAR  : _minus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _minus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
-    }
-    return *this;
+jbMat& jbMat::operator-=(const double scalar){    
+    return minusScalar(scalar);
 }
-
 
 jbMat& jbMat::operator*=(const jbMat& other){
-    if(isEmpty() || other.isEmpty()) {
-        fprintf(stdout, "plusMat method : either of this or other is empty\n");
-        return *this;
-    }else if(length != other.getLength()){
-        fprintf(stdout, "plusMat method : this and other are not the same size\n");
-        return *this;
-    }else if(datT != other.getDatType()) {
-        fprintf(stdout, "plusMat method : datT's of this and other are not the same\n");
-        return *this;
-    }
-    switch ( datT ){
-    case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-    case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-    case DTYP::INT    : _multiply_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-    case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    }
-    return *this;
+    return multiplyMat(other);
 }
 
 jbMat& jbMat::operator*=(const double scalar){
-    if(isEmpty()){
-        fprintf(stderr," operator+= : this mat is empty \n");
-        return *this;
-    }
-    switch(datT){
-    case DTYP::DOUBLE : _multiply_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _multiply_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _multiply_scalar<int   ,double>(getDataPtr<int   >(), scalar, length); break;
-    case DTYP::UCHAR  : _multiply_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _multiply_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
-    }
-    return *this;
+    return minusScalar(scalar);
 }
 
 jbMat& jbMat::operator/=(const jbMat& other){
-    if(isEmpty() || other.isEmpty()) {
-        fprintf(stdout, "plusMat method : either of this or other is empty\n");
-        return *this;
-    }else if(length != other.getLength()){
-        fprintf(stdout, "plusMat method : this and other are not the same size\n");
-        return *this;
-    }else if(datT != other.getDatType()) {
-        fprintf(stdout, "plusMat method : datT's of this and other are not the same\n");
-        return *this;
-    }
-    switch ( datT ){
-    case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-    case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-    case DTYP::INT    : _divide_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-    case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    }
-    return *this;
+    return divideMat(other);
 }
 
 jbMat& jbMat::operator/=(const double scalar){
+    return divideScalar(scalar);
+}
+
+
+jbMat jbMat::operator+(const jbMat& other) const{
+    if( row != other.getRow() || col != other.getCol()|| Nch != other.getChannel() ){
+        fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
+        return jbMat();
+    }else if(this->isEmpty()){
+        fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
+        return jbMat();
+    }
+
+    jbMat sum = this->copy();
+    sum.plusMat(other);
+
+    return sum;
+}
+
+jbMat jbMat::operator+(const double scalar) const{
     if(isEmpty()){
-        fprintf(stderr," operator+= : this mat is empty \n");
-        return *this;
-    }
-    switch(datT){
-    case DTYP::DOUBLE : _divide_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _divide_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divide_scalar<int   ,double>(getDataPtr<int   >(), scalar, length); break;
-    case DTYP::UCHAR  : _divide_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _divide_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
-    }
-    return *this;
-}
-/*
-/*
-jbMat jbMat::operator+(const jbMat& other){
-    if(this->row != other.getRow() || this->col != other.getCol()|| this->Nch != other.getChannel() ){
-        fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
+        fprintf(stderr," operator+ with scalar : this mat is empty \n");
         return jbMat();
-    }else if(this->isEmpty()){
-        fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
-        return *this;
     }
-    jbMat sum(this->row, this->col, this->Nch, this->datT);
-    for(int k=0; k < this->length ; k++)
-        sum[k] = (*this)[k] + other[k];
+    jbMat sum = this->copy();
+    sum.plusScalar(scalar);
 
     return sum;
 }
 
-jbMat jbMat::operator+(const double scalar){
+jbMat jbMat::operator-(const jbMat& other) const{
+    if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
+        fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
+        return jbMat();
+    }else if(this->isEmpty()){
+        fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
+        return jbMat();
+    }
+
+    jbMat subtract = this->copy();
+    subtract.minusMat(other);
+
+    return subtract;
+}
+jbMat jbMat::operator-(const double scalar) const{
     if(isEmpty()){
-        fprintf(stderr," operator+ : this mat is empty \n");
-        return jbMat;
-    }else{
-        jbMat sum(this->row, this->col, this->Nch, this->datT);
-        for(int k=0; k < this->length ; k++)
-            sum[k] = (*this)[k] + scalar;
-
-        return sum;
+        fprintf(stderr," operator- with scalar : this mat is empty \n");
+        return jbMat();
     }
+    jbMat subtract = this->copy();
+    subtract.minusScalar(scalar);
+
+    return subtract;
 }
 
-jbMat jbMat::operator-(const jbMat& other){
-    if(this->row != other.getRow() || this->col != other.getCol() || this->Nch != other.getChannel() ){
+jbMat jbMat::operator*(const jbMat& other) const{
+    if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
         return jbMat();
     }else if(this->isEmpty()){
         fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
-        return *this;
+        return jbMat();
     }
-    jbMat sum(this->row, this->col, this->Nch);
-    for(int k=0; k < this->length ; k++)
-        sum[k] = (*this)[k] - other[k];
+    jbMat product = this->copy();
+    product.multiplyMat(other);
 
-    return sum;
+    return product;
 }
-jbMat jbMat::operator-(const double scalar){
-    if(this->isEmpty()){
-        jbMat tmp(1,1,1);
-        tmp[0] = -scalar;
-        return tmp;
-    }else{
-        jbMat sum(this->row, this->col, this->Nch);
-        for(int k=0; k < this->length ; k++)
-            sum[k] = (*this)[k] - scalar;
-
-        return sum;
+jbMat jbMat::operator*(const double scalar) const{
+    if(isEmpty()){
+        fprintf(stderr," operator* with scalar : this mat is empty \n");
+        return jbMat();
     }
+    jbMat product = this->copy();
+    product.multiplyScalar(scalar);
+
+    return product;
 }
 
-jbMat jbMat::operator*(const jbMat& other){
-    if(this->row != other.getRow() || this->col != other.getCol() || this->Nch != other.getChannel() ){
+jbMat jbMat::operator/(const jbMat& other) const{
+    if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
         return jbMat();
     }else if(this->isEmpty()){
         fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
-        return *this;
-    }
-    jbMat sum(this->row, this->col, this->Nch);
-    for(int k=0; k < this->length ; k++)
-        sum[k] = (*this)[k] * other[k];
-
-    return sum;
-}
-jbMat jbMat::operator*(const double scalar){
-    if(this->isEmpty()){
-        jbMat tmp(1,1,1);
-        tmp[0] = -scalar;
-        return tmp;
-    }else{
-        jbMat sum(this->row, this->col, this->Nch);
-        for(int k=0; k < this->length ; k++)
-            sum[k] = (*this)[k] * scalar;
-
-        return sum;
-    }
-}
-
-jbMat jbMat::operator/(const jbMat& other){
-    if(this->row != other.getRow() || this->col != other.getCol() || this->Nch != other.getChannel() ){
-        fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
         return jbMat();
-    }else if(this->isEmpty()){
-        fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
-        return *this;
     }
-    jbMat sum(this->row, this->col, this->Nch);
-    for(int k=0; k < this->length ; k++)
-        sum[k] = (*this)[k] / other[k];
+    jbMat div = this->copy();
+    div.divideMat(other);
 
-    return sum;
+    return div;
 }
-jbMat jbMat::operator/(const double scalar){
-    if(this->isEmpty()){
-        jbMat tmp(1,1,1);
-        tmp[0] = -scalar;
-        return tmp;
-    }else{
-        jbMat sum(this->row, this->col, this->Nch);
-        for(int k=0; k < this->length ; k++)
-            sum[k] = (*this)[k] / scalar;
-
-        return sum;
+jbMat jbMat::operator/(const double scalar) const{
+    if(isEmpty()){
+        fprintf(stderr," operator/ with scalar : this mat is empty \n");
+        return jbMat();
     }
+    jbMat div = this->copy();
+    div.divideScalar(scalar);
+
+    return div;
 }
-*/
+
 
 uint jbMat::reshape(uint r, uint c, uint ch){
     int rc   = r*c;
@@ -499,6 +373,14 @@ void jbMat::changeDType(const DTYP dt){
     }else{
         fprintf(stderr, "argument dt of changeDType() is not match with any type\n");
     }
+#ifdef _DEBUG
+    switch(datT){
+    case DTYP::DOUBLE: fprintf(stdout,"datT is changed to double\n"); break;
+    case DTYP::FLOAT : fprintf(stdout,"datT is changed to float \n"); break;
+    case DTYP::INT   : fprintf(stdout,"datT is changed to int   \n"); break;
+    case DTYP::UCHAR : fprintf(stdout,"datT is changed to uchar \n"); break;
+    }
+#endif
 }
 
 void jbMat::transpose(){
@@ -547,7 +429,14 @@ void jbMat::printMat(const std::string objname) {
         fprintf(stdout,"Empty matrix\n");
         return ;
     }
-    _print((double *)dat_ptr);
+
+    switch(datT){
+    case DTYP::DOUBLE : _print((double *)dat_ptr); break;
+    case DTYP::FLOAT  : _print((float  *)dat_ptr); break;
+    case DTYP::INT    : _print((int    *)dat_ptr); break;
+    case DTYP::UCHAR  : _print((uchar  *)dat_ptr); break;
+    default           : fprintf(stdout, "datT is not matching with any type\n");
+    }
 }
 
 void jbMat::printMat()  {
@@ -705,19 +594,41 @@ jbMat& jbMat::plusMat(const jbMat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "plusMat method : either of this or other is empty\n");
         return *this;
-    }else if(length != other.getLength()){
-        fprintf(stdout, "plusMat method : this and other are not the same size\n");
-        return *this;
-    }else if(datT != other.getDatType()) {
-        fprintf(stdout, "plusMat method : datT's of this and other are not the same\n");
-        return *this;
     }
-    switch ( datT ){
-    case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-    case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-    case DTYP::INT    : _plus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-    case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+
+    DTYP othrdatT = other.getDatType();
+    if(  othrdatT == DTYP::DOUBLE){
+        switch ( datT ){
+        case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
+        case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _plus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<double>(), length); break;
+        case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        }
+    }else if( othrdatT == DTYP::FLOAT){
+        switch ( datT ){
+        case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
+        case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _plus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<float >(), length); break;
+        case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        }
+    }else if( othrdatT == DTYP::INT){
+        switch ( datT ){
+        case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<int   >(), length); break;
+        case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::INT    : _plus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        }
+    }else{
+        switch ( datT ){
+        case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _plus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        }
     }
     return *this;
 }
@@ -726,19 +637,40 @@ jbMat& jbMat::minusMat(const jbMat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "plusMat method : either of this or other is empty\n");
         return *this;
-    }else if(length != other.getLength()){
-        fprintf(stdout, "plusMat method : this and other are not the same size\n");
-        return *this;
-    }else if(datT != other.getDatType()) {
-        fprintf(stdout, "plusMat method : datT's of this and other are not the same\n");
-        return *this;
     }
-    switch ( datT ){
-    case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-    case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-    case DTYP::INT    : _minus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-    case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+    DTYP othrdatT = other.getDatType();
+    if(  othrdatT == DTYP::DOUBLE){
+        switch ( datT ){
+        case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
+        case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _minus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<double>(), length); break;
+        case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        }
+    }else if( othrdatT == DTYP::FLOAT){
+        switch ( datT ){
+        case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
+        case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _minus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<float >(), length); break;
+        case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        }
+    }else if( othrdatT == DTYP::INT){
+        switch ( datT ){
+        case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<int   >(), length); break;
+        case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::INT    : _minus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        }
+    }else{
+        switch ( datT ){
+        case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _minus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        }
     }
     return *this;
 }
@@ -747,19 +679,40 @@ jbMat& jbMat::multiplyMat(const jbMat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "plusMat method : either of this or other is empty\n");
         return *this;
-    }else if(length != other.getLength()){
-        fprintf(stdout, "plusMat method : this and other are not the same size\n");
-        return *this;
-    }else if(datT != other.getDatType()) {
-        fprintf(stdout, "plusMat method : datT's of this and other are not the same\n");
-        return *this;
     }
-    switch ( datT ){
-    case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-    case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-    case DTYP::INT    : _multiply_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-    case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+    DTYP othrdatT = other.getDatType();
+    if(  othrdatT == DTYP::DOUBLE){
+        switch ( datT ){
+        case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
+        case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _multiply_mat<int   >( getDataPtr<int   >(), other.getDataPtr<double>(), length); break;
+        case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        }
+    }else if( othrdatT == DTYP::FLOAT){
+        switch ( datT ){
+        case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
+        case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _multiply_mat<int   >( getDataPtr<int   >(), other.getDataPtr<float >(), length); break;
+        case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        }
+    }else if( othrdatT == DTYP::INT){
+        switch ( datT ){
+        case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<int   >(), length); break;
+        case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::INT    : _multiply_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        }
+    }else{
+        switch ( datT ){
+        case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _multiply_mat<int   >( getDataPtr<int   >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        }
     }
     return *this;
 }
@@ -768,19 +721,40 @@ jbMat& jbMat::divideMat(const jbMat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "plusMat method : either of this or other is empty\n");
         return *this;
-    }else if(length != other.getLength()){
-        fprintf(stdout, "plusMat method : this and other are not the same size\n");
-        return *this;
-    }else if(datT != other.getDatType()) {
-        fprintf(stdout, "plusMat method : datT's of this and other are not the same\n");
-        return *this;
     }
-    switch ( datT ){
-    case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-    case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-    case DTYP::INT    : _divide_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-    case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-    default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+    DTYP othrdatT = other.getDatType();
+    if(  othrdatT == DTYP::DOUBLE){
+        switch ( datT ){
+        case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
+        case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _divide_mat<int   >( getDataPtr<int   >(), other.getDataPtr<double>(), length); break;
+        case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        }
+    }else if( othrdatT == DTYP::FLOAT){
+        switch ( datT ){
+        case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
+        case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _divide_mat<int   >( getDataPtr<int   >(), other.getDataPtr<float >(), length); break;
+        case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        }
+    }else if( othrdatT == DTYP::INT){
+        switch ( datT ){
+        case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<int   >(), length); break;
+        case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::INT    : _divide_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        }
+    }else{
+        switch ( datT ){
+        case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _divide_mat<int   >( getDataPtr<int   >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        }
     }
     return *this;
 }
