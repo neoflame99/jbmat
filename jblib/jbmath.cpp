@@ -1,22 +1,14 @@
 #include "jbmath.h"
 #include <stdio.h>
 #include <float.h>
-#include <iostream>
+//#include <iostream>
 #ifdef _MACOS_
     #include <string>
 #else
     #include <string.h>
 #endif
 
-jbMath::jbMath()
-{
-}
-
-jbMath::~jbMath()
-{
-}
-
-jbMat jbMath::mulMatrix(const jbMat& mA,const jbMat& mB){
+jbMat jbmath::dot(const jbMat& mA,const jbMat& mB){
 
     if(mA.getCol() != mB.getRow() ){
         fprintf(stderr," The number of columns of mA and the number of rows of mB are not match!\n");
@@ -26,151 +18,124 @@ jbMat jbMath::mulMatrix(const jbMat& mA,const jbMat& mB){
         return jbMat();
     }
 
-    int aRow = mA.getRow();
-    int aCol = mA.getCol();
-    int bCol = mB.getCol();
-    int ch   = mA.getChannel();
-    int i,j;
-    double *matA;
-    double *matB;
-    double *matO;
+    uint aRow = mA.getRow();
+    uint aCol = mA.getCol();
+    uint bCol = mB.getCol();
+    uint ch   = mA.getChannel();
 
-    jbMat mO(aRow,bCol, ch );
+    jbMat mO;
+    DTYP maDtype = mA.getDatType();
+    DTYP mbDtype = mB.getDatType();
+    bool result_prod = false;
 
-    matA = mA.getMat().get();
-    matB = mB.getMat().get();
-    matO = mO.getMat().get();
-
-    int k, lr, lc, rc, rra, rrb;
-    double a,b,c;
-    for(int m=0; m < ch; m++ ){
-        for( i = 0 , lr =0, rra=0 ; i < aRow ; i++, lr +=bCol*ch, rra+=aCol*ch){
-            for( j = 0, lc=0; j< bCol; j++, lc+= ch ){
-                matO[lr+lc+m] = 0.0;
-                c=0;
-                for( k=0, rrb=0, rc =0; k < aCol; k++, rrb+=ch*bCol, rc += ch){
-                    a = matA[rra+rc+m];
-                    b = matB[rrb+lc+m];
-                    c += a*b;
-                    matO[lr+lc+m] += matA[rra+rc+m] * matB[rrb+lc+m];
-                }
-            }
+    if(maDtype == DTYP::DOUBLE){
+        switch(mbDtype){
+        case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+            result_prod = _dot_prod<double,double,double>(mA.getDataPtr<double>(), mB.getDataPtr<double>(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::FLOAT : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+            result_prod = _dot_prod<double,float ,double>(mA.getDataPtr<double>(), mB.getDataPtr<float >(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::INT   : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+            result_prod = _dot_prod<double,int   ,double>(mA.getDataPtr<double>(), mB.getDataPtr<int   >(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::UCHAR : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+            result_prod = _dot_prod<double,uchar ,double>(mA.getDataPtr<double>(), mB.getDataPtr<uchar >(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+        }
+    }else if(maDtype == DTYP::FLOAT){
+        switch(mbDtype){
+        case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+            result_prod = _dot_prod<float ,double,double>(mA.getDataPtr<float >(), mB.getDataPtr<double>(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
+            result_prod = _dot_prod<float ,float ,float >(mA.getDataPtr<float >(), mB.getDataPtr<float >(), mO.getDataPtr<float >(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::INT   : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
+            result_prod = _dot_prod<float ,int   ,float >(mA.getDataPtr<float >(), mB.getDataPtr<int   >(), mO.getDataPtr<float >(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::UCHAR : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
+            result_prod = _dot_prod<float ,uchar ,float >(mA.getDataPtr<float >(), mB.getDataPtr<uchar >(), mO.getDataPtr<float >(), aRow, aCol, ch, aCol, bCol, ch); break;
+        }
+    }else if(maDtype == DTYP::INT ){
+        switch(mbDtype){
+        case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+            result_prod = _dot_prod<int   ,double,double>(mA.getDataPtr<int   >(), mB.getDataPtr<double>(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
+            result_prod = _dot_prod<int   ,float ,float >(mA.getDataPtr<int   >(), mB.getDataPtr<float >(), mO.getDataPtr<float >(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::INT   : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
+            result_prod = _dot_prod<int   ,int   ,int   >(mA.getDataPtr<int   >(), mB.getDataPtr<int   >(), mO.getDataPtr<int   >(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::UCHAR : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
+            result_prod = _dot_prod<int   ,uchar ,int   >(mA.getDataPtr<int   >(), mB.getDataPtr<uchar >(), mO.getDataPtr<int   >(), aRow, aCol, ch, aCol, bCol, ch); break;
+        }
+    }else if(maDtype == DTYP::UCHAR ){
+        switch(mbDtype){
+        case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+            result_prod = _dot_prod<uchar ,double,double>(mA.getDataPtr<uchar >(), mB.getDataPtr<double>(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
+            result_prod = _dot_prod<uchar ,float ,float >(mA.getDataPtr<uchar >(), mB.getDataPtr<float >(), mO.getDataPtr<float >(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::INT   : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
+            result_prod = _dot_prod<uchar ,int   ,int   >(mA.getDataPtr<uchar >(), mB.getDataPtr<int   >(), mO.getDataPtr<int   >(), aRow, aCol, ch, aCol, bCol, ch); break;
+        case DTYP::UCHAR : mO = jbMat(DTYP::UCHAR , aRow, bCol, ch);
+            result_prod = _dot_prod<uchar ,uchar ,uchar >(mA.getDataPtr<uchar >(), mB.getDataPtr<uchar >(), mO.getDataPtr<uchar >(), aRow, aCol, ch, aCol, bCol, ch); break;
         }
     }
-#ifdef _JB_DEBUG_
-    std::cout << " Matrix multimplication: ";
-    printMat(mO);
-#endif
-    return mO;
 
+    return (result_prod) ? mO : jbMat();
 }
 
-
-jbMat jbMath::triu(const jbMat& mA)
+jbMat jbmath::triu(const jbMat& mA)
 {
-    int pivtmax = (mA.getRow() < mA.getCol() ) ? mA.getRow() : mA.getCol();
-    int rows = mA.getRow();
-    int cols = mA.getCol();
-    int ch   = mA.getChannel();
 
-    jbMat utri = mA;
-    double* utri_ma = utri.getMat().get();
-    int   pv, i,j, cr, pvr;
-    double fact;    
+    uint rows = mA.getRow();
+    uint cols = mA.getCol();
+    uint ch   = mA.getChannel();
 
-    for( int cc=0; cc < ch; cc++){
-        for( pv=0; pv < pivtmax-1 ; pv++){
-            //std::cout << "pv = " << pv << " ";
-            pvr = pv* cols + cc;
-            for(i = pv+1 ; i < rows ; i++){
-                cr = i* cols + cc;
-                fact = utri_ma[cr+pv] / utri_ma[pvr+pv];
-                //std::cout << "cr= " << cr <<", i = " << i << ", pv= " << pv << " pvr= " << pvr <<" fact = " << fact << " ";
-                //std::cout << "utri_ma[cr+pv] = " << utri_ma[cr+pv] <<" utri_ma[pvr+pv] = " << utri_ma[pvr+pv] << "\n";
-                for(j=0 ; j<cols ; j++){
-                    if(utri_ma[pvr+pv] == 0.0){ std::cout << "Singular Matrix!"; break; }
-                    utri_ma[cr+j] = (pv==j) ? 0 : utri_ma[cr+j] - utri_ma[pvr+j] * fact;
-                }
-            }
-        }
+    jbMat utri = mA.copy();
+
+    switch(utri.getDatType()){
+    case DTYP::DOUBLE : _triu(utri.getDataPtr<double>(), rows, cols, ch ); break;
+    case DTYP::FLOAT  : _triu(utri.getDataPtr<float >(), rows, cols, ch ); break;
+    case DTYP::INT    : _triu(utri.getDataPtr<int   >(), rows, cols, ch ); break;
+    case DTYP::UCHAR  : _triu(utri.getDataPtr<uchar >(), rows, cols, ch ); break;
     }
-
-#ifdef _JB_DEBUG_
-    std::cout << "Upper Triangular Result: ";
-    printMat(utri);
-#endif
 
     return utri;
 }
 
-jbMat jbMath::tril(const jbMat& srcmat)
+jbMat jbmath::tril(const jbMat& srcmat)
 {
-    int rows = srcmat.getRow();
-    int cols = srcmat.getCol();
-    int ch   = srcmat.getChannel();
-    int pivtmax = (rows < cols) ? rows : cols;
+    uint rows = srcmat.getRow();
+    uint cols = srcmat.getCol();
+    uint ch   = srcmat.getChannel();
 
-    jbMat ltri = srcmat;
-    int   pv, i,j, cr, pvr;
-    double fact;
-
-    for(int cc=0; cc < ch; cc++){
-        for(pv=pivtmax-1 ; pv>0 ; pv--){
-            pvr = pv*cols*ch;
-            for(i=pv-1 ; i >= 0; i--){
-                cr = i* cols*ch;
-                fact = ltri[cr+pv*ch] / ltri[pvr+pv*ch];
-                //fprintf(stdout,"pv=%d, i=%d, fact=%f",pv,i,fact);
-                for(j=0 ; j < cols; j++){
-                    if(ltri[pvr+pv*ch] == 0.0){ std::cout << "Singular Matrix!"; break; }
-                    ltri[cr+j*ch] = (pv==j) ? 0 : ltri[cr+j*ch] - ltri[pvr+j*ch] * fact;
-                }
-            }
-        }
+    jbMat ltri = srcmat.copy();
+    switch(ltri.getDatType()){
+    case DTYP::DOUBLE : _tril(ltri.getDataPtr<double>(), rows, cols, ch ); break;
+    case DTYP::FLOAT  : _tril(ltri.getDataPtr<float >(), rows, cols, ch ); break;
+    case DTYP::INT    : _tril(ltri.getDataPtr<int   >(), rows, cols, ch ); break;
+    case DTYP::UCHAR  : _tril(ltri.getDataPtr<uchar >(), rows, cols, ch ); break;
     }
-
-#ifdef _JB_DEBUG_
-    std::cout << "Lower Triangular Result: ";
-    printMat(ltri);
-#endif
 
     return ltri;
 }
 
-jbMat jbMath::augmentMatrix(const jbMat& srcmat)
+jbMat jbmath::augment(const jbMat& srcmat)
 {
-    int i,j;
-    int rows = srcmat.getRow();
-    int cols = srcmat.getCol();
-    int ch   = srcmat.getChannel();
-    int pivmax = (rows < cols)? rows : cols;
-    int augmentCols = cols + pivmax;
 
-    jbMat augm(rows,augmentCols,ch);
-    int cr,scr;
+    uint rows = srcmat.getRow();
+    uint cols = srcmat.getCol();
+    uint ch   = srcmat.getChannel();
+    uint pivmax = (rows < cols)? rows : cols;
+    uint augmentCols = cols + pivmax;
 
-    //--augmenting
-    for( i=0 ; i<rows ; i++){
-        scr = i*cols;
-        cr  = i*augmentCols;
-        for( j=0; j < augmentCols ; j++){
-            if(j<cols)
-                augm[cr+j] = srcmat[scr+j] ;
-            else if(i==j-cols)
-                augm[cr+j] =1.0;
-            else
-                augm[cr+j] =0.0;
-        }
+    DTYP datType = srcmat.getDatType();
+    //jbMat augm(datType, rows, augmentCols, ch);
+    jbMat augm ;
+
+    switch(datType){
+    case DTYP::DOUBLE : augm = jbMat(_augment(srcmat.getDataPtr<double>(), rows, cols, ch, augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::FLOAT  : augm = jbMat(_augment(srcmat.getDataPtr<float >(), rows, cols, ch, augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::INT    : augm = jbMat(_augment(srcmat.getDataPtr<int   >(), rows, cols, ch, augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::UCHAR  : augm = jbMat(_augment(srcmat.getDataPtr<uchar >(), rows, cols, ch, augmentCols), datType, rows, augmentCols, ch); break;
     }
-
-#ifdef _JB_DEBUG_
-    std::cout << "Augmenting Result: ";
-    printMat(augm);
-#endif
 
     return augm;
 }
-
+/*
 jbMat jbMath::inverse(const jbMat& srcmat){
     int rows = srcmat.getRow();
     int cols = srcmat.getCol();
@@ -413,3 +378,4 @@ jbMat jbMath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std
 
     return tmpO;
 }
+*/

@@ -60,6 +60,21 @@ jbMat::jbMat(DTYP dt, uint r, uint c, uint ch):mA(nullptr){
     initName();
 }
 
+jbMat::jbMat(shr_ptr ma, DTYP dt, uint r, uint c, uint ch):mA(ma),row(r),col(c),Nch(ch),datT(dt){
+    lenRowCol = r*c;
+    length = lenRowCol * ch;
+    switch(dt){
+    case DTYP::UCHAR  : byteStep = 1; break;
+    case DTYP::INT    : byteStep = 4; break;
+    case DTYP::FLOAT  : byteStep = 4; break;
+    case DTYP::DOUBLE : byteStep = 8; break;
+    default           : byteStep = 1;
+    }
+    byteLen = length*byteStep;
+
+    initName();
+}
+
 jbMat::jbMat(DTYP dt, uint r, uint c, uint ch, std::string name):mA(nullptr){
     init(r, c, ch, dt);
     obj_name = name;

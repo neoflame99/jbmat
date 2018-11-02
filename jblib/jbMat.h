@@ -50,6 +50,7 @@ public: // constructors and destructor
     jbMat(DTYP dt, uint r, uint c, uint ch );
     jbMat(DTYP dt, uint r, uint c, uint ch, std::string name);
     jbMat(DTYP dt, uint rc);
+    jbMat(shr_ptr ma, DTYP dt, uint r, uint c, uint ch );
     jbMat(const jbMat& mat);
     jbMat( std::initializer_list<double> list );
     jbMat( std::initializer_list<int> list );
@@ -134,6 +135,7 @@ public : // public template methods
 
 private: // private template methods
     template <typename _T> void _print(_T* mdat);
+    template <typename _Tsrc, typename _Ttar> void _type_change();
     template <typename _Tslf, typename _Totr> void _plus_mat       (_Tslf* self, _Totr* other, uint len );
     template <typename _Tslf, typename _Totr> void _minus_mat      (_Tslf* self, _Totr* other, uint len );
     template <typename _Tslf, typename _Totr> void _multiply_mat   (_Tslf* self, _Totr* other, uint len );
@@ -142,7 +144,7 @@ private: // private template methods
     template <typename _Tslf, typename _Totr> void _minus_scalar   (_Tslf* self, _Totr scalar, uint len );
     template <typename _Tslf, typename _Totr> void _multiply_scalar(_Tslf* self, _Totr scalar, uint len );
     template <typename _Tslf, typename _Totr> void _divide_scalar  (_Tslf* self, _Totr scalar, uint len );
-    template <typename _Tsrc, typename _Ttar> void _type_change();
+
 };
 
 
