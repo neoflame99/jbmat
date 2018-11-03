@@ -135,49 +135,22 @@ jbMat jbmath::augment(const jbMat& srcmat)
 
     return augm;
 }
-/*
-jbMat jbMath::inverse(const jbMat& srcmat){
-    int rows = srcmat.getRow();
-    int cols = srcmat.getCol();
-    if(rows != cols) {
-        std::cout << "The inverse matrix cannot be computed because source matrix is not square!";
-        return jbMat();
-    }
-    int pvmax= rows;
 
-    jbMat mataug = augmentMatrix(srcmat);
-    jbMat utri = triu(mataug);
-    jbMat ltri = tril(utri);
-    int ltri_col = ltri.getCol();
-    int pv,j, pvr;
+jbMat jbmath::inverse(const jbMat& srcmat){
+    DTYP srcDtype = srcmat.getDatType();
 
-    double pivot;
-    double* mat = ltri.getMat().get();
-    for( pv=0 ; pv<pvmax ; pv++){
-        pvr   = pv * ltri_col;
-        pivot = mat[pvr+pv];
-        if(pivot==0.0) continue;
-        for(j=0 ; j < ltri_col ; j++)
-            mat[pvr+j] /= pivot;
+    jbMat invmat;
+    switch(srcDtype){
+    case DTYP::DOUBLE : invmat = _inverse<double>(srcmat); break;
+    case DTYP::FLOAT  : invmat = _inverse<float >(srcmat); break;
+    default           : assert(false && "data type of srcmat into inverse is neither DOUBLE nor FLOAT");
+                        fprintf(stderr,"data type of srcmat into inverse is neither DOUBLE nor FLOAT\n");
+                        invmat = jbMat();
     }
 
-    jbMat invmat(rows,cols);
-    int cr;
-    for(int i=0; i < rows ; i++){
-        pvr = i * ltri_col + cols;
-        cr  = i * cols;
-        for( j=0 ; j < cols ; j++){
-            invmat[cr+j] = ltri[pvr+j];
-        }
-    }
-
-#ifdef _JB_DEBUG_
-    std::cout << "Inverse Result: ";
-    printMat(invmat);
-#endif
     return invmat;
 }
-
+/*
 jbMat jbMath::tranpose(const jbMat &mA){
 
     if(mA.isEmpty()) return jbMat();

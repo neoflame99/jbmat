@@ -23,6 +23,7 @@ namespace  jbmath {
     template <typename _T > void _triu( _T* utri_ma, const uint rows, const uint cols, const uint ch);
     template <typename _T > void _tril( _T* ltri_ma, const uint rows, const uint cols, const uint ch);
     template <typename _T > std::shared_ptr<uchar> _augment(const _T* mA, const uint rows, const uint cols, const uint ch, const uint augCols);
+    template <typename _T> jbMat _inverse(const jbMat& srcmat);
 }
 
 template <typename _Ta, typename _Tb, typename _To>
@@ -142,4 +143,66 @@ template <typename _T> std::shared_ptr<uchar> jbmath::_augment(const _T* mA, con
     return augm;
 }
 
+template <typename _T>
+jbMat jbmath::_inverse(const jbMat& srcmat){
+    DTYP srcDtype = srcmat.getDatType();
+
+    if(!(srcDtype == DTYP::DOUBLE || srcDtype == DTYP::FLOAT)){
+        assert(false && "data type of srcmat into inverse is neither DOUBLE nor FLOAT");
+        fprintf(stderr,"data type of srcmat into inverse is neither DOUBLE nor FLOAT\n");
+        return jbMat();
+    }
+    uint rows = srcmat.getRow();
+    uint cols = srcmat.getCol();
+    uint chs  = srcmat.getChannel();
+
+    if(rows != cols) {
+        std::cout << "The inverse matrix cannot be computed because source matrix is not square!";
+        return jbMat();
+    }
+
+
+    jbMat mataug = augment(srcmat);
+    jbMat utri   = triu(mataug);
+    jbMat ltri   = tril(utri);
+    uint ltri_col = ltri.getCol();
+    uint pv,j, pvr;
+
+    double pivot;
+    jbMat invmat;
+    uint rc = ltri.getRow() * ltri.getCol();
+    uint rc2 = rows*cols;
+    uint pvmax= rows;
+    uint ci, cii;
+    uint invchr_off , ltrichr_off;
+
+    invmat = jbMat(srcDtype, rows,cols,chs);
+    _T* invmat_pt = invmat.getDataPtr<_T>();
+    _T* ltri_pt   = ltri.getDataPtr<_T>();
+
+    for( ci = 0; ci < ltri.getLength(); ci +=rc){
+        for( pv=0 ; pv < pvmax ; pv++){
+            pvr   = pv * ltri_col;
+            ltrichr_off = ci + pvr;
+            pivot = ltri_pt[ltrichr_off + pv];
+            if(pivot==0.0) continue;
+            for(j=0 ; j < ltri_col ; j++)
+                ltri_pt[ltrichr_off + j] /= pivot;
+        }
+    }
+    uint cr;
+    for( ci = 0, cii=0 ; ci < ltri.getLength(); ci += rc, cii += rc2){
+        for(uint i=0; i < rows ; i++){
+            pvr = i * ltri_col + cols;
+            cr  = i * cols;
+            invchr_off = cii+cr;
+            ltrichr_off = ci+pvr;
+            for( j=0 ; j < cols ; j++){
+                invmat_pt[invchr_off+j] = ltri_pt[ltrichr_off+j];
+            }
+        }
+    }
+
+    return invmat;
+}
 #endif // JBMATH_H
