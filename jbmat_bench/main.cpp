@@ -1,8 +1,6 @@
 
 #include "../jblib/jbMat.h"
-//#include "../jblib/template_sp.h"
-//#include "../jblib/jbMat.cpp"
-//#include "../jblib/jbmath.h"
+#include "../jblib/jbmath.h"
 //#include "../jblib/qimmat.h"
 //#include "../jblib/jbimgproc.h"
 
@@ -54,10 +52,18 @@ int main(int argc, char *argv[])
     mac.printMat();
     jbMat mad = ma -maa;
     mad.printMat();
+    jbMat mae(DTYP::DOUBLE, 5, 5, 2);
+
+    for(uint c = 0; c< mae.getLength(); c++)
+        mae.at<double>(c) = rand()%100;
+    mae.printMat();
+
+    jbMat maf = jbmath::inverse(mae);
+    maf.printMat();
 /*
     k=0;
-    jbMat mb(5,5,2);
-    jbMat mc(5,5,2);
+    jbMat mb(DTYP::DOUBLE,5,5,2);
+    jbMat mc(DTYP::DOUBLE,5,5,2);
     //double *b = mb.getMat();
     double* b = (double *)mb.getMat().get();
     for(int c=0; c < mb.getChannel(); c++){
