@@ -62,11 +62,12 @@ bool jbmath::_dot_prod(const _Ta* MA,const _Tb* MB, _To* MO, const uint Ar,const
 template <typename _T> void jbmath::_triu( _T* utri_ma, const uint rows, const uint cols, const uint ch){
     uint pivtmax = (rows < cols ) ? rows : cols;
 
-    uint   pv, i,j, cr, pvr;
+    uint pv, i,j, cr, pvr;
     double fact;
-
+    uint rcstep = rows*cols;
+    uint tlen = rcstep*ch;
     // do triu
-    for( uint cc=0; cc < ch; cc++){
+    for( uint cc=0; cc < tlen ; cc+=rcstep){
         for( pv=0; pv < pivtmax-1 ; pv++){
             //std::cout << "pv = " << pv << " ";
             pvr = pv* cols + cc;
@@ -87,21 +88,23 @@ template <typename _T> void jbmath::_triu( _T* utri_ma, const uint rows, const u
 template <typename _T> void jbmath::_tril( _T* ltri_ma, const uint rows, const uint cols, const uint ch){
 
     uint pivtmax = (rows < cols) ? rows : cols;
-
-    uint   pv, i,j, cr, pvr;
+    uint rcstep = rows*cols;
+    uint tlen = rcstep*ch;
+    uint   pv, j, cr, pvr;
+    int i;
     double fact;
 
     // do tril
-    for(uint cc=0; cc < ch; cc++){
+    for(uint cc=0; cc < tlen ; cc+= rcstep){
         for(pv=pivtmax-1 ; pv>0 ; pv--){
-            pvr = pv*cols*ch;
+            pvr = pv*cols + cc;
             for(i=pv-1 ; i >= 0; i--){
-                cr = i* cols*ch;
-                fact = ltri_ma[cr+pv*ch] / ltri_ma[pvr+pv*ch];
+                cr = i* cols + cc;
+                fact = ltri_ma[cr+pv] / ltri_ma[pvr+pv];
                 //fprintf(stdout,"pv=%d, i=%d, fact=%f",pv,i,fact);
                 for(j=0 ; j < cols; j++){
-                    if(ltri_ma[pvr+pv*ch] == 0.0){ std::cout << "Singular Matrix!"; break; }
-                    ltri_ma[cr+j*ch] = (pv==j) ? 0 : ltri_ma[cr+j*ch] - ltri_ma[pvr+j*ch] * fact;
+                    if(ltri_ma[pvr+pv] == 0.0){ std::cout << "Singular Matrix!"; break; }
+                    ltri_ma[cr+j] = (pv==j) ? 0 : ltri_ma[cr+j] - ltri_ma[pvr+j] * fact;
                 }
             }
         }
@@ -115,29 +118,31 @@ template <typename _T> std::shared_ptr<uchar> jbmath::_augment(const _T* mA, con
 
     assert( augmentCols == augCols );
 
-    uint len     = rows*cols*ch;
+    uint len     = rows*augCols*ch;
     uint bytelen = len*sizeof(_T);
 
     std::shared_ptr<uchar> augm = std::shared_ptr<uchar>(new uchar[bytelen], std::default_delete<uchar[]>());
     _T* augm_ma = (_T*)augm.get();
 
+
     uint i,j;
     uint cr,scr;
-    // data copy
-    for( i = 0 ; i < len; i++ )
-        augm_ma[i] = mA[i];
-
+    uint cis, cio;
+    uint rcstep_o  = rows*augCols;
+    uint rcstep_s  = rows*cols;
     //--augmenting
-    for( i=0 ; i < rows ; i++){
-        scr = i*cols;
-        cr  = i*augmentCols;
-        for( j=0; j < augmentCols ; j++){
-            if(j < cols)
-                augm_ma[cr+j] = mA[scr+j] ;
-            else if( i == j-cols)
-                augm_ma[cr+j] =1.0;
-            else
-                augm_ma[cr+j] =0.0;
+    for( cis=0, cio=0; cio < len ; cis += rcstep_s, cio += rcstep_o){
+        for( i=0 ; i < rows ; i++){
+            scr = i*cols + cis;
+            cr  = i*augmentCols + cio;
+            for( j=0; j < augmentCols ; j++){
+                if(j < cols)
+                    augm_ma[cr+j] = mA[scr+j] ;
+                else if( i == j-cols)
+                    augm_ma[cr+j] =1.0;
+                else
+                    augm_ma[cr+j] =0.0;
+            }
         }
     }
     return augm;
@@ -164,7 +169,7 @@ jbMat jbmath::_inverse(const jbMat& srcmat){
 
     jbMat mataug = augment(srcmat);
     jbMat utri   = triu(mataug);
-    jbMat ltri   = tril(utri);
+    jbMat ltri   = tril(utri);        
     uint ltri_col = ltri.getCol();
     uint pv,j, pvr;
 
@@ -204,5 +209,6 @@ jbMat jbmath::_inverse(const jbMat& srcmat){
     }
 
     return invmat;
+
 }
 #endif // JBMATH_H

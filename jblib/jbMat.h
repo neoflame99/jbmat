@@ -249,7 +249,7 @@ template <typename _T> void jbMat::_print(_T* mdat){
                     val = mdat[i+j+ch_offset];
                     if( val >= neg_max_double && val <= pos_min_double)
                         val = 0.0;
-                    snprintf(tmp,bufsz," %9.3f ",val);
+                    snprintf(tmp,bufsz," %10.4f ",val);
                     strncat(buf,tmp,bufsz);
                 }
                 strncat(buf,"]",1);
