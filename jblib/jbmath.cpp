@@ -150,55 +150,17 @@ jbMat jbmath::inverse(const jbMat& srcmat){
 
     return invmat;
 }
-/*
-jbMat jbMath::tranpose(const jbMat &mA){
+
+jbMat jbmath::tranpose(const jbMat &mA){
 
     if(mA.isEmpty()) return jbMat();
 
-    jbMat t = mA;
+    jbMat t = mA.copy();
     t.transpose();
-#ifdef _JB_DEBUG_
-    std::cout << "Transpose : ";
-    printMat(t);
-#endif
     return t;
 }
 
-void jbMath::printMat(const jbMat& Mat)
-{
-    const int bufsz = 2049;
-    char buf[bufsz]="\0";
-    char tmp[bufsz];
-    int i,j;
-//    int rows = Mat.getRow();
-    int cols = Mat.getCol();
-    int ch   = Mat.getChannel();
-    int len  = Mat.getLength();
-    double *mat = Mat.getMat().get();
-    const double neg_max_double = -DBL_EPSILON ;
-    const double pos_min_double = DBL_EPSILON ;
-
-    double val;
-    int k;
-    for( k=0; k < ch; k++){
-        fprintf(stdout,"channel: %d \n",k);
-        for( i=0; i< len ; i+= cols*ch){
-            snprintf(buf,bufsz,"[");
-            for( j=0; j< cols*ch; j+=ch){
-                val = mat[i+j+k];
-                if( val >= neg_max_double && val <= pos_min_double)
-                    val = 0.0;
-                snprintf(tmp,bufsz," %.4f ",val);
-                strncat(buf,tmp,bufsz);
-            }
-
-            strncat(buf,"]",1);
-            fprintf(stdout,"%s\n",buf);
-        }
-    }
-}
-
-
+/*
 jbMat jbMath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std::string opt_out ){
 
     if(mA.isEmpty()) {

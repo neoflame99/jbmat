@@ -15,7 +15,7 @@ namespace  jbmath {
     jbMat augment(const jbMat& mA);
     jbMat inverse(const jbMat& mA);
     jbMat tranpose(const jbMat& mA);
-    void printMat(const jbMat& Mat);
+
     jbMat conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv="" , std::string opt_out="");
 
 
