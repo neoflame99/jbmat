@@ -19,7 +19,6 @@ jbMat jbmath::dot(const jbMat& mA,const jbMat& mB){
     }
 
     uint aRow = mA.getRow();
-    uint aCol = mA.getCol();
     uint bCol = mB.getCol();
     uint ch   = mA.getChannel();
 
@@ -29,61 +28,48 @@ jbMat jbmath::dot(const jbMat& mA,const jbMat& mB){
     bool result_prod = false;
 
     if(maDtype == DTYP::DOUBLE){
-/*
         switch(mbDtype){
         case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,double,double>(mA.getDataPtr<double>(), mB.getDataPtr<double>(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<double,double,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::FLOAT : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,float ,double>(mA.getDataPtr<double>(), mB.getDataPtr<float >(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<double,float,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::INT   : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,int   ,double>(mA.getDataPtr<double>(), mB.getDataPtr<int   >(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<double,int   ,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::UCHAR : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,uchar ,double>(mA.getDataPtr<double>(), mB.getDataPtr<uchar >(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
-        }
-*/
-        switch(mbDtype){
-        case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            //result_prod = __dot_prod<double,double,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
-            result_prod = _dot_prod<double,double,double>(mA.getDataPtr<double>(), mB.getDataPtr<double>(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
-        case DTYP::FLOAT : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,float ,double>(mA.getDataPtr<double>(), mB.getDataPtr<float >(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
-        case DTYP::INT   : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,int   ,double>(mA.getDataPtr<double>(), mB.getDataPtr<int   >(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
-        case DTYP::UCHAR : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,uchar ,double>(mA.getDataPtr<double>(), mB.getDataPtr<uchar >(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<double,uchar ,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         }
     }else if(maDtype == DTYP::FLOAT){
         switch(mbDtype){
         case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<float ,double,double>(mA.getDataPtr<float >(), mB.getDataPtr<double>(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<float ,double,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<float ,float ,float >(mA.getDataPtr<float >(), mB.getDataPtr<float >(), mO.getDataPtr<float >(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<float ,float ,float >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::INT   : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<float ,int   ,float >(mA.getDataPtr<float >(), mB.getDataPtr<int   >(), mO.getDataPtr<float >(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<float ,int   ,float >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::UCHAR : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<float ,uchar ,float >(mA.getDataPtr<float >(), mB.getDataPtr<uchar >(), mO.getDataPtr<float >(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<float ,uchar ,float >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         }
     }else if(maDtype == DTYP::INT ){
         switch(mbDtype){
         case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,double,double>(mA.getDataPtr<int   >(), mB.getDataPtr<double>(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<int   ,double,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,float ,float >(mA.getDataPtr<int   >(), mB.getDataPtr<float >(), mO.getDataPtr<float >(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<int   ,float ,float >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::INT   : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,int   ,int   >(mA.getDataPtr<int   >(), mB.getDataPtr<int   >(), mO.getDataPtr<int   >(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<int   ,int   ,int   >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::UCHAR : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,uchar ,int   >(mA.getDataPtr<int   >(), mB.getDataPtr<uchar >(), mO.getDataPtr<int   >(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<int   ,uchar ,int   >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         }
     }else if(maDtype == DTYP::UCHAR ){
         switch(mbDtype){
         case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<uchar ,double,double>(mA.getDataPtr<uchar >(), mB.getDataPtr<double>(), mO.getDataPtr<double>(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<uchar ,double,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<uchar ,float ,float >(mA.getDataPtr<uchar >(), mB.getDataPtr<float >(), mO.getDataPtr<float >(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<uchar ,float ,float >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::INT   : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
-            result_prod = _dot_prod<uchar ,int   ,int   >(mA.getDataPtr<uchar >(), mB.getDataPtr<int   >(), mO.getDataPtr<int   >(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<uchar ,int   ,int   >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         case DTYP::UCHAR : mO = jbMat(DTYP::UCHAR , aRow, bCol, ch);
-            result_prod = _dot_prod<uchar ,uchar ,uchar >(mA.getDataPtr<uchar >(), mB.getDataPtr<uchar >(), mO.getDataPtr<uchar >(), aRow, aCol, ch, aCol, bCol, ch); break;
+            result_prod = _dot_prod<uchar ,uchar ,uchar >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
         }
     }
 

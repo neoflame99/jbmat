@@ -19,8 +19,7 @@ namespace  jbmath {
     jbMat conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv="" , std::string opt_out="");
 
 
-    template <typename _Ta, typename _Tb, typename _To > bool _dot_prod(const _Ta* MA,const _Tb* MB, _To* MO,const uint Ar,const uint Ac,const uint Ach,const uint Br,const uint Bc,const uint Bch);
-    template <typename _Ta, typename _Tb, typename _To > bool __dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO);
+    template <typename _Ta, typename _Tb, typename _To > bool _dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO);
     template <typename _T > void _triu( _T* utri_ma, const uint rows, const uint cols, const uint ch);
     template <typename _T > void _tril( _T* ltri_ma, const uint rows, const uint cols, const uint ch);
     template <typename _T > std::shared_ptr<uchar> _augment(const _T* mA, const uint rows, const uint cols, const uint ch, const uint augCols);
@@ -28,48 +27,16 @@ namespace  jbmath {
 }
 
 template <typename _Ta, typename _Tb, typename _To>
-bool jbmath::_dot_prod(const _Ta* MA,const _Tb* MB, _To* MO, const uint Ar,const uint Ac,const uint Ach,const uint Br,const uint Bc,const uint Bch){
-    if( Ac != Br || Ach != Bch ){
-        fprintf(stderr, "sizes of ma and mb into _dot_prod_ are not match!\n");
-        return false;
-    }else if( MA == nullptr || MB == nullptr || MO == nullptr){
-        fprintf(stderr, "one or more of ma, mb or mo into _dot_prod_ are NULL!\n");
-        return false;
-    }
-
-    uint i,j;
-    uint k, lr, lc, rc, rra, rrb;
-    _Ta av;
-    _Tb bv;
-    _To cv;
-    for(uint m=0; m < Ach; m++ ){
-        for( i = 0 , lr =0, rra=0 ; i < Ar ; i++, lr += Bc*Ach, rra+= Ac*Ach){
-            for( j = 0, lc=0; j< Bc ; j++, lc+= Ach ){
-                MO[lr+lc+m] = 0;
-                cv=0;
-                for( k=0, rrb=0, rc =0; k < Ac; k++, rrb += Ach*Bc, rc += Ach){
-                    av = MA[rra+rc+m];
-                    bv = MB[rrb+lc+m];
-                    cv = av*bv;
-                    MO[lr+lc+m] += cv;
-                    //MO[lr+lc+m] += MA[rra+rc+m] * MB[rrb+lc+m];
-                }
-            }
-        }
-    }
-    return true;
-}
-template <typename _Ta, typename _Tb, typename _To>
-bool jbmath::__dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO){
+bool jbmath::_dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO){
     uint Ar  = rMA.rows;
     uint Ac  = rMA.cols;
     uint Ach = rMA.chennels;
     uint Br  = rMB.rows;
     uint Bc  = rMB.cols;
     uint Bch = rMB.chennels;
-    _Ta* MA  = (_Ta*) rMA.dat_ptr;
-    _Tb* MB  = (_Tb*) rMB.dat_ptr;
-    _To* MO  = (_To*) rMO.dat_ptr;
+    _Ta* MA  = reinterpret_cast<_Ta*>(rMA.dat_ptr); //(_Ta*) rMA.dat_ptr;
+    _Tb* MB  = reinterpret_cast<_Tb*>(rMB.dat_ptr); //(_Tb*) rMB.dat_ptr;
+    _To* MO  = reinterpret_cast<_To*>(rMO.dat_ptr); //(_To*) rMO.dat_ptr;
 
     if( Ac != Br || Ach != Bch ){
         fprintf(stderr, "sizes of ma and mb into _dot_prod_ are not match!\n");
@@ -87,20 +54,28 @@ bool jbmath::__dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO){
     _Ta av;
     _Tb bv;
     _To cv;
-    for(uint m=0; m < Ach; m++ ){
-        for( i = 0 , lr =0, rra=0 ; i < Ar ; i++, lr += Bc*Ach, rra+= Ac*Ach){
-            for( j = 0, lc=0; j< Bc ; j++, lc+= Ach ){
-                MO[lr+lc+m] = 0;
+
+    uint mo_chidx, ma_chidx, mb_chidx;
+    uint Arc = Ar * Ac;
+    uint Brc = Br * Bc;
+    uint Orc = Ar * Bc;
+    uint m;
+    mo_chidx=0; ma_chidx=0; mb_chidx=0;
+    for( m=0; m < Ach ; m++ ){
+        for( i = 0 , lr =0, rra=0 ; i < Ar ; i++, lr += Bc, rra+= Ac){
+            for( j = 0, lc=0; j< Bc ; j++, lc++ ){
+                MO[lr+lc+mo_chidx] = 0;
                 cv=0;
-                for( k=0, rrb=0, rc =0; k < Ac; k++, rrb += Ach*Bc, rc += Ach){
-                    av = MA[rra+rc+m];
-                    bv = MB[rrb+lc+m];
+                for( k=0, rrb=0, rc =0; k < Ac; k++, rrb += Bc, rc++){
+                    av = MA[rra+rc+ma_chidx];
+                    bv = MB[rrb+lc+mb_chidx];
                     cv = av*bv;
-                    MO[lr+lc+m] += cv;
+                    MO[lr+lc+mo_chidx] += cv;
                     //MO[lr+lc+m] += MA[rra+rc+m] * MB[rrb+lc+m];
                 }
             }
         }
+        mo_chidx += Orc; ma_chidx += Arc; mb_chidx += Brc;
     }
     return true;
 }
