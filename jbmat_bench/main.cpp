@@ -60,6 +60,23 @@ int main(int argc, char *argv[])
 
     jbMat maf = jbmath::inverse(mae);
     maf.printMat();
+
+    jbMat mag(DTYP::DOUBLE, 3,4,2);
+    jbMat mah(DTYP::DOUBLE, 4,3,2);
+    double *mag_m = mag.getDataPtr<double>();
+    double *mah_m = mah.getDataPtr<double>();
+    for(int c=0; c < mag.getLength(); c++){
+        mag_m[c] = c;
+        mah_m[c] = c + c%4;
+    }
+    jbMat mai = jbmath::dot(mag,mah);
+    jbMat maj = jbmath::dot(mah,mag);
+    mag.printMat();
+    mah.printMat();
+    mai.printMat();
+    maj.printMat();
+
+
 /*
     k=0;
     jbMat mb(DTYP::DOUBLE,5,5,2);

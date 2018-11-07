@@ -19,7 +19,12 @@ typedef unsigned int  uint;
 
 typedef std::shared_ptr<uchar> shr_ptr;
 enum    DTYP {UCHAR=0 , INT=1 , FLOAT=2, DOUBLE=3};
-
+struct rawMat{
+    uchar* dat_ptr;
+    uint rows;
+    uint cols;
+    uint chennels;
+};
 class jbMat{
 private: // member fields
     shr_ptr mA;
@@ -110,13 +115,13 @@ public:
 
     bool    isEmpty() const { return ((length <= 0) ? true : false); }
     shr_ptr getMat () const { return mA; }
+    rawMat  getRawMat() const;
     uint    getLength() const{ return length; }
     uint    getRow() const { return row; }
     uint    getCol() const { return col; }
     uint    getChannel() const { return Nch; }
     DTYP    getDatType() const { return datT; }
-    uint    getByteStep() const { return byteStep; }
-
+    uint    getByteStep() const { return byteStep; }    
     uint    reshape(uint r, uint c, uint ch=1);
     void    transpose();
     void    changeDType(const DTYP dt);
@@ -274,5 +279,6 @@ template <typename _T> void jbMat::_print(_T* mdat){
         }
     }
 }
+
 
 #endif // JBMAT_H

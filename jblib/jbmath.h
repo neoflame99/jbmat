@@ -20,6 +20,7 @@ namespace  jbmath {
 
 
     template <typename _Ta, typename _Tb, typename _To > bool _dot_prod(const _Ta* MA,const _Tb* MB, _To* MO,const uint Ar,const uint Ac,const uint Ach,const uint Br,const uint Bc,const uint Bch);
+    template <typename _Ta, typename _Tb, typename _To > bool __dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO);
     template <typename _T > void _triu( _T* utri_ma, const uint rows, const uint cols, const uint ch);
     template <typename _T > void _tril( _T* ltri_ma, const uint rows, const uint cols, const uint ch);
     template <typename _T > std::shared_ptr<uchar> _augment(const _T* mA, const uint rows, const uint cols, const uint ch, const uint augCols);
@@ -58,7 +59,51 @@ bool jbmath::_dot_prod(const _Ta* MA,const _Tb* MB, _To* MO, const uint Ar,const
     }
     return true;
 }
+template <typename _Ta, typename _Tb, typename _To>
+bool jbmath::__dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO){
+    uint Ar  = rMA.rows;
+    uint Ac  = rMA.cols;
+    uint Ach = rMA.chennels;
+    uint Br  = rMB.rows;
+    uint Bc  = rMB.cols;
+    uint Bch = rMB.chennels;
+    _Ta* MA  = (_Ta*) rMA.dat_ptr;
+    _Tb* MB  = (_Tb*) rMB.dat_ptr;
+    _To* MO  = (_To*) rMO.dat_ptr;
 
+    if( Ac != Br || Ach != Bch ){
+        fprintf(stderr, "sizes of ma and mb into _dot_prod_ are not match!\n");
+        return false;
+    }else if( rMO.rows != Ar || rMO.cols != Bc || rMO.chennels != Ach){
+        fprintf(stderr, "sizes of mo is not enough!\n");
+        return false;
+    }else if( MA == nullptr || MB == nullptr || MO == nullptr){
+        fprintf(stderr, "one or more of ma, mb or mo into _dot_prod_ are NULL!\n");
+        return false;
+    }
+
+    uint i,j;
+    uint k, lr, lc, rc, rra, rrb;
+    _Ta av;
+    _Tb bv;
+    _To cv;
+    for(uint m=0; m < Ach; m++ ){
+        for( i = 0 , lr =0, rra=0 ; i < Ar ; i++, lr += Bc*Ach, rra+= Ac*Ach){
+            for( j = 0, lc=0; j< Bc ; j++, lc+= Ach ){
+                MO[lr+lc+m] = 0;
+                cv=0;
+                for( k=0, rrb=0, rc =0; k < Ac; k++, rrb += Ach*Bc, rc += Ach){
+                    av = MA[rra+rc+m];
+                    bv = MB[rrb+lc+m];
+                    cv = av*bv;
+                    MO[lr+lc+m] += cv;
+                    //MO[lr+lc+m] += MA[rra+rc+m] * MB[rrb+lc+m];
+                }
+            }
+        }
+    }
+    return true;
+}
 template <typename _T> void jbmath::_triu( _T* utri_ma, const uint rows, const uint cols, const uint ch){
     uint pivtmax = (rows < cols ) ? rows : cols;
 

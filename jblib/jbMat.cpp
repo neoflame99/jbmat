@@ -977,3 +977,12 @@ jbMat& jbMat::divideScalar(const uchar scalar){
     }
     return *this;
 }
+
+rawMat jbMat::getRawMat() const{
+    rawMat _mat;
+    _mat.chennels = Nch;
+    _mat.rows     = row;
+    _mat.cols     = col;
+    _mat.dat_ptr  = dat_ptr;
+    return _mat;
+}
