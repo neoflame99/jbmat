@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     mae.printMat();
 
     jbMat maf = jbmath::inverse(mae);
-    maf.printMat();
+    maf.printMat("inversed mat");
 
     jbMat mag(DTYP::DOUBLE, 3,4,2);
     jbMat mah(DTYP::DOUBLE, 4,3,2);

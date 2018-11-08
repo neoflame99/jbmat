@@ -20,9 +20,9 @@ namespace  jbmath {
 
 
     template <typename _Ta, typename _Tb, typename _To > bool _dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO);
-    template <typename _T > void _triu( _T* utri_ma, const uint rows, const uint cols, const uint ch);
-    template <typename _T > void _tril( _T* ltri_ma, const uint rows, const uint cols, const uint ch);
-    template <typename _T > std::shared_ptr<uchar> _augment(const _T* mA, const uint rows, const uint cols, const uint ch, const uint augCols);
+    template <typename _T > void _triu(rawMat utri_mat);
+    template <typename _T > void _tril(rawMat ltri_mat);
+    template <typename _T > std::shared_ptr<uchar> _augment(const rawMat, const uint augCols);
     template <typename _T> jbMat _inverse(const jbMat& srcmat);
 }
 
@@ -30,10 +30,10 @@ template <typename _Ta, typename _Tb, typename _To>
 bool jbmath::_dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO){
     uint Ar  = rMA.rows;
     uint Ac  = rMA.cols;
-    uint Ach = rMA.chennels;
+    uint Ach = rMA.channels;
     uint Br  = rMB.rows;
     uint Bc  = rMB.cols;
-    uint Bch = rMB.chennels;
+    uint Bch = rMB.channels;
     _Ta* MA  = reinterpret_cast<_Ta*>(rMA.dat_ptr); //(_Ta*) rMA.dat_ptr;
     _Tb* MB  = reinterpret_cast<_Tb*>(rMB.dat_ptr); //(_Tb*) rMB.dat_ptr;
     _To* MO  = reinterpret_cast<_To*>(rMO.dat_ptr); //(_To*) rMO.dat_ptr;
@@ -41,7 +41,7 @@ bool jbmath::_dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO){
     if( Ac != Br || Ach != Bch ){
         fprintf(stderr, "sizes of ma and mb into _dot_prod_ are not match!\n");
         return false;
-    }else if( rMO.rows != Ar || rMO.cols != Bc || rMO.chennels != Ach){
+    }else if( rMO.rows != Ar || rMO.cols != Bc || rMO.channels != Ach){
         fprintf(stderr, "sizes of mo is not enough!\n");
         return false;
     }else if( MA == nullptr || MB == nullptr || MO == nullptr){
@@ -79,13 +79,17 @@ bool jbmath::_dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO){
     }
     return true;
 }
-template <typename _T> void jbmath::_triu( _T* utri_ma, const uint rows, const uint cols, const uint ch){
-    uint pivtmax = (rows < cols ) ? rows : cols;
+template <typename _T> void jbmath::_triu( rawMat utri_mat){
+    uint rows = utri_mat.rows;
+    uint cols = utri_mat.cols;
+    uint ch   = utri_mat.channels;
 
+    uint pivtmax = (rows < cols ) ? rows : cols;
     uint pv, i,j, cr, pvr;
     double fact;
     uint rcstep = rows*cols;
-    uint tlen = rcstep*ch;
+    uint tlen   = rcstep*ch;
+    _T* mat = reinterpret_cast<_T *>(utri_mat.dat_ptr);
     // do triu
     for( uint cc=0; cc < tlen ; cc+=rcstep){
         for( pv=0; pv < pivtmax-1 ; pv++){
@@ -93,19 +97,22 @@ template <typename _T> void jbmath::_triu( _T* utri_ma, const uint rows, const u
             pvr = pv* cols + cc;
             for( i = pv+1 ; i < rows ; i++){
                 cr = i* cols + cc;
-                fact = utri_ma[cr+pv] / utri_ma[pvr+pv];
+                fact = mat[cr+pv] / mat[pvr+pv];
                 //std::cout << "cr= " << cr <<", i = " << i << ", pv= " << pv << " pvr= " << pvr <<" fact = " << fact << " ";
                 //std::cout << "utri_ma[cr+pv] = " << utri_ma[cr+pv] <<" utri_ma[pvr+pv] = " << utri_ma[pvr+pv] << "\n";
                 for(j=0 ; j<cols ; j++){
-                    if(utri_ma[pvr+pv] == 0.0){ std::cout << "Singular Matrix!"; break; }
-                    utri_ma[cr+j] = (pv==j) ? 0 : utri_ma[cr+j] - utri_ma[pvr+j] * fact;
+                    if(mat[pvr+pv] == 0.0){ std::cout << "Singular Matrix!"; break; }
+                    mat[cr+j] = (pv==j) ? 0 : mat[cr+j] - mat[pvr+j] * fact;
                 }
             }
         }
     }
 }
 
-template <typename _T> void jbmath::_tril( _T* ltri_ma, const uint rows, const uint cols, const uint ch){
+template <typename _T> void jbmath::_tril( rawMat ltri_mat){
+    uint rows = ltri_mat.rows;
+    uint cols = ltri_mat.cols;
+    uint ch   = ltri_mat.channels;
 
     uint pivtmax = (rows < cols) ? rows : cols;
     uint rcstep = rows*cols;
@@ -113,25 +120,27 @@ template <typename _T> void jbmath::_tril( _T* ltri_ma, const uint rows, const u
     uint   pv, j, cr, pvr;
     int i;
     double fact;
-
+    _T* mat = reinterpret_cast<_T*>(ltri_mat.dat_ptr);
     // do tril
     for(uint cc=0; cc < tlen ; cc+= rcstep){
         for(pv=pivtmax-1 ; pv>0 ; pv--){
             pvr = pv*cols + cc;
             for(i=pv-1 ; i >= 0; i--){
                 cr = i* cols + cc;
-                fact = ltri_ma[cr+pv] / ltri_ma[pvr+pv];
+                fact = mat[cr+pv] / mat[pvr+pv];
                 //fprintf(stdout,"pv=%d, i=%d, fact=%f",pv,i,fact);
                 for(j=0 ; j < cols; j++){
-                    if(ltri_ma[pvr+pv] == 0.0){ std::cout << "Singular Matrix!"; break; }
-                    ltri_ma[cr+j] = (pv==j) ? 0 : ltri_ma[cr+j] - ltri_ma[pvr+j] * fact;
+                    if(mat[pvr+pv] == 0.0){ std::cout << "Singular Matrix!"; break; }
+                    mat[cr+j] = (pv==j) ? 0 : mat[cr+j] - mat[pvr+j] * fact;
                 }
             }
         }
     }
 }
-
-template <typename _T> std::shared_ptr<uchar> jbmath::_augment(const _T* mA, const uint rows, const uint cols, const uint ch, const uint augCols){
+template <typename _T> std::shared_ptr<uchar> jbmath::_augment(const rawMat srcmat, const uint augCols){
+    uint rows = srcmat.rows;
+    uint cols = srcmat.cols;
+    uint ch   = srcmat.channels;
 
     uint pivmax = (rows < cols)? rows : cols;
     uint augmentCols = cols + pivmax;
@@ -143,7 +152,7 @@ template <typename _T> std::shared_ptr<uchar> jbmath::_augment(const _T* mA, con
 
     std::shared_ptr<uchar> augm = std::shared_ptr<uchar>(new uchar[bytelen], std::default_delete<uchar[]>());
     _T* augm_ma = (_T*)augm.get();
-
+    _T* mA      = (_T*)srcmat.dat_ptr;
 
     uint i,j;
     uint cr,scr;
@@ -165,6 +174,7 @@ template <typename _T> std::shared_ptr<uchar> jbmath::_augment(const _T* mA, con
             }
         }
     }
+
     return augm;
 }
 
@@ -229,6 +239,5 @@ jbMat jbmath::_inverse(const jbMat& srcmat){
     }
 
     return invmat;
-
 }
 #endif // JBMATH_H

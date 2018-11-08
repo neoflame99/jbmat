@@ -23,7 +23,8 @@ struct rawMat{
     uchar* dat_ptr;
     uint rows;
     uint cols;
-    uint chennels;
+    uint channels;
+    DTYP dtype;
 };
 class jbMat{
 private: // member fields
