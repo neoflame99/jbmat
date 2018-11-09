@@ -24,6 +24,8 @@ namespace  jbmath {
     template <typename _T > void _tril(rawMat ltri_mat);
     template <typename _T > std::shared_ptr<uchar> _augment(const rawMat, const uint augCols);
     template <typename _T> jbMat _inverse(const jbMat& srcmat);
+    template <typename _Ta, typename _Tb, typename _To> void _conv2d(const jbMat& mA, const jbMat& mB, jbMat& mO, const bool fullout,const std::string& opt_conv);
+
 }
 
 template <typename _Ta, typename _Tb, typename _To>
@@ -196,7 +198,6 @@ jbMat jbmath::_inverse(const jbMat& srcmat){
         return jbMat();
     }
 
-
     jbMat mataug = augment(srcmat);
     jbMat utri   = triu(mataug);
     jbMat ltri   = tril(utri);        
@@ -239,5 +240,133 @@ jbMat jbmath::_inverse(const jbMat& srcmat){
     }
 
     return invmat;
+}
+template <typename _Ta, typename _Tb, typename _To>
+void jbmath::_conv2d(const jbMat& mA, const jbMat& mB, jbMat& mO, const bool fullout, const std::string& opt_conv ){
+
+    uint tX , tY;
+    uint xdummy , ydummy;
+    uint mbHcol = mB.getCol()/2;
+    uint mbHrow = mB.getRow()/2;
+    uint ch     = mA.getChannel();
+
+    if(fullout){
+        xdummy = mB.getCol() -1;
+        ydummy = mB.getRow() -1;
+        tX = mA.getCol() + xdummy*2;
+        tY = mA.getRow() + ydummy*2;
+    }else{
+        tX = mA.getCol() + mB.getCol() -1;
+        tY = mA.getRow() + mB.getRow() -1;
+    }
+
+    jbMat tmpA(mA.getDatType(),tY, tX, ch);
+
+    uint ich, y, x;
+    if( fullout ){
+        for( ich=0; ich < ch; ich++){
+            for( y =0; y < tY; y++){
+                for( x=0; x < tX; x++){
+                    if( (y >= xdummy && y < tY-ydummy) && ( x >= xdummy && x < tX-ydummy) )
+                        tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(y-ydummy,x-xdummy,ich);
+                    else
+                        tmpA.at<_Ta>(y,x,ich) = 0;
+                }
+            }
+        }
+    }else{
+        for( ich=0; ich < ch; ich++){
+            for( y =0; y < tY; y++){
+                for( x=0; x < tX; x++){
+                    if(opt_conv.substr(0,4).compare("symm")==0){
+
+                        if( y < mbHrow && x < mbHcol )         // left top corner
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mbHrow-y-1, mbHcol-x-1, ich);
+                        else if( y < mbHrow && x >= tX-mbHcol) // right top corner
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mbHrow-y-1, mA.getCol()-x-mbHcol+tX-1, ich);
+                        else if( y < mbHrow)                   // top
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mbHrow-y-1, x-mbHcol, ich);
+                        else if( y >= tY-mbHrow && x < mbHcol) // left bottom corner
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mA.getRow()-y-mbHrow+tY-1, mbHcol-x-1,ich);
+                        else if( y >= tY-mbHrow && x >= tX-mbHcol) // right bottom corner
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mA.getRow()-y-mbHrow+tY-1, mA.getCol()-x-mbHcol+tX-1, ich);
+                        else if( y >= tY-mbHrow)               // bottom
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mA.getRow()-y-mbHrow+tY-1, x-mbHcol, ich);
+                        else if( x < mbHcol )                  // left
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(y-mbHrow, mbHcol-x-1, ich);
+                        else if( x >= tX - mbHcol)             // right
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(y-mbHrow, mA.getCol()-x-mbHcol+tX-1, ich);
+                        else                                   // main
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(y-mbHrow,x-mbHcol,ich);
+                    }else if(opt_conv.substr(0,4).compare("circ")==0){
+
+                        if( y < mbHrow && x < mbHcol )         // left top corner
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mA.getRow()-mbHrow+y, mA.getCol()-mbHcol+x, ich);
+                        else if( y < mbHrow && x >= tX-mbHcol) // right top corner
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mA.getRow()-mbHrow+y, mbHcol-tX+x, ich);
+                        else if( y < mbHrow)                   // top
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mA.getRow()-mbHrow+y, x-mbHcol, ich);
+                        else if( y >= tY-mbHrow && x < mbHcol) // left bottom corner
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mbHrow-tY+y, mA.getCol()-mbHcol+x,ich);
+                        else if( y >= tY-mbHrow && x >= tX-mbHcol) // right bottom corner
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mbHrow-tY+y, mbHcol-tX+x, ich);
+                        else if( y >= tY-mbHrow)               // bottom
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(mbHrow-tY+y, x-mbHcol, ich);
+                        else if( x < mbHcol )                  // left
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(y-mbHrow, mA.getCol()-mbHcol+x, ich);
+                        else if( x >= tX - mbHcol)             // right
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(y-mbHrow, mbHcol-tX+x, ich);
+                        else                                   // main
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(y-mbHrow,x-mbHcol,ich);
+                    }else{
+
+                        if( (y >= mbHrow && y < tY-mbHrow) && ( x >= mbHcol && x < tX-mbHcol) )
+                            tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(y-mbHrow,x-mbHcol,ich);
+                        else
+                            tmpA.at<_Ta>(y,x,ich) = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    //-- convolution
+    _To sum;
+    if(fullout){
+        for( ich=0; ich < ch ; ich++){
+            for( y=ydummy; y < tY; y++){
+                for( x=xdummy; x < tX; x++){
+                    sum = 0;
+                    for(int m= mB.getRow()-1; m >= 0; m--){
+                        for(int n= mB.getCol()-1; n >= 0; n--){
+                            sum += (tmpA.at<_Ta>(y-m,x-n,ich)* mB.at<_Tb>(m,n,ich));
+                            //a = tmpA.at<_Ta>(y-mbHrow+m,x-mbHcol+n,ich);
+                            //b = mB.at<_Tb>(m,n,ich);
+                            //sum += (a+b);
+                        }
+                    }
+                    mO.at<_To>(y-ydummy,x-xdummy,ich) = sum;
+                }
+            }
+        }
+    }else{
+        for( ich=0; ich < ch ; ich++){
+            for( y=mbHrow; y < tY-mbHrow; y++){
+                for( x=mbHcol; x < tX-mbHcol; x++){
+                    sum = 0.0;
+                    for(int m= mB.getRow()-1; m >= 0; m--){
+                        for(int n= mB.getCol()-1; n >= 0; n--){
+                            //sum += (tmpA(y-m,x-n,ich)* mB(-m+mbHrow,-n+mbHcol,ich));
+                            sum += (tmpA.at<_Ta>(y+mbHrow-m,x+mbHcol-n,ich)* mB.at<_Tb>(m,n,ich));
+                            //a = tmpA.at<_Ta>(y-mbHrow+m,x-mbHcol+n,ich);
+                            //b = mB.at<_Tb>(m,n,ich);
+                            //sum += (a+b);
+                        }
+                    }
+                    mO.at<_To>(y-mbHrow,x-mbHcol,ich) = sum;
+                }
+            }
+        }
+    }
 }
 #endif // JBMATH_H

@@ -150,13 +150,13 @@ jbMat jbmath::tranpose(const jbMat &mA){
     return t;
 }
 
-/*
-jbMat jbMath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std::string opt_out ){
 
-    if(mA.isEmpty()) {
+jbMat jbmath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std::string opt_out ){
+
+    if( mA.isEmpty()) {
         fprintf(stderr, "mA is empty\n ");
         return jbMat();
-    }else if(mB.isEmpty()){
+    }else if( mB.isEmpty()){
         fprintf(stderr, "mB is empty\n ");
         return jbMat();
     }else if( mA.getChannel() != mB.getChannel() ){
@@ -164,143 +164,52 @@ jbMat jbMath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std
         return jbMat();
     }
 
-    int tX , tY;
-    int xdummy , ydummy;
-    int mbHcol = mB.getCol()/2;
-    int mbHrow = mB.getRow()/2;
-    int ch = mA.getChannel();
-    bool fullout = false;
-    jbMat tmpO;
-
+    uint ch      = mA.getChannel();
+    bool fullout = false;    
     if( opt_out.compare("full")==0 )
         fullout = true;
 
-    if(fullout){
-        xdummy = mB.getCol() -1;
-        ydummy = mB.getRow() -1;
-        tX = mA.getCol() + xdummy*2;
-        tY = mA.getRow() + ydummy*2;
+    DTYP aDtype = mA.getDatType();
+    DTYP bDtype = mA.getDatType();
+    DTYP oDtype = (aDtype > bDtype) ? aDtype : bDtype;
 
-    }else{
-        tX = mA.getCol() + mB.getCol() -1;
-        tY = mA.getRow() + mB.getRow() -1;
-    }
-
-    jbMat tmpA(tY, tX, ch);
+    jbMat mO;
     if(fullout){
-        tmpO = jbMat(mA.getRow() + mB.getRow() -1, mA.getCol() + mB.getCol() -1, ch);
+        mO = jbMat(oDtype, mA.getRow() + mB.getRow() -1, mA.getCol() + mB.getCol() -1, ch);
     }else{  // 'same'
-        tmpO = mA.copy();
+        mO = jbMat(oDtype, mA.getRow(), mA.getCol(), mA.getChannel());
     }
 
-    if( fullout ){
-        for(int ich=0; ich < ch; ich++){
-            for(int y =0; y < tY; y++){
-                for(int x=0; x < tX; x++){
-                    if( (y >= xdummy && y < tY-ydummy) && ( x >= xdummy && x < tX-ydummy) )
-                        tmpA(y,x,ich) = mA(y-ydummy,x-xdummy,ich);
-                    else
-                        tmpA(y,x,ich) = 0;
-                }
-            }
+    if(aDtype == DTYP::DOUBLE){
+        switch(bDtype){
+        case DTYP::DOUBLE : _conv2d<double, double, double>(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::FLOAT  : _conv2d<double, float , double>(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::INT    : _conv2d<double, int   , double>(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::UCHAR  : _conv2d<double, uchar , double>(mA, mB, mO, fullout, opt_conv); break;
         }
-    }else{
-        for(int ich=0; ich < ch; ich++){
-            for(int y =0; y < tY; y++){
-                for(int x=0; x < tX; x++){
-                    if(opt_conv.substr(0,4).compare("symm")==0){
-
-                        if( y < mbHrow && x < mbHcol )         // left top corner
-                            tmpA(y,x,ich) = mA(mbHrow-y-1, mbHcol-x-1, ich);
-                        else if( y < mbHrow && x >= tX-mbHcol) // right top corner
-                            tmpA(y,x,ich) = mA(mbHrow-y-1, mA.getCol()-x-mbHcol+tX-1, ich);
-                        else if( y < mbHrow)                   // top
-                            tmpA(y,x,ich) = mA(mbHrow-y-1, x-mbHcol, ich);
-                        else if( y >= tY-mbHrow && x < mbHcol) // left bottom corner
-                            tmpA(y,x,ich) = mA(mA.getRow()-y-mbHrow+tY-1, mbHcol-x-1,ich);
-                        else if( y >= tY-mbHrow && x >= tX-mbHcol) // right bottom corner
-                            tmpA(y,x,ich) = mA(mA.getRow()-y-mbHrow+tY-1, mA.getCol()-x-mbHcol+tX-1, ich);
-                        else if( y >= tY-mbHrow)               // bottom
-                            tmpA(y,x,ich) = mA(mA.getRow()-y-mbHrow+tY-1, x-mbHcol, ich);
-                        else if( x < mbHcol )                  // left
-                            tmpA(y,x,ich) = mA(y-mbHrow, mbHcol-x-1, ich);
-                        else if( x >= tX - mbHcol)             // right
-                            tmpA(y,x,ich) = mA(y-mbHrow, mA.getCol()-x-mbHcol+tX-1, ich);
-                        else                                   // main
-                            tmpA(y,x,ich) = mA(y-mbHrow,x-mbHcol,ich);
-                    }else if(opt_conv.substr(0,4).compare("circ")==0){
-
-                        if( y < mbHrow && x < mbHcol )         // left top corner
-                            tmpA(y,x,ich) = mA(mA.getRow()-mbHrow+y, mA.getCol()-mbHcol+x, ich);
-                        else if( y < mbHrow && x >= tX-mbHcol) // right top corner
-                            tmpA(y,x,ich) = mA(mA.getRow()-mbHrow+y, mbHcol-tX+x, ich);
-                        else if( y < mbHrow)                   // top
-                            tmpA(y,x,ich) = mA(mA.getRow()-mbHrow+y, x-mbHcol, ich);
-                        else if( y >= tY-mbHrow && x < mbHcol) // left bottom corner
-                            tmpA(y,x,ich) = mA(mbHrow-tY+y, mA.getCol()-mbHcol+x,ich);
-                        else if( y >= tY-mbHrow && x >= tX-mbHcol) // right bottom corner
-                            tmpA(y,x,ich) = mA(mbHrow-tY+y, mbHcol-tX+x, ich);
-                        else if( y >= tY-mbHrow)               // bottom
-                            tmpA(y,x,ich) = mA(mbHrow-tY+y, x-mbHcol, ich);
-                        else if( x < mbHcol )                  // left
-                            tmpA(y,x,ich) = mA(y-mbHrow, mA.getCol()-mbHcol+x, ich);
-                        else if( x >= tX - mbHcol)             // right
-                            tmpA(y,x,ich) = mA(y-mbHrow, mbHcol-tX+x, ich);
-                        else                                   // main
-                            tmpA(y,x,ich) = mA(y-mbHrow,x-mbHcol,ich);
-                    }else{
-
-                        if( (y >= mbHrow && y < tY-mbHrow) && ( x >= mbHcol && x < tX-mbHcol) )
-                            tmpA(y,x,ich) = mA(y-mbHrow,x-mbHcol,ich);
-                        else
-                            tmpA(y,x,ich) = 0;
-                    }
-                }
-            }
+    }else if(aDtype == DTYP::FLOAT){
+        switch(bDtype){
+        case DTYP::DOUBLE : _conv2d<float , double, double>(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::FLOAT  : _conv2d<float , float , float >(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::INT    : _conv2d<float , int   , float >(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::UCHAR  : _conv2d<float , uchar , float >(mA, mB, mO, fullout, opt_conv); break;
         }
-    }
-   // tmpA.printMat();
-
-    // convolution
-    double sum;
-
-    if(fullout){
-        for(int ich=0; ich < ch ; ich++){
-            for(int y=ydummy; y < tY; y++){
-                for(int x=xdummy; x < tX; x++){
-                    sum = 0.0;
-                    for(int m= mB.getRow()-1; m >= 0; m--){
-                        for(int n= mB.getCol()-1; n >= 0; n--){
-                            sum += (tmpA(y-m,x-n,ich)* mB(m,n,ich));
-                            //a = tmpA(y-mbHrow+m,x-mbHcol+n,ich);
-                            //b = mB(m,n,ich);
-                            //sum += (a+b);
-                        }
-                    }
-                    tmpO(y-ydummy,x-xdummy,ich) = sum;
-                }
-            }
+    }else if(aDtype == DTYP::INT){
+        switch(bDtype){
+        case DTYP::DOUBLE : _conv2d<int   , double, double>(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::FLOAT  : _conv2d<int   , float , float >(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::INT    : _conv2d<int   , int   , int   >(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::UCHAR  : _conv2d<int   , uchar , int   >(mA, mB, mO, fullout, opt_conv); break;
         }
-    }else{
-        for(int ich=0; ich < ch ; ich++){
-            for(int y=mbHrow; y < tY-mbHrow; y++){
-                for(int x=mbHcol; x < tX-mbHcol; x++){
-                    sum = 0.0;
-                    for(int m= mB.getRow()-1; m >= 0; m--){
-                        for(int n= mB.getCol()-1; n >= 0; n--){
-                            //sum += (tmpA(y-m,x-n,ich)* mB(-m+mbHrow,-n+mbHcol,ich));
-                            sum += (tmpA(y+mbHrow-m,x+mbHcol-n,ich)* mB(m,n,ich));
-                            //a = tmpA(y-mbHrow+m,x-mbHcol+n,ich);
-                            //b = mB(m,n,ich);
-                            //sum += (a+b);
-                        }
-                    }
-                    tmpO(y-mbHrow,x-mbHcol,ich) = sum;
-                }
-            }
+    }else if(aDtype == DTYP::UCHAR){
+        switch(bDtype){
+        case DTYP::DOUBLE : _conv2d<uchar , double, double>(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::FLOAT  : _conv2d<uchar , float , float >(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::INT    : _conv2d<uchar , int   , int   >(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::UCHAR  : _conv2d<uchar , uchar , uchar >(mA, mB, mO, fullout, opt_conv); break;
         }
     }
 
-    return tmpO;
+    return mO;
 }
-*/
+

@@ -39,7 +39,6 @@ int main(int argc, char *argv[])
     //maa.plusMat(ma);
     maa += ma;
     maa.printMat();
-    double* b = ma.getDataPtr<double>();
     ma.at<double>(0) = 1000;
     ma.printMat();
     ma.changeDType(DTYP::INT);
