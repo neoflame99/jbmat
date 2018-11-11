@@ -260,8 +260,8 @@ void jbmath::_conv2d(const jbMat& mA, const jbMat& mB, jbMat& mO, const bool ful
         tY = mA.getRow() + mB.getRow() -1;
     }
 
-    jbMat tmpA(mA.getDatType(),tY, tX, ch);
-
+    //jbMat tmpA(mA.getDatType(),tY, tX, ch);
+    jbMat tmpA = jbMat::zeros(tY, tX, ch, mA.getDatType());
     uint ich, y, x;
     if( fullout ){
         for( ich=0; ich < ch; ich++){
@@ -269,8 +269,8 @@ void jbmath::_conv2d(const jbMat& mA, const jbMat& mB, jbMat& mO, const bool ful
                 for( x=0; x < tX; x++){
                     if( (y >= xdummy && y < tY-ydummy) && ( x >= xdummy && x < tX-ydummy) )
                         tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(y-ydummy,x-xdummy,ich);
-                    else
-                        tmpA.at<_Ta>(y,x,ich) = 0;
+//                    else
+//                        tmpA.at<_Ta>(y,x,ich) = 0;
                 }
             }
         }
@@ -322,14 +322,14 @@ void jbmath::_conv2d(const jbMat& mA, const jbMat& mB, jbMat& mO, const bool ful
 
                         if( (y >= mbHrow && y < tY-mbHrow) && ( x >= mbHcol && x < tX-mbHcol) )
                             tmpA.at<_Ta>(y,x,ich) = mA.at<_Ta>(y-mbHrow,x-mbHcol,ich);
-                        else
-                            tmpA.at<_Ta>(y,x,ich) = 0;
+//                        else
+//                            tmpA.at<_Ta>(y,x,ich) = 0;
                     }
                 }
             }
         }
     }
-
+    //tmpA.printMat("tmpA");
     //-- convolution
     _To sum;
     if(fullout){

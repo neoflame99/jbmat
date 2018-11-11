@@ -170,14 +170,14 @@ jbMat jbmath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std
         fullout = true;
 
     DTYP aDtype = mA.getDatType();
-    DTYP bDtype = mA.getDatType();
+    DTYP bDtype = mB.getDatType();
     DTYP oDtype = (aDtype > bDtype) ? aDtype : bDtype;
 
     jbMat mO;
     if(fullout){
-        mO = jbMat(oDtype, mA.getRow() + mB.getRow() -1, mA.getCol() + mB.getCol() -1, ch);
+        mO = jbMat::zeros( mA.getRow() + mB.getRow() -1, mA.getCol() + mB.getCol() -1, ch, oDtype);
     }else{  // 'same'
-        mO = jbMat(oDtype, mA.getRow(), mA.getCol(), mA.getChannel());
+        mO = jbMat::zeros( mA.getRow(), mA.getCol(), mA.getChannel(), oDtype);
     }
 
     if(aDtype == DTYP::DOUBLE){

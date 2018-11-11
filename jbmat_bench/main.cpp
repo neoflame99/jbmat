@@ -18,16 +18,16 @@
 int main(int argc, char *argv[])
 {
 
-    int row = 7;
-    int col = 7;
-    int ch = 2;
-    int rowcol = row*col;
+    uint row = 7;
+    uint col = 7;
+    uint ch = 2;
+    uint rowcol = row*col;
     jbMat ma(DTYP::DOUBLE, row,col,ch);
 
-    double* a = (double *)ma.getMat().get();
-    int k = 1;
-    for(int c=0; c < ch; c++){
-        for(int i=0; i < row*col; i++){
+    double* a = ma.getDataPtr<double>();
+    uint k = 1;
+    for(uint c=0; c < ch; c++){
+        for(uint i=0; i < row*col; i++){
             a[c*rowcol + i] = k++;
         }
     }
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     jbMat mah(DTYP::DOUBLE, 4,3,2);
     double *mag_m = mag.getDataPtr<double>();
     double *mah_m = mah.getDataPtr<double>();
-    for(int c=0; c < mag.getLength(); c++){
+    for(uint c=0; c < mag.getLength(); c++){
         mag_m[c] = c;
         mah_m[c] = c + c%4;
     }
@@ -75,34 +75,29 @@ int main(int argc, char *argv[])
     mai.printMat();
     maj.printMat();
 
-
-/*
+    //-- conv
     k=0;
-    jbMat mb(DTYP::DOUBLE,5,5,2);
-    jbMat mc(DTYP::DOUBLE,5,5,2);
-    //double *b = mb.getMat();
-    double* b = (double *)mb.getMat().get();
-    for(int c=0; c < mb.getChannel(); c++){
-        for(int i=0; i < 5; i++){
-            for (int j=0; j < 5; j++){
+    jbMat mb(DTYP::DOUBLE,5,5,2,"mb");
+    jbMat mc(DTYP::DOUBLE,5,5,2,"mc");
+    double* b = mb.getDataPtr<double>();
+    for(uint c=0; c < mb.getChannel(); c++){
+        for(uint i=0; i < 5; i++){
+            for (uint j=0; j < 5; j++){
                 b[i*5+j+c*25] = 100+k++;
-                mc(i,j,c) = k;
+                mc.at<double>(i,j,c) = k;
             }
         }
     }
-    mb.printMat();
+    ma.printMat("ma");
+    mb.printMat("mb");
     fprintf(stdout,"1) full\n");
-    jbMat convO = jbMath::conv2d(ma,mb,"zero","full");
-    convO.printMat();
+    jbMat convO = jbmath::conv2d(ma,mb,"zero","full");
+    convO.printMat("conv0: full");
     fprintf(stdout,"2) same\n");
-    convO = jbMath::conv2d(ma,mb,"zero","same");
-    convO.printMat();
+    convO = jbmath::conv2d(ma,mb,"zero","same");
+    convO.printMat("conv0: same");
 
-    jbMat md = mb/mc;
-    mb.printMat();
-    mc.printMat();
-    md.printMat();
-
+    /*
     jbMat me = md.copy();
     jbMat mf = md;
     fprintf(stdout," me_mA_ptr: %p, md_mA_ptr: %p , mf_mA_ptr: %p\n", me.getMat().get(), md.getMat().get(), mf.getMat().get());
