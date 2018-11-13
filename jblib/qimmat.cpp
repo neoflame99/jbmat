@@ -1,39 +1,40 @@
 #include "qimmat.h"
 #include <stdio.h>
 
+namespace qimmat {
 
-jbMat qimmat::qim2jbmat( QImage& src, DTYP matDtype){
-    QImage::Format fmt = src.format();
-    int ch = 0;
-    if(fmt == QImage::Format_Grayscale8 ){
-        ch = 1;
-        fprintf(stdout,"image format: grayscale\n");
-    }else if(fmt == QImage::Format_RGB888){
-        ch = 3;
-        fprintf(stdout,"image format: RGB888\n");
-    }else if(fmt == QImage::Format_ARGB32 || fmt == QImage::Format_RGB32){
-        ch = 3;
-        fprintf(stdout,"image format: RGB32\n");
-    }else{
-        fprintf(stdout,"qim2jbmat is not supporting format\n");
-        return jbMat();
+    jbMat qim2jbmat( QImage& src, DTYP matDtype){
+        QImage::Format fmt = src.format();
+        int ch = 0;
+        if(fmt == QImage::Format_Grayscale8 ){
+            ch = 1;
+            fprintf(stdout,"image format: grayscale\n");
+        }else if(fmt == QImage::Format_RGB888){
+            ch = 3;
+            fprintf(stdout,"image format: RGB888\n");
+        }else if(fmt == QImage::Format_ARGB32 || fmt == QImage::Format_RGB32){
+            ch = 3;
+            fprintf(stdout,"image format: RGB32\n");
+        }else{
+            fprintf(stdout,"qim2jbmat is not supporting format\n");
+            return jbMat();
+        }
+        uint row = src.height();
+        uint col = src.width();
+
+        jbMat mat(matDtype, row, col, ch);
+
+        switch(matDtype){
+        case DTYP::DOUBLE : _datqim2jbmat<double>(mat, src); break;
+        case DTYP::FLOAT  : _datqim2jbmat<float >(mat, src); break;
+        case DTYP::INT    : _datqim2jbmat<int   >(mat, src); break;
+        case DTYP::UCHAR  : _datqim2jbmat<uchar >(mat, src); break;
+        }
+
+        return mat;
     }
-    uint row = src.height();
-    uint col = src.width();
 
-    jbMat mat(matDtype, row, col, ch);
-
-    switch(matDtype){
-    case DTYP::DOUBLE : _datqim2jbmat<double>(mat, src); break;
-    case DTYP::FLOAT  : _datqim2jbmat<float >(mat, src); break;
-    case DTYP::INT    : _datqim2jbmat<int   >(mat, src); break;
-    case DTYP::UCHAR  : _datqim2jbmat<uchar >(mat, src); break;
-    }
-
-    return mat;
-}
-
-QImage qimmat::jbmat2qim(const jbMat& src){
+    QImage jbmat2qim(const jbMat& src){
     QImage::Format fmt;
     if(src.getChannel()==1)
         fmt = QImage::Format_Grayscale8;
@@ -57,3 +58,5 @@ QImage qimmat::jbmat2qim(const jbMat& src){
     }
     return qim;
 }
+
+} // qimmat namespace

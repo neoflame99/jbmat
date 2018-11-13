@@ -1,7 +1,7 @@
 
 #include "../jblib/jbMat.h"
 #include "../jblib/jbmath.h"
-//#include "../jblib/qimmat.h"
+#include "../jblib/qimmat.h"
 //#include "../jblib/jbimgproc.h"
 
 #include <QImage>
@@ -97,50 +97,49 @@ int main(int argc, char *argv[])
     convO = jbmath::conv2d(ma,mb,"zero","same");
     convO.printMat("conv0: same");
 
-    /*
-    jbMat me = md.copy();
-    jbMat mf = md;
-    fprintf(stdout," me_mA_ptr: %p, md_mA_ptr: %p , mf_mA_ptr: %p\n", me.getMat().get(), md.getMat().get(), mf.getMat().get());
+
+    jbMat me = ma.copy();
+    jbMat mf = ma;
+    fprintf(stdout," me_mA_ptr: %p, md_mA_ptr: %p , mf_mA_ptr: %p\n", me.getMat().get(), ma.getMat().get(), mf.getMat().get());
     me.printMat();
     mf.printMat();
-    md.printMat();
+    ma.printMat();
 
     qDebug() << QDir::currentPath();
-
     QString fname1 = QString("../jbmat_bench/test.jpg");
     QString fname2 = QString("../jbmat_bench/test_filt.bmp");
     QImage img(fname1);
-    jbMat matIm = QimMat::qim2jbmat(img);
+    jbMat matIm = qimmat::qim2jbmat(img);
     jbMat filt  = jbMat::ones(5,5,matIm.getChannel())/25;
-    jbMat FiltIm = jbMath::conv2d(matIm, filt,"zero","same");
+    jbMat FiltIm = jbmath::conv2d(matIm, filt,"zero","same");
     //jbMat FiltIm = jbMath::conv2d(matIm, filt,"zero","full");
-    QImage cvim = QimMat::jbmat2qim(FiltIm);
+    QImage cvim = qimmat::jbmat2qim(FiltIm);
     //QImage cvim = QimMat::jbmat2qim(matIm);
     cvim.save(fname2);
 
-    jbMat mg(1,7,3) ;
-    mg(0,0,0) = 1;
-    mg(0,0,1) = 1;
-    mg(0,0,2) = 1;
-    mg(0,1,0) = 1;
-    mg(0,1,1) = 0;
-    mg(0,1,2) = 0;
-    mg(0,2,0) = 0;
-    mg(0,2,1) = 1;
-    mg(0,2,2) = 0;
-    mg(0,3,0) = 0;
-    mg(0,3,1) = 0;
-    mg(0,3,2) = 1;
-    mg(0,4,0) = 1;
-    mg(0,4,1) = 0;
-    mg(0,4,2) = 1;
-    mg(0,5,0) = 1;
-    mg(0,5,1) = 1;
-    mg(0,5,2) = 0;
-    mg(0,6,0) = 0;
-    mg(0,6,1) = 1;
-    mg(0,6,2) = 1;
-
+    jbMat mg(DTYP::DOUBLE,1,7,3) ;
+    mg.at<double>(0,0,0) = 1;
+    mg.at<double>(0,0,1) = 1;
+    mg.at<double>(0,0,2) = 1;
+    mg.at<double>(0,1,0) = 1;
+    mg.at<double>(0,1,1) = 0;
+    mg.at<double>(0,1,2) = 0;
+    mg.at<double>(0,2,0) = 0;
+    mg.at<double>(0,2,1) = 1;
+    mg.at<double>(0,2,2) = 0;
+    mg.at<double>(0,3,0) = 0;
+    mg.at<double>(0,3,1) = 0;
+    mg.at<double>(0,3,2) = 1;
+    mg.at<double>(0,4,0) = 1;
+    mg.at<double>(0,4,1) = 0;
+    mg.at<double>(0,4,2) = 1;
+    mg.at<double>(0,5,0) = 1;
+    mg.at<double>(0,5,1) = 1;
+    mg.at<double>(0,5,2) = 0;
+    mg.at<double>(0,6,0) = 0;
+    mg.at<double>(0,6,1) = 1;
+    mg.at<double>(0,6,2) = 1;
+/*
     mg.printMat();
     jbMat mh = jbimgproc::rgb2ycc(mg,1);
     mh.printMat();
