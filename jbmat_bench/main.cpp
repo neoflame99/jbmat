@@ -2,7 +2,7 @@
 #include "../jblib/jbMat.h"
 #include "../jblib/jbmath.h"
 #include "../jblib/qimmat.h"
-//#include "../jblib/jbimgproc.h"
+#include "../jblib/jbimgproc.h"
 
 #include <QImage>
 #include <QString>
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
     mg.at<double>(0,6,0) = 0;
     mg.at<double>(0,6,1) = 1;
     mg.at<double>(0,6,2) = 1;
-/*
+
     mg.printMat();
     jbMat mh = jbimgproc::rgb2ycc(mg,1);
     mh.printMat();
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
     mi.printMat();
     jbMat mj = jbimgproc::rgb2gray(mg);
     mj.printMat();
-
+/*
     jbMat mk(3,4,2,"mk");
     jbMat ml(4,3,2,"ml");
     jbMat mn(4,4,1,"mn");

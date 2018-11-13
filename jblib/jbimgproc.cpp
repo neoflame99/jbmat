@@ -15,15 +15,13 @@ jbMat rgb2ycc(const jbMat& rgbIm, const int sel_eq){
  * Pr = [  0.5     , -0.45415 ,	-0.04585 ]   [ b ]
  *
  */
-    jbMat A;
-    switch(rgbIm.getDatType()){
-    case DTYP::DOUBLE : A = _rgb2ycc<double>(rgbIm, sel_eq); break;
-    case DTYP::FLOAT  : A = _rgb2ycc<float >(rgbIm, sel_eq); break;
-    case DTYP::INT    : A = _rgb2ycc<int   >(rgbIm, sel_eq); break;
-    case DTYP::UCHAR  : A = _rgb2ycc<uchar >(rgbIm, sel_eq); break;
-    }
 
-    return A;
+    switch(rgbIm.getDatType()){
+    case DTYP::DOUBLE : return _rgb2ycc<double>(rgbIm, sel_eq);
+    case DTYP::FLOAT  : return _rgb2ycc<float >(rgbIm, sel_eq);
+    case DTYP::INT    : return _rgb2ycc<int   >(rgbIm, sel_eq);
+    case DTYP::UCHAR  : return _rgb2ycc<uchar >(rgbIm, sel_eq);
+    }
 }
 
 
@@ -42,49 +40,16 @@ jbMat ycc2rgb(const jbMat& rgbIm, const int sel_eq){
  *
  */
 
-    int row = rgbIm.getRow();
-    int col = rgbIm.getCol();
-    int imsize = row * col;
-    int chsize = rgbIm.getChannel();
-    if( chsize != 3 ) {
-        fprintf(stdout,"rgbIm is not three channel image\n");
-        return jbMat();
+    switch(rgbIm.getDatType()){
+    case DTYP::DOUBLE : return _ycc2rgb<double>(rgbIm, sel_eq);
+    case DTYP::FLOAT  : return _ycc2rgb<float >(rgbIm, sel_eq);
+    case DTYP::INT    : return _ycc2rgb<int   >(rgbIm, sel_eq);
+    case DTYP::UCHAR  : return _ycc2rgb<uchar >(rgbIm, sel_eq);
     }
-
-    jbMat A = rgbIm.copy();
-     *rgbDat_pt = rgbIm.getMat().get();
-    double *tarDat_pt = A.getMat().get();
-
-    int ch_offset1 = imsize ;
-    int ch_offset2 = imsize << 1;
-    int x;
-    double tmp1, tmp2, tmp3;
-    if( sel_eq == 0){
-        for(x= 0 ; x < imsize; x++){
-            tmp1 = bt601_y2r[0][0] * rgbDat_pt[x  ] + bt601_y2r[0][1] * rgbDat_pt[x+ch_offset1] + bt601_y2r[0][2] * rgbDat_pt[x+ch_offset2];
-            tmp2 = bt601_y2r[1][0] * rgbDat_pt[x  ] + bt601_y2r[1][1] * rgbDat_pt[x+ch_offset1] + bt601_y2r[1][2] * rgbDat_pt[x+ch_offset2];
-            tmp3 = bt601_y2r[2][0] * rgbDat_pt[x  ] + bt601_y2r[2][1] * rgbDat_pt[x+ch_offset1] + bt601_y2r[2][2] * rgbDat_pt[x+ch_offset2];
-
-            tarDat_pt[x           ] = (tmp1 < 0 ) ? 0 : tmp1;
-            tarDat_pt[x+ch_offset1] = (tmp2 < 0 ) ? 0 : tmp2;
-            tarDat_pt[x+ch_offset2] = (tmp3 < 0 ) ? 0 : tmp3;
-        }
-    }else if( sel_eq == 1){
-        for(x= 0 ; x < imsize; x++){
-            tmp1 = bt709_y2r[0][0] * rgbDat_pt[x  ] + bt709_y2r[0][1] * rgbDat_pt[x+ch_offset1] + bt709_y2r[0][2] * rgbDat_pt[x+ch_offset2];
-            tmp2 = bt709_y2r[1][0] * rgbDat_pt[x  ] + bt709_y2r[1][1] * rgbDat_pt[x+ch_offset1] + bt709_y2r[1][2] * rgbDat_pt[x+ch_offset2];
-            tmp3 = bt709_y2r[2][0] * rgbDat_pt[x  ] + bt709_y2r[2][1] * rgbDat_pt[x+ch_offset1] + bt709_y2r[2][2] * rgbDat_pt[x+ch_offset2];
-
-            tarDat_pt[x           ] = (tmp1 < 0 ) ? 0 : tmp1;
-            tarDat_pt[x+ch_offset1] = (tmp2 < 0 ) ? 0 : tmp2;
-            tarDat_pt[x+ch_offset2] = (tmp3 < 0 ) ? 0 : tmp3;
-
-        }
-    }
-    return A;
 }
 
-jbMat jbimgproc::rgb2gray(const jbMat& rgbIm, const int HowToGray){
+
+jbMat rgb2gray(const jbMat& rgbIm, const int HowToGray){
 /*
  *  if HowToGray = 0 (BT 601)
  *  Y =  0.299 * r   +  0.587 * g +  0.114 * b
@@ -95,38 +60,14 @@ jbMat jbimgproc::rgb2gray(const jbMat& rgbIm, const int HowToGray){
  *  if HowToGray = 2 (3 equal-weight)
  *  Y = 0.333 * r + 0.334 * g + 0.333 * b
  */
-
-    int row = rgbIm.getRow();
-    int col = rgbIm.getCol();
-    int imsize = row * col;
-    int chsize = rgbIm.getChannel();
-    if( chsize != 3 ) {
-        fprintf(stdout,"rgbIm is not three channel image\n");
-        return jbMat();
+    switch(rgbIm.getDatType()){
+    case DTYP::DOUBLE : return _rgb2gray<double>(rgbIm, HowToGray);
+    case DTYP::FLOAT  : return _rgb2gray<float >(rgbIm, HowToGray);
+    case DTYP::INT    : return _rgb2gray<int   >(rgbIm, HowToGray);
+    case DTYP::UCHAR  : return _rgb2gray<uchar >(rgbIm, HowToGray);
     }
-
-    jbMat A(row, col, 1);
-    double *rgbDat_pt = rgbIm.getMat().get();
-    double *tarDat_pt = A.getMat().get();
-
-    int ch_offset1 = imsize;
-    int ch_offset2 = imsize << 1;
-    int x,k;
-
-    if( HowToGray==0){
-        for(x= 0, k=0 ; x < imsize; x++, k++)
-            tarDat_pt[k  ] =  bt601_r2y[0][0] * rgbDat_pt[x  ] + bt601_r2y[0][1] * rgbDat_pt[x+ch_offset1] + bt601_r2y[0][2] * rgbDat_pt[x+ch_offset2];
-    }else if( HowToGray==1){
-        for(x= 0, k=0 ; x < imsize; x++, k++)
-            tarDat_pt[k  ] =  bt709_r2y[0][0] * rgbDat_pt[x  ] + bt709_r2y[0][1] * rgbDat_pt[x+ch_offset1] + bt709_r2y[0][2] * rgbDat_pt[x+ch_offset2];
-    }else if( HowToGray==2){
-        for(x= 0, k=0 ; x < imsize; x++, k++)
-            tarDat_pt[k  ] =  0.333 * rgbDat_pt[x  ] + 0.334 * rgbDat_pt[x+ch_offset1] + 0.333 * rgbDat_pt[x+ch_offset2];
-    }
-
-    return A;
 }
-
+/*
 jbMat jbimgproc::histoPmf(const jbMat& src){
     int ch  = src.getChannel();
 
@@ -287,6 +228,6 @@ jbMat jbimgproc::clip_HistoEqual(const jbMat& src,const jbMat& histCmf){
 
     return A;
 }
-
+*/
 
 }

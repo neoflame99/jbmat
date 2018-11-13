@@ -30,9 +30,9 @@ const double bt709_y2r[3][3]={{ 1.0000 ,   0.0000 ,   1.5748 },
     jbMat clip_HistoEqual(const jbMat& src, const jbMat& histCmf);
 
 
-template <typename _T> jbMat _rgb2ycc(const jbMat& rgbIm, const int sel_eq = 0);
-template <typename _T> jbMat _ycc2rgb(const jbMat& yccIm, const int sel_eq = 0);
-
+template <typename _T> jbMat _rgb2ycc(const jbMat& rgbIm, const int sel_eq );
+template <typename _T> jbMat _ycc2rgb(const jbMat& yccIm, const int sel_eq );
+template <typename _T> jbMat _rgb2gray(const jbMat& rgbIm, const int HowToGray);
 }
 
 namespace jbimgproc {
@@ -107,7 +107,7 @@ template <typename _T> jbMat _ycc2rgb(const jbMat& yccIm, const int sel_eq ){
          return jbMat();
      }
 
-     jbMat A(row, col, chsize);
+     jbMat A(yccIm.getDatType(), row, col, chsize);
      _T *srcDat_pt = yccIm.getDataPtr<_T>();
      _T *tarDat_pt = A.getDataPtr<_T>();
 
@@ -138,6 +138,50 @@ template <typename _T> jbMat _ycc2rgb(const jbMat& yccIm, const int sel_eq ){
          }
      }
      return A;
+}
+
+
+template <typename _T> jbMat _rgb2gray(const jbMat& rgbIm, const int HowToGray){
+/*
+ *  if HowToGray = 0 (BT 601)
+ *  Y =  0.299 * r   +  0.587 * g +  0.114 * b
+ *
+ *  if HowToGray = 1 (BT 709)
+ *  Y =  0.2126 * r +  0.7152 * g +  0.0722 * b
+ *
+ *  if HowToGray = 2 (3 equal-weight)
+ *  Y = 0.333 * r + 0.334 * g + 0.333 * b
+ */
+
+    uint row = rgbIm.getRow();
+    uint col = rgbIm.getCol();
+    uint imsize = row * col;
+    uint chsize = rgbIm.getChannel();
+    if( chsize != 3 ) {
+        fprintf(stdout,"rgbIm is not three channel image\n");
+        return jbMat();
+    }
+
+    jbMat A(rgbIm.getDatType(), row, col, 1);
+    _T *srcDat_pt = rgbIm.getDataPtr<_T>();
+    _T *tarDat_pt = A.getDataPtr<_T>();
+
+    uint ch_offset1 = imsize;
+    uint ch_offset2 = imsize << 1;
+    uint x,k;
+
+    if( HowToGray==0){
+        for(x= 0, k=0 ; x < imsize; x++, k++)
+            tarDat_pt[k  ] =  bt601_r2y[0][0] * srcDat_pt[x  ] + bt601_r2y[0][1] * srcDat_pt[x+ch_offset1] + bt601_r2y[0][2] * srcDat_pt[x+ch_offset2];
+    }else if( HowToGray==1){
+        for(x= 0, k=0 ; x < imsize; x++, k++)
+            tarDat_pt[k  ] =  bt709_r2y[0][0] * srcDat_pt[x  ] + bt709_r2y[0][1] * srcDat_pt[x+ch_offset1] + bt709_r2y[0][2] * srcDat_pt[x+ch_offset2];
+    }else if( HowToGray==2){
+        for(x= 0, k=0 ; x < imsize; x++, k++)
+            tarDat_pt[k  ] =  0.333 * srcDat_pt[x  ] + 0.334 * srcDat_pt[x+ch_offset1] + 0.333 * srcDat_pt[x+ch_offset2];
+    }
+
+    return A;
 }
 
 }
