@@ -6,6 +6,7 @@
 #include <initializer_list>
 #include <vector>
 #include <float.h>
+#include <assert.h>
 
 #ifdef _MACOS_
     #include <string>
@@ -114,15 +115,15 @@ public:
     jbMat   copyChannelN(const uint NoCh=0) const;
     jbMat   copySubMat(const uint startRow, const uint endRow, const uint startCol, const uint endCol) const;
 
-    bool    isEmpty() const { return ((length <= 0) ? true : false); }
-    shr_ptr getMat () const { return mA; }
     rawMat  getRawMat() const;
-    uint    getLength() const{ return length; }
-    uint    getRow() const { return row; }
-    uint    getCol() const { return col; }
-    uint    getChannel() const { return Nch; }
-    DTYP    getDatType() const { return datT; }
-    uint    getByteStep() const { return byteStep; }    
+    inline bool isEmpty() const { return ((length <= 0) ? true : false); }
+    inline shr_ptr getMat () const { return mA; }
+    inline uint    getLength() const{ return length; }
+    inline uint    getRow() const { return row; }
+    inline uint    getCol() const { return col; }
+    inline uint    getChannel() const { return Nch; }
+    inline DTYP    getDatType() const { return datT; }
+    inline uint    getByteStep() const { return byteStep; }
     uint    reshape(uint r, uint c, uint ch=1);
     void    transpose();
     void    changeDType(const DTYP dt);
@@ -135,9 +136,9 @@ public : // static methods
     static int instant_count;
 
 public : // public template methods
-    template <typename _T> _T& at(uint i) const;
-    template <typename _T> _T& at(uint r, uint c, uint nch=0) const;
-    template <typename _T> _T* getDataPtr() const;
+    template <typename _T> inline _T& at(uint i) const;
+    template <typename _T> inline _T& at(uint r, uint c, uint nch=0) const;
+    template <typename _T> inline _T* getDataPtr() const;
 
 private: // private template methods
     template <typename _T> void _print(_T* mdat);
@@ -154,18 +155,20 @@ private: // private template methods
 };
 
 
-template <typename _T> _T& jbMat::at(uint i) const {
+template <typename _T> inline _T& jbMat::at(uint i) const {
     if(isEmpty()) return *((_T *)nullptr); //*((_T *)mA.get()); //*mA;
 
+    assert(i < length);
     if(i >= length){
-        fprintf(stderr,"The Index of jbMat is out of bound\n");
+        //fprintf(stderr,"The Index of jbMat is out of bound\n");
         i = length-1;
     }
     return ((_T *)dat_ptr)[i]; //return ((_T *)mA.get())[i];
 }
-template <typename _T> _T& jbMat::at(uint r, uint c, uint ch) const {
+template <typename _T> inline _T& jbMat::at(uint r, uint c, uint ch) const {
     if(isEmpty()) return *((_T *)nullptr);
     uint i = ch*lenRowCol + r*col + c;
+    assert(i < length);
     if(i >= length){
         fprintf(stderr,"The Index of jbMat is out of bound\n");
         i = length-1;
@@ -173,7 +176,7 @@ template <typename _T> _T& jbMat::at(uint r, uint c, uint ch) const {
     return ((_T *)dat_ptr)[i];
 }
 
-template <typename _T> _T* jbMat::getDataPtr() const {
+template <typename _T> inline _T* jbMat::getDataPtr() const {
     return (_T *)dat_ptr;
 }
 
