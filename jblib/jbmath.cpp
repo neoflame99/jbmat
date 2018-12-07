@@ -30,46 +30,46 @@ jbMat jbmath::dot(const jbMat& mA,const jbMat& mB){
     if(maDtype == DTYP::DOUBLE){
         switch(mbDtype){
         case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,double,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<double,double,double>(mA, mB, mO); break;
         case DTYP::FLOAT : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,float,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<double,float ,double>(mA, mB, mO); break;
         case DTYP::INT   : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,int   ,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<double,int   ,double>(mA, mB, mO); break;
         case DTYP::UCHAR : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,uchar ,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<double,uchar ,double>(mA, mB, mO); break;
         }
     }else if(maDtype == DTYP::FLOAT){
         switch(mbDtype){
         case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<float ,double,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<float ,double,double>(mA, mB, mO ); break;
         case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<float ,float ,float >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<float ,float ,float >(mA, mB, mO ); break;
         case DTYP::INT   : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<float ,int   ,float >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<float ,int   ,float >(mA, mB, mO ); break;
         case DTYP::UCHAR : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<float ,uchar ,float >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<float ,uchar ,float >(mA, mB, mO ); break;
         }
     }else if(maDtype == DTYP::INT ){
         switch(mbDtype){
         case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,double,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<int   ,double,double>(mA, mB, mO ); break;
         case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,float ,float >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<int   ,float ,float >(mA, mB, mO ); break;
         case DTYP::INT   : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,int   ,int   >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<int   ,int   ,int   >(mA, mB, mO ); break;
         case DTYP::UCHAR : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,uchar ,int   >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<int   ,uchar ,int   >(mA, mB, mO ); break;
         }
     }else if(maDtype == DTYP::UCHAR ){
         switch(mbDtype){
         case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<uchar ,double,double>(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<uchar ,double,double>(mA, mB, mO ); break;
         case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<uchar ,float ,float >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<uchar ,float ,float >(mA, mB, mO ); break;
         case DTYP::INT   : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
-            result_prod = _dot_prod<uchar ,int   ,int   >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<uchar ,int   ,int   >(mA, mB, mO ); break;
         case DTYP::UCHAR : mO = jbMat(DTYP::UCHAR , aRow, bCol, ch);
-            result_prod = _dot_prod<uchar ,uchar ,uchar >(mA.getRawMat(), mB.getRawMat(), mO.getRawMat()); break;
+            result_prod = _dot_prod<uchar ,uchar ,uchar >(mA, mB, mO ); break;
         }
     }
 
@@ -82,10 +82,10 @@ jbMat jbmath::triu(const jbMat& mA)
     jbMat utri = mA.copy();
 
     switch(utri.getDatType()){
-    case DTYP::DOUBLE : _triu<double>(utri.getRawMat()); break;
-    case DTYP::FLOAT  : _triu<float >(utri.getRawMat()); break;
-    case DTYP::INT    : _triu<int   >(utri.getRawMat()); break;
-    case DTYP::UCHAR  : _triu<uchar >(utri.getRawMat()); break;
+    case DTYP::DOUBLE : _triu<double>(utri); break;
+    case DTYP::FLOAT  : _triu<float >(utri); break;
+    case DTYP::INT    : _triu<int   >(utri); break;
+    case DTYP::UCHAR  : _triu<uchar >(utri); break;
     }
     return utri;
 }
@@ -95,10 +95,10 @@ jbMat jbmath::tril(const jbMat& srcmat)
 
     jbMat ltri = srcmat.copy();
     switch(ltri.getDatType()){
-    case DTYP::DOUBLE : _tril<double>(ltri.getRawMat()); break;
-    case DTYP::FLOAT  : _tril<float >(ltri.getRawMat()); break;
-    case DTYP::INT    : _tril<int   >(ltri.getRawMat()); break;
-    case DTYP::UCHAR  : _tril<uchar >(ltri.getRawMat()); break;
+    case DTYP::DOUBLE : _tril<double>(ltri); break;
+    case DTYP::FLOAT  : _tril<float >(ltri); break;
+    case DTYP::INT    : _tril<int   >(ltri); break;
+    case DTYP::UCHAR  : _tril<uchar >(ltri); break;
     }
 
     return ltri;
@@ -117,10 +117,10 @@ jbMat jbmath::augment(const jbMat& srcmat)
     jbMat augm ;
 
     switch(datType){
-    case DTYP::DOUBLE : augm = jbMat(_augment<double>(srcmat.getRawMat(), augmentCols), datType, rows, augmentCols, ch); break;
-    case DTYP::FLOAT  : augm = jbMat(_augment<float >(srcmat.getRawMat(), augmentCols), datType, rows, augmentCols, ch); break;
-    case DTYP::INT    : augm = jbMat(_augment<int   >(srcmat.getRawMat(), augmentCols), datType, rows, augmentCols, ch); break;
-    case DTYP::UCHAR  : augm = jbMat(_augment<uchar >(srcmat.getRawMat(), augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::DOUBLE : augm = jbMat(_augment<double>(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::FLOAT  : augm = jbMat(_augment<float >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::INT    : augm = jbMat(_augment<int   >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::UCHAR  : augm = jbMat(_augment<uchar >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
     }
 
     return augm;
@@ -141,7 +141,7 @@ jbMat jbmath::inverse(const jbMat& srcmat){
     return invmat;
 }
 
-jbMat jbmath::tranpose(const jbMat &mA){
+jbMat jbmath::tranpose(const jbMat& mA){
 
     if(mA.isEmpty()) return jbMat();
 

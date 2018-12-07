@@ -115,8 +115,7 @@ public:
     jbMat   copyChannelN(const uint NoCh=0) const;
     jbMat   copySubMat(const uint startRow, const uint endRow, const uint startCol, const uint endCol) const;
 
-    rawMat  getRawMat() const;
-    inline bool isEmpty() const { return ((length <= 0) ? true : false); }
+    inline bool    isEmpty() const { return ((length <= 0) ? true : false); }
     inline shr_ptr getMat () const { return mA; }
     inline uint    getLength() const{ return length; }
     inline uint    getRow() const { return row; }
@@ -136,9 +135,9 @@ public : // static methods
     static int instant_count;
 
 public : // public template methods
-    template <typename _T> inline _T& at(uint i) const;
-    template <typename _T> inline _T& at(uint r, uint c, uint nch=0) const;
-    template <typename _T> inline _T* getDataPtr() const;
+    template <typename _T> _T& at(uint i) const;
+    template <typename _T> _T& at(uint r, uint c, uint nch=0) const;
+    template <typename _T> _T* getDataPtr() const;
 
 private: // private template methods
     template <typename _T> void _print(_T* mdat);

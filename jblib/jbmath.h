@@ -18,32 +18,31 @@ namespace  jbmath {
 
     jbMat conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv="" , std::string opt_out="");
 
-
-    template <typename _Ta, typename _Tb, typename _To > bool _dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO);
-    template <typename _T > void _triu(rawMat utri_mat);
-    template <typename _T > void _tril(rawMat ltri_mat);
-    template <typename _T > std::shared_ptr<uchar> _augment(const rawMat, const uint augCols);
+    template <typename _Ta, typename _Tb, typename _To > bool _dot_prod(const jbMat& rMA,const jbMat& rMB, jbMat& rMO);
+    template <typename _T > void _triu(jbMat& utri_mat);
+    template <typename _T > void _tril(jbMat& ltri_mat);
+    template <typename _T > std::shared_ptr<uchar> _augment(const jbMat&, const uint augCols);
     template <typename _T> jbMat _inverse(const jbMat& srcmat);
     template <typename _Ta, typename _Tb, typename _To> void _conv2d(const jbMat& mA, const jbMat& mB, jbMat& mO, const bool fullout,const std::string& opt_conv);
 
 }
 
 template <typename _Ta, typename _Tb, typename _To>
-bool jbmath::_dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO){
-    uint Ar  = rMA.rows;
-    uint Ac  = rMA.cols;
-    uint Ach = rMA.channels;
-    uint Br  = rMB.rows;
-    uint Bc  = rMB.cols;
-    uint Bch = rMB.channels;
-    _Ta* MA  = reinterpret_cast<_Ta*>(rMA.dat_ptr); //(_Ta*) rMA.dat_ptr;
-    _Tb* MB  = reinterpret_cast<_Tb*>(rMB.dat_ptr); //(_Tb*) rMB.dat_ptr;
-    _To* MO  = reinterpret_cast<_To*>(rMO.dat_ptr); //(_To*) rMO.dat_ptr;
+bool jbmath::_dot_prod(const jbMat& rMA,const jbMat& rMB, jbMat& rMO){
+    uint Ar  = rMA.getRow();
+    uint Ac  = rMA.getCol();
+    uint Ach = rMA.getChannel();
+    uint Br  = rMB.getRow();
+    uint Bc  = rMB.getCol();
+    uint Bch = rMB.getChannel();
+    _Ta* MA  = rMA.getDataPtr<_Ta>();
+    _Tb* MB  = rMB.getDataPtr<_Tb>();
+    _To* MO  = rMO.getDataPtr<_To>();
 
     if( Ac != Br || Ach != Bch ){
         fprintf(stderr, "sizes of ma and mb into _dot_prod_ are not match!\n");
         return false;
-    }else if( rMO.rows != Ar || rMO.cols != Bc || rMO.channels != Ach){
+    }else if( rMO.getRow() != Ar || rMO.getCol() != Bc || rMO.getChannel() != Ach){
         fprintf(stderr, "sizes of mo is not enough!\n");
         return false;
     }else if( MA == nullptr || MB == nullptr || MO == nullptr){
@@ -81,17 +80,18 @@ bool jbmath::_dot_prod(const rawMat rMA,const rawMat rMB, rawMat rMO){
     }
     return true;
 }
-template <typename _T> void jbmath::_triu( rawMat utri_mat){
-    uint rows = utri_mat.rows;
-    uint cols = utri_mat.cols;
-    uint ch   = utri_mat.channels;
+
+template <typename _T> void jbmath::_triu( jbMat& utri_mat){
+    uint rows = utri_mat.getRow();
+    uint cols = utri_mat.getCol();
+    uint ch   = utri_mat.getChannel();
 
     uint pivtmax = (rows < cols ) ? rows : cols;
     uint pv, i,j, cr, pvr;
     double fact;
     uint rcstep = rows*cols;
-    uint tlen   = rcstep*ch;
-    _T* mat = reinterpret_cast<_T *>(utri_mat.dat_ptr);
+    uint tlen   = rcstep*ch;    
+    _T* mat = utri_mat.getDataPtr<_T>();
     // do triu
     for( uint cc=0; cc < tlen ; cc+=rcstep){
         for( pv=0; pv < pivtmax-1 ; pv++){
@@ -111,10 +111,10 @@ template <typename _T> void jbmath::_triu( rawMat utri_mat){
     }
 }
 
-template <typename _T> void jbmath::_tril( rawMat ltri_mat){
-    uint rows = ltri_mat.rows;
-    uint cols = ltri_mat.cols;
-    uint ch   = ltri_mat.channels;
+template <typename _T> void jbmath::_tril( jbMat& ltri_mat){
+    uint rows = ltri_mat.getRow();
+    uint cols = ltri_mat.getCol();
+    uint ch   = ltri_mat.getChannel();
 
     uint pivtmax = (rows < cols) ? rows : cols;
     uint rcstep = rows*cols;
@@ -122,7 +122,7 @@ template <typename _T> void jbmath::_tril( rawMat ltri_mat){
     uint   pv, j, cr, pvr;
     int i;
     double fact;
-    _T* mat = reinterpret_cast<_T*>(ltri_mat.dat_ptr);
+    _T* mat = ltri_mat.getDataPtr<_T>();
     // do tril
     for(uint cc=0; cc < tlen ; cc+= rcstep){
         for(pv=pivtmax-1 ; pv>0 ; pv--){
@@ -139,10 +139,10 @@ template <typename _T> void jbmath::_tril( rawMat ltri_mat){
         }
     }
 }
-template <typename _T> std::shared_ptr<uchar> jbmath::_augment(const rawMat srcmat, const uint augCols){
-    uint rows = srcmat.rows;
-    uint cols = srcmat.cols;
-    uint ch   = srcmat.channels;
+template <typename _T> std::shared_ptr<uchar> jbmath::_augment(const jbMat& srcmat, const uint augCols){
+    uint rows = srcmat.getRow();
+    uint cols = srcmat.getCol();
+    uint ch   = srcmat.getChannel();
 
     uint pivmax = (rows < cols)? rows : cols;
     uint augmentCols = cols + pivmax;
@@ -154,7 +154,7 @@ template <typename _T> std::shared_ptr<uchar> jbmath::_augment(const rawMat srcm
 
     std::shared_ptr<uchar> augm = std::shared_ptr<uchar>(new uchar[bytelen], std::default_delete<uchar[]>());
     _T* augm_ma = (_T*)augm.get();
-    _T* mA      = (_T*)srcmat.dat_ptr;
+    _T* mA      = srcmat.getDataPtr<_T>();
 
     uint i,j;
     uint cr,scr;
