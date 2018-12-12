@@ -8,78 +8,81 @@
     #include <string.h>
 #endif
 
-jbMat jbmath::dot(const jbMat& mA,const jbMat& mB){
+namespace jmat {
+
+
+Mat dot(const Mat& mA,const Mat& mB){
 
     if(mA.getCol() != mB.getRow() ){
         fprintf(stderr," The number of columns of mA and the number of rows of mB are not match!\n");
-        return jbMat();
+        return Mat();
     }else if( mA.getChannel() != mB.getChannel()){
         fprintf(stderr," The numbers of channels of both mA and mB are not match!\n");
-        return jbMat();
+        return Mat();
     }
 
     uint aRow = mA.getRow();
     uint bCol = mB.getCol();
     uint ch   = mA.getChannel();
 
-    jbMat mO;
+    Mat mO;
     DTYP maDtype = mA.getDatType();
     DTYP mbDtype = mB.getDatType();
     bool result_prod = false;
 
     if(maDtype == DTYP::DOUBLE){
         switch(mbDtype){
-        case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+        case DTYP::DOUBLE: mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<double,double,double>(mA, mB, mO); break;
-        case DTYP::FLOAT : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+        case DTYP::FLOAT : mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<double,float ,double>(mA, mB, mO); break;
-        case DTYP::INT   : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+        case DTYP::INT   : mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<double,int   ,double>(mA, mB, mO); break;
-        case DTYP::UCHAR : mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+        case DTYP::UCHAR : mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<double,uchar ,double>(mA, mB, mO); break;
         }
     }else if(maDtype == DTYP::FLOAT){
         switch(mbDtype){
-        case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+        case DTYP::DOUBLE: mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<float ,double,double>(mA, mB, mO ); break;
-        case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
+        case DTYP::FLOAT : mO = Mat(DTYP::FLOAT , aRow, bCol, ch);
             result_prod = _dot_prod<float ,float ,float >(mA, mB, mO ); break;
-        case DTYP::INT   : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
+        case DTYP::INT   : mO = Mat(DTYP::FLOAT , aRow, bCol, ch);
             result_prod = _dot_prod<float ,int   ,float >(mA, mB, mO ); break;
-        case DTYP::UCHAR : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
+        case DTYP::UCHAR : mO = Mat(DTYP::FLOAT , aRow, bCol, ch);
             result_prod = _dot_prod<float ,uchar ,float >(mA, mB, mO ); break;
         }
     }else if(maDtype == DTYP::INT ){
         switch(mbDtype){
-        case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+        case DTYP::DOUBLE: mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<int   ,double,double>(mA, mB, mO ); break;
-        case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
+        case DTYP::FLOAT : mO = Mat(DTYP::FLOAT , aRow, bCol, ch);
             result_prod = _dot_prod<int   ,float ,float >(mA, mB, mO ); break;
-        case DTYP::INT   : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
+        case DTYP::INT   : mO = Mat(DTYP::INT   , aRow, bCol, ch);
             result_prod = _dot_prod<int   ,int   ,int   >(mA, mB, mO ); break;
-        case DTYP::UCHAR : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
+        case DTYP::UCHAR : mO = Mat(DTYP::INT   , aRow, bCol, ch);
             result_prod = _dot_prod<int   ,uchar ,int   >(mA, mB, mO ); break;
         }
     }else if(maDtype == DTYP::UCHAR ){
         switch(mbDtype){
-        case DTYP::DOUBLE: mO = jbMat(DTYP::DOUBLE, aRow, bCol, ch);
+        case DTYP::DOUBLE: mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<uchar ,double,double>(mA, mB, mO ); break;
-        case DTYP::FLOAT : mO = jbMat(DTYP::FLOAT , aRow, bCol, ch);
+        case DTYP::FLOAT : mO = Mat(DTYP::FLOAT , aRow, bCol, ch);
             result_prod = _dot_prod<uchar ,float ,float >(mA, mB, mO ); break;
-        case DTYP::INT   : mO = jbMat(DTYP::INT   , aRow, bCol, ch);
+        case DTYP::INT   : mO = Mat(DTYP::INT   , aRow, bCol, ch);
             result_prod = _dot_prod<uchar ,int   ,int   >(mA, mB, mO ); break;
-        case DTYP::UCHAR : mO = jbMat(DTYP::UCHAR , aRow, bCol, ch);
+        case DTYP::UCHAR : mO = Mat(DTYP::UCHAR , aRow, bCol, ch);
             result_prod = _dot_prod<uchar ,uchar ,uchar >(mA, mB, mO ); break;
         }
     }
 
-    return (result_prod) ? mO : jbMat();
+    return (result_prod) ? mO : Mat();
 }
 
-jbMat jbmath::triu(const jbMat& mA)
+Mat triu(const Mat& mA)
 {
 
-    jbMat utri = mA.copy();
+    Mat utri = mA.copy();
 
     switch(utri.getDatType()){
     case DTYP::DOUBLE : _triu<double>(utri); break;
@@ -90,10 +93,10 @@ jbMat jbmath::triu(const jbMat& mA)
     return utri;
 }
 
-jbMat jbmath::tril(const jbMat& srcmat)
+Mat tril(const Mat& srcmat)
 {
 
-    jbMat ltri = srcmat.copy();
+    Mat ltri = srcmat.copy();
     switch(ltri.getDatType()){
     case DTYP::DOUBLE : _tril<double>(ltri); break;
     case DTYP::FLOAT  : _tril<float >(ltri); break;
@@ -104,7 +107,7 @@ jbMat jbmath::tril(const jbMat& srcmat)
     return ltri;
 }
 
-jbMat jbmath::augment(const jbMat& srcmat)
+Mat augment(const Mat& srcmat)
 {
 
     uint rows = srcmat.getRow();
@@ -114,54 +117,54 @@ jbMat jbmath::augment(const jbMat& srcmat)
     uint augmentCols = cols + pivmax;
 
     DTYP datType = srcmat.getDatType();    
-    jbMat augm ;
+    Mat augm ;
 
     switch(datType){
-    case DTYP::DOUBLE : augm = jbMat(_augment<double>(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
-    case DTYP::FLOAT  : augm = jbMat(_augment<float >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
-    case DTYP::INT    : augm = jbMat(_augment<int   >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
-    case DTYP::UCHAR  : augm = jbMat(_augment<uchar >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::DOUBLE : augm = Mat(_augment<double>(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::FLOAT  : augm = Mat(_augment<float >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::INT    : augm = Mat(_augment<int   >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::UCHAR  : augm = Mat(_augment<uchar >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
     }
 
     return augm;
 }
 
-jbMat jbmath::inverse(const jbMat& srcmat){
+Mat inverse(const Mat& srcmat){
     DTYP srcDtype = srcmat.getDatType();
 
-    jbMat invmat;
+    Mat invmat;
     switch(srcDtype){
     case DTYP::DOUBLE : invmat = _inverse<double>(srcmat); break;
     case DTYP::FLOAT  : invmat = _inverse<float >(srcmat); break;
     default           : assert(false && "data type of srcmat into inverse is neither DOUBLE nor FLOAT");
                         fprintf(stderr,"data type of srcmat into inverse is neither DOUBLE nor FLOAT\n");
-                        invmat = jbMat();
+                        invmat = Mat();
     }
 
     return invmat;
 }
 
-jbMat jbmath::tranpose(const jbMat& mA){
+Mat tranpose(const Mat& mA){
 
-    if(mA.isEmpty()) return jbMat();
+    if(mA.isEmpty()) return Mat();
 
-    jbMat t = mA.copy();
+    Mat t = mA.copy();
     t.transpose();
     return t;
 }
 
 
-jbMat jbmath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std::string opt_out ){
+Mat conv2d(const Mat& mA, const Mat& mB, std::string opt_conv, std::string opt_out ){
 
     if( mA.isEmpty()) {
         fprintf(stderr, "mA is empty\n ");
-        return jbMat();
+        return Mat();
     }else if( mB.isEmpty()){
         fprintf(stderr, "mB is empty\n ");
-        return jbMat();
+        return Mat();
     }else if( mA.getChannel() != mB.getChannel() ){
         fprintf(stderr, " channels of mA and mB are not the same! \n");
-        return jbMat();
+        return Mat();
     }
 
     uint ch      = mA.getChannel();
@@ -173,11 +176,11 @@ jbMat jbmath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std
     DTYP bDtype = mB.getDatType();
     DTYP oDtype = (aDtype > bDtype) ? aDtype : bDtype;
 
-    jbMat mO;
+    Mat mO;
     if(fullout){
-        mO = jbMat::zeros( mA.getRow() + mB.getRow() -1, mA.getCol() + mB.getCol() -1, ch, oDtype);
+        mO = Mat::zeros( mA.getRow() + mB.getRow() -1, mA.getCol() + mB.getCol() -1, ch, oDtype);
     }else{  // 'same'
-        mO = jbMat::zeros( mA.getRow(), mA.getCol(), mA.getChannel(), oDtype);
+        mO = Mat::zeros( mA.getRow(), mA.getCol(), mA.getChannel(), oDtype);
     }
 
     if(aDtype == DTYP::DOUBLE){
@@ -213,3 +216,4 @@ jbMat jbmath::conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv, std
     return mO;
 }
 
+}

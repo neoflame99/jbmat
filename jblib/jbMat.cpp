@@ -2,11 +2,13 @@
 #include "jbMat.h"
 #include <iostream>
 
+namespace jmat {
 
-int jbMat::instant_count = 0;
+
+int Mat::instant_count = 0;
 
 //-- shallow copy version & using shared_ptr
-void jbMat::alloc(uint len){
+void Mat::alloc(uint len){
 
     if(len < 0){
         mA = nullptr;
@@ -24,7 +26,7 @@ void jbMat::alloc(uint len){
     }
     */
 }
-void jbMat::init(uint r, uint c, uint ch, DTYP dt){
+void Mat::init(uint r, uint c, uint ch, DTYP dt){
     row = r;
     col = c;
     Nch = ch;
@@ -41,26 +43,26 @@ void jbMat::init(uint r, uint c, uint ch, DTYP dt){
     byteLen = length*byteStep;
     alloc(byteLen);
 }
-void jbMat::initName(){
-    obj_name =std::string( "jbMat_") + std::to_string (instant_count);
+void Mat::initName(){
+    obj_name =std::string( "Mat_") + std::to_string (instant_count);
     instant_count++;
 }
 
-jbMat::jbMat(DTYP dt):mA(nullptr){
+Mat::Mat(DTYP dt):mA(nullptr){
     init(0,0,0, dt);
     initName();
 
 }
-jbMat::jbMat(DTYP dt, uint rc ):mA(nullptr){
+Mat::Mat(DTYP dt, uint rc ):mA(nullptr){
     init(rc, rc, 1, dt);
     initName();
 }
-jbMat::jbMat(DTYP dt, uint r, uint c, uint ch):mA(nullptr){
+Mat::Mat(DTYP dt, uint r, uint c, uint ch):mA(nullptr){
     init(r, c, ch, dt);
     initName();
 }
 
-jbMat::jbMat(shr_ptr ma, DTYP dt, uint r, uint c, uint ch):mA(ma),row(r),col(c),Nch(ch),datT(dt){
+Mat::Mat(shr_ptr ma, DTYP dt, uint r, uint c, uint ch):mA(ma),row(r),col(c),Nch(ch),datT(dt){
     lenRowCol = r*c;
     length = lenRowCol * ch;
     switch(dt){
@@ -75,12 +77,12 @@ jbMat::jbMat(shr_ptr ma, DTYP dt, uint r, uint c, uint ch):mA(ma),row(r),col(c),
     initName();
 }
 
-jbMat::jbMat(DTYP dt, uint r, uint c, uint ch, std::string name):mA(nullptr){
+Mat::Mat(DTYP dt, uint r, uint c, uint ch, std::string name):mA(nullptr){
     init(r, c, ch, dt);
     obj_name = name;
 }
 
-jbMat::jbMat(const jbMat& mat){
+Mat::Mat(const Mat& mat){
     row = mat.getRow();
     col = mat.getCol();
     Nch = mat.getChannel();
@@ -105,7 +107,7 @@ jbMat::jbMat(const jbMat& mat){
     fprintf(stdout,"copy constructor\n");
 }
 
-jbMat::jbMat( std::initializer_list<double> list ){
+Mat::Mat( std::initializer_list<double> list ){
     //-- Making a vector by column vector type    
     init(list.size(),1,1,DTYP::DOUBLE);
 
@@ -119,7 +121,7 @@ jbMat::jbMat( std::initializer_list<double> list ){
         }
     }
 }
-jbMat::jbMat( std::initializer_list<int> list ){
+Mat::Mat( std::initializer_list<int> list ){
     //-- Making a vector by column vector type
     init(list.size(),1,1,DTYP::INT);
 
@@ -133,7 +135,7 @@ jbMat::jbMat( std::initializer_list<int> list ){
         }
     }
 }
-jbMat::jbMat( std::initializer_list<float> list ){
+Mat::Mat( std::initializer_list<float> list ){
     //-- Making a vector by column vector type
     init(list.size(),1,1,DTYP::FLOAT);
 
@@ -148,9 +150,9 @@ jbMat::jbMat( std::initializer_list<float> list ){
     }
 }
 
-jbMat::~jbMat(){}
+Mat::~Mat(){}
 
-void jbMat::setRowCol(uint r, uint c, uint ch){
+void Mat::setRowCol(uint r, uint c, uint ch){
     int lenrc = r*c;
     int len   = lenrc*ch;
 
@@ -168,7 +170,7 @@ void jbMat::setRowCol(uint r, uint c, uint ch){
 
 /*
 //-- overloading operators : it calls copy constructor
-jbMat& jbMat::operator=( jbMat other){
+Mat& Mat::operator=( Mat other){
 
 //The parameter to the ‘operator=()’ is passed by value which calls copy constructor
 //to create an object local to the ‘operator=()’.
@@ -187,7 +189,7 @@ jbMat& jbMat::operator=( jbMat other){
 */
 
 // call by reference
-jbMat& jbMat::operator=(const jbMat& other){
+Mat& Mat::operator=(const Mat& other){
 
     fprintf(stdout,"Assign operator\n");
     row = other.getRow();
@@ -204,140 +206,140 @@ jbMat& jbMat::operator=(const jbMat& other){
     return *this;
 }
 
-jbMat& jbMat::operator+=(const jbMat& other){
+Mat& Mat::operator+=(const Mat& other){
     return plusMat(other);
 }
 
-jbMat& jbMat::operator+=(const double scalar){
+Mat& Mat::operator+=(const double scalar){
     return plusScalar(scalar);
 }
 
-jbMat& jbMat::operator-=(const jbMat& other){
+Mat& Mat::operator-=(const Mat& other){
     return minusMat(other);
 }
 
-jbMat& jbMat::operator-=(const double scalar){    
+Mat& Mat::operator-=(const double scalar){
     return minusScalar(scalar);
 }
 
-jbMat& jbMat::operator*=(const jbMat& other){
+Mat& Mat::operator*=(const Mat& other){
     return multiplyMat(other);
 }
 
-jbMat& jbMat::operator*=(const double scalar){
+Mat& Mat::operator*=(const double scalar){
     return minusScalar(scalar);
 }
 
-jbMat& jbMat::operator/=(const jbMat& other){
+Mat& Mat::operator/=(const Mat& other){
     return divideMat(other);
 }
 
-jbMat& jbMat::operator/=(const double scalar){
+Mat& Mat::operator/=(const double scalar){
     return divideScalar(scalar);
 }
 
 
-jbMat jbMat::operator+(const jbMat& other) const{
+Mat Mat::operator+(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol()|| Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
-        return jbMat();
+        return Mat();
     }else if(this->isEmpty()){
         fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
-        return jbMat();
+        return Mat();
     }
 
-    jbMat sum = this->copy();
+    Mat sum = this->copy();
     sum.plusMat(other);
 
     return sum;
 }
 
-jbMat jbMat::operator+(const double scalar) const{
+Mat Mat::operator+(const double scalar) const{
     if(isEmpty()){
         fprintf(stderr," operator+ with scalar : this mat is empty \n");
-        return jbMat();
+        return Mat();
     }
-    jbMat sum = this->copy();
+    Mat sum = this->copy();
     sum.plusScalar(scalar);
 
     return sum;
 }
 
-jbMat jbMat::operator-(const jbMat& other) const{
+Mat Mat::operator-(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
-        return jbMat();
+        return Mat();
     }else if(this->isEmpty()){
         fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
-        return jbMat();
+        return Mat();
     }
 
-    jbMat subtract = this->copy();
+    Mat subtract = this->copy();
     subtract.minusMat(other);
 
     return subtract;
 }
-jbMat jbMat::operator-(const double scalar) const{
+Mat Mat::operator-(const double scalar) const{
     if(isEmpty()){
         fprintf(stderr," operator- with scalar : this mat is empty \n");
-        return jbMat();
+        return Mat();
     }
-    jbMat subtract = this->copy();
+    Mat subtract = this->copy();
     subtract.minusScalar(scalar);
 
     return subtract;
 }
 
-jbMat jbMat::operator*(const jbMat& other) const{
+Mat Mat::operator*(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
-        return jbMat();
+        return Mat();
     }else if(this->isEmpty()){
         fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
-        return jbMat();
+        return Mat();
     }
-    jbMat product = this->copy();
+    Mat product = this->copy();
     product.multiplyMat(other);
 
     return product;
 }
-jbMat jbMat::operator*(const double scalar) const{
+Mat Mat::operator*(const double scalar) const{
     if(isEmpty()){
         fprintf(stderr," operator* with scalar : this mat is empty \n");
-        return jbMat();
+        return Mat();
     }
-    jbMat product = this->copy();
+    Mat product = this->copy();
     product.multiplyScalar(scalar);
 
     return product;
 }
 
-jbMat jbMat::operator/(const jbMat& other) const{
+Mat Mat::operator/(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
-        return jbMat();
+        return Mat();
     }else if(this->isEmpty()){
         fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
-        return jbMat();
+        return Mat();
     }
-    jbMat div = this->copy();
+    Mat div = this->copy();
     div.divideMat(other);
 
     return div;
 }
-jbMat jbMat::operator/(const double scalar) const{
+Mat Mat::operator/(const double scalar) const{
     if(isEmpty()){
         fprintf(stderr," operator/ with scalar : this mat is empty \n");
-        return jbMat();
+        return Mat();
     }
-    jbMat div = this->copy();
+    Mat div = this->copy();
     div.divideScalar(scalar);
 
     return div;
 }
 
 
-uint jbMat::reshape(uint r, uint c, uint ch){
+uint Mat::reshape(uint r, uint c, uint ch){
     int rc   = r*c;
     int tlen = rc*ch;
     if( tlen != length){
@@ -352,7 +354,7 @@ uint jbMat::reshape(uint r, uint c, uint ch){
     return 0;
 }
 
-void jbMat::changeDType(const DTYP dt){
+void Mat::changeDType(const DTYP dt){
     if(dt == DTYP::DOUBLE){
         switch (datT) {
         case DTYP::FLOAT : _type_change<float,double>(); break;
@@ -398,9 +400,9 @@ void jbMat::changeDType(const DTYP dt){
 #endif
 }
 
-void jbMat::transpose(){
+void Mat::transpose(){
     if(isEmpty()){
-        fprintf(stderr," Transpose: This jbMat is empty\n");
+        fprintf(stderr," Transpose: This Mat is empty\n");
         return ;
     }
 
@@ -436,7 +438,7 @@ void jbMat::transpose(){
     row = row_tr;
 }
 
-void jbMat::printMat(const std::string objname) {
+void Mat::printMat(const std::string objname) {
 
     if(!objname.empty())
         fprintf(stdout,"object : %s \n", objname.c_str());
@@ -454,12 +456,12 @@ void jbMat::printMat(const std::string objname) {
     }
 }
 
-void jbMat::printMat()  {
+void Mat::printMat()  {
     printMat(obj_name);
 }
 
-jbMat jbMat::copy() const{
-    jbMat A(this->datT, row, col, Nch);
+Mat Mat::copy() const{
+    Mat A(this->datT, row, col, Nch);
 
     uchar *pt_matdat  = A.getMat().get();
     uchar *pt_thisdat = this->mA.get();
@@ -469,13 +471,13 @@ jbMat jbMat::copy() const{
     return A;
 }
 
-jbMat jbMat::ones(uint r, uint c, uint ch, DTYP dt){
+Mat Mat::ones(uint r, uint c, uint ch, DTYP dt){
     if( r <= 0 || c <= 0 || ch <= 0){
         fprintf(stdout,"In ones method: arguments r , c and ch are to be larger than 0 ");
-        return jbMat();
+        return Mat();
     }
 
-    jbMat A(dt, r, c, ch);
+    Mat A(dt, r, c, ch);
 
     if(dt==DTYP::DOUBLE){
         double* pt_dat = (double *)A.getMat().get();
@@ -499,13 +501,13 @@ jbMat jbMat::ones(uint r, uint c, uint ch, DTYP dt){
 }
 
 
-jbMat jbMat::zeros(uint r, uint c, uint ch, DTYP dt){
+Mat Mat::zeros(uint r, uint c, uint ch, DTYP dt){
     if( r <= 0 || c <= 0 || ch <= 0){
         fprintf(stdout,"In zeros method: arguments r , c and ch are to be larger than 0 ");
-        return jbMat();
+        return Mat();
     }
 
-    jbMat A(dt, r, c, ch);
+    Mat A(dt, r, c, ch);
 
     uchar* pt_dat = A.getMat().get();
     for(uint i=0; i < r*c*ch*A.getByteStep(); i++){
@@ -515,8 +517,8 @@ jbMat jbMat::zeros(uint r, uint c, uint ch, DTYP dt){
     return A;
 }
 
-jbMat jbMat::copyChannelN(const uint NoCh) const{
-    jbMat A(this->datT, row,col,1);
+Mat Mat::copyChannelN(const uint NoCh) const{
+    Mat A(this->datT, row,col,1);
 
     int numCh = NoCh;
     if(numCh >= A.getChannel()){
@@ -533,7 +535,7 @@ jbMat jbMat::copyChannelN(const uint NoCh) const{
     return A;
 }
 
-void jbMat::setChannelN(const jbMat& src, const uint srcFromCh,const uint Channels, const uint tarToCh){
+void Mat::setChannelN(const Mat& src, const uint srcFromCh,const uint Channels, const uint tarToCh){
     if(src.getChannel() < srcFromCh+Channels ){
         fprintf(stdout,"setChannelN(): srcFromCh and Channels are not correct! \n");
         return ;
@@ -565,19 +567,19 @@ void jbMat::setChannelN(const jbMat& src, const uint srcFromCh,const uint Channe
     }
 }
 
-void jbMat::setName(std::string name){
+void Mat::setName(std::string name){
     obj_name = name;
 }
 
-jbMat jbMat::copySubMat(const uint startRow, const uint endRow, const uint startCol, const uint endCol) const {
+Mat Mat::copySubMat(const uint startRow, const uint endRow, const uint startCol, const uint endCol) const {
     if( startRow > row || endRow > row || startCol > col || endCol > col){
         fprintf(stdout,"copySubMat() : one or more arguments are out of bound from *this mat \n");
-        return jbMat();
+        return Mat();
     }
 
     int new_row = endRow-startRow+1;
     int new_col = endCol-startCol+1;
-    jbMat A( datT, new_row, new_col, Nch);
+    Mat A( datT, new_row, new_col, Nch);
     uchar *tardat_ptr = A.getMat().get();
 
     uint ch_offset = 0 ;
@@ -605,7 +607,7 @@ jbMat jbMat::copySubMat(const uint startRow, const uint endRow, const uint start
     return A;
 }
 
-jbMat& jbMat::plusMat(const jbMat& other){
+Mat& Mat::plusMat(const Mat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "plusMat method : either of this or other is empty\n");
         return *this;
@@ -648,7 +650,7 @@ jbMat& jbMat::plusMat(const jbMat& other){
     return *this;
 }
 
-jbMat& jbMat::minusMat(const jbMat& other){
+Mat& Mat::minusMat(const Mat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "plusMat method : either of this or other is empty\n");
         return *this;
@@ -690,7 +692,7 @@ jbMat& jbMat::minusMat(const jbMat& other){
     return *this;
 }
 
-jbMat& jbMat::multiplyMat(const jbMat& other){
+Mat& Mat::multiplyMat(const Mat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "plusMat method : either of this or other is empty\n");
         return *this;
@@ -732,7 +734,7 @@ jbMat& jbMat::multiplyMat(const jbMat& other){
     return *this;
 }
 
-jbMat& jbMat::divideMat(const jbMat& other){
+Mat& Mat::divideMat(const Mat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "plusMat method : either of this or other is empty\n");
         return *this;
@@ -774,7 +776,7 @@ jbMat& jbMat::divideMat(const jbMat& other){
     return *this;
 }
 
-jbMat& jbMat::plusScalar(const double scalar){
+Mat& Mat::plusScalar(const double scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -787,7 +789,7 @@ jbMat& jbMat::plusScalar(const double scalar){
     return *this;
 }
 
-jbMat& jbMat::plusScalar(const float scalar){
+Mat& Mat::plusScalar(const float scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -800,7 +802,7 @@ jbMat& jbMat::plusScalar(const float scalar){
     return *this;
 }
 
-jbMat& jbMat::plusScalar(const int scalar){
+Mat& Mat::plusScalar(const int scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -812,7 +814,7 @@ jbMat& jbMat::plusScalar(const int scalar){
     }
     return *this;
 }
-jbMat& jbMat::plusScalar(const uchar scalar){
+Mat& Mat::plusScalar(const uchar scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -825,7 +827,7 @@ jbMat& jbMat::plusScalar(const uchar scalar){
     return *this;
 }
 
-jbMat& jbMat::minusScalar(const double scalar){
+Mat& Mat::minusScalar(const double scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -838,7 +840,7 @@ jbMat& jbMat::minusScalar(const double scalar){
     return *this;
 }
 
-jbMat& jbMat::minusScalar(const float scalar){
+Mat& Mat::minusScalar(const float scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -851,7 +853,7 @@ jbMat& jbMat::minusScalar(const float scalar){
     return *this;
 }
 
-jbMat& jbMat::minusScalar(const int scalar){
+Mat& Mat::minusScalar(const int scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -863,7 +865,7 @@ jbMat& jbMat::minusScalar(const int scalar){
     }
     return *this;
 }
-jbMat& jbMat::minusScalar(const uchar scalar){
+Mat& Mat::minusScalar(const uchar scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -876,7 +878,7 @@ jbMat& jbMat::minusScalar(const uchar scalar){
     return *this;
 }
 
-jbMat& jbMat::multiplyScalar(const double scalar){
+Mat& Mat::multiplyScalar(const double scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -889,7 +891,7 @@ jbMat& jbMat::multiplyScalar(const double scalar){
     return *this;
 }
 
-jbMat& jbMat::multiplyScalar(const float scalar){
+Mat& Mat::multiplyScalar(const float scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -902,7 +904,7 @@ jbMat& jbMat::multiplyScalar(const float scalar){
     return *this;
 }
 
-jbMat& jbMat::multiplyScalar(const int scalar){
+Mat& Mat::multiplyScalar(const int scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -914,7 +916,7 @@ jbMat& jbMat::multiplyScalar(const int scalar){
     }
     return *this;
 }
-jbMat& jbMat::multiplyScalar(const uchar scalar){
+Mat& Mat::multiplyScalar(const uchar scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -927,7 +929,7 @@ jbMat& jbMat::multiplyScalar(const uchar scalar){
     return *this;
 }
 
-jbMat& jbMat::divideScalar(const double scalar){
+Mat& Mat::divideScalar(const double scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -940,7 +942,7 @@ jbMat& jbMat::divideScalar(const double scalar){
     return *this;
 }
 
-jbMat& jbMat::divideScalar(const float scalar){
+Mat& Mat::divideScalar(const float scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -953,7 +955,7 @@ jbMat& jbMat::divideScalar(const float scalar){
     return *this;
 }
 
-jbMat& jbMat::divideScalar(const int scalar){
+Mat& Mat::divideScalar(const int scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -965,7 +967,7 @@ jbMat& jbMat::divideScalar(const int scalar){
     }
     return *this;
 }
-jbMat& jbMat::divideScalar(const uchar scalar){
+Mat& Mat::divideScalar(const uchar scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
@@ -978,3 +980,4 @@ jbMat& jbMat::divideScalar(const uchar scalar){
     return *this;
 }
 
+} // end of jmat namespace

@@ -3,7 +3,7 @@
 
 namespace qimmat {
 
-    jbMat qim2jbmat( QImage& src, DTYP matDtype){
+    Mat qim2mat( QImage& src, DTYP matDtype){
         QImage::Format fmt = src.format();
         int ch = 0;
         if(fmt == QImage::Format_Grayscale8 ){
@@ -17,24 +17,24 @@ namespace qimmat {
             fprintf(stdout,"image format: RGB32\n");
         }else{
             fprintf(stdout,"qim2jbmat is not supporting format\n");
-            return jbMat();
+            return Mat();
         }
         uint row = src.height();
         uint col = src.width();
 
-        jbMat mat(matDtype, row, col, ch);
+        Mat mat(matDtype, row, col, ch);
 
         switch(matDtype){
-        case DTYP::DOUBLE : _datqim2jbmat<double>(mat, src); break;
-        case DTYP::FLOAT  : _datqim2jbmat<float >(mat, src); break;
-        case DTYP::INT    : _datqim2jbmat<int   >(mat, src); break;
-        case DTYP::UCHAR  : _datqim2jbmat<uchar >(mat, src); break;
+        case DTYP::DOUBLE : _datqim2mat<double>(mat, src); break;
+        case DTYP::FLOAT  : _datqim2mat<float >(mat, src); break;
+        case DTYP::INT    : _datqim2mat<int   >(mat, src); break;
+        case DTYP::UCHAR  : _datqim2mat<uchar >(mat, src); break;
         }
 
         return mat;
     }
 
-    QImage jbmat2qim(const jbMat& src){
+    QImage mat2qim(const Mat& src){
     QImage::Format fmt;
     if(src.getChannel()==1)
         fmt = QImage::Format_Grayscale8;
@@ -51,10 +51,10 @@ namespace qimmat {
     qim.fill(0);
 
     switch(src.getDatType()){
-    case DTYP::DOUBLE : _datjbmat2qim<double>(qim, src); break;
-    case DTYP::FLOAT  : _datjbmat2qim<float >(qim, src); break;
-    case DTYP::INT    : _datjbmat2qim<int   >(qim, src); break;
-    case DTYP::UCHAR  : _datjbmat2qim<uchar >(qim, src); break;
+    case DTYP::DOUBLE : _datmat2qim<double>(qim, src); break;
+    case DTYP::FLOAT  : _datmat2qim<float >(qim, src); break;
+    case DTYP::INT    : _datmat2qim<int   >(qim, src); break;
+    case DTYP::UCHAR  : _datmat2qim<uchar >(qim, src); break;
     }
     return qim;
 }

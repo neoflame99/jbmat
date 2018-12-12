@@ -1,8 +1,9 @@
 #include "jbimgproc.h"
 
-namespace jbimgproc {
+namespace jmat {
+namespace imgproc {
 
-jbMat rgb2ycc(const jbMat& rgbIm, const int sel_eq){
+Mat rgb2ycc(const Mat& rgbIm, const int sel_eq){
 /*
  *   if sel_eq = 0 (BT 601)
  *  Y = [  0.299    ,  0.587    ,  0.114    ]   [ r ]
@@ -25,7 +26,7 @@ jbMat rgb2ycc(const jbMat& rgbIm, const int sel_eq){
 }
 
 
-jbMat ycc2rgb(const jbMat& rgbIm, const int sel_eq){
+Mat ycc2rgb(const Mat& rgbIm, const int sel_eq){
 /*
  *   if sel_eq = 0 (BT 601)
  *
@@ -49,7 +50,7 @@ jbMat ycc2rgb(const jbMat& rgbIm, const int sel_eq){
 }
 
 
-jbMat rgb2gray(const jbMat& rgbIm, const int HowToGray){
+Mat rgb2gray(const Mat& rgbIm, const int HowToGray){
 /*
  *  if HowToGray = 0 (BT 601)
  *  Y =  0.299 * r   +  0.587 * g +  0.114 * b
@@ -68,18 +69,18 @@ jbMat rgb2gray(const jbMat& rgbIm, const int HowToGray){
     }
 }
 /*
-jbMat jbimgproc::histoPmf(const jbMat& src){
+Mat jbimgproc::histoPmf(const Mat& src){
     int ch  = src.getChannel();
 
     if( src.isEmpty() ){
         fprintf(stdout,"histoPmf : src argument is empty matrix\n");
-        return jbMat();
+        return Mat();
     }else if( ch != 1) {
         fprintf(stdout,"histoPmf : src is not 1 channel matrix\n");
-        return jbMat();
+        return Mat();
     }
 
-    jbMat A = jbMat::zeros(1,256,1);
+    Mat A = Mat::zeros(1,256,1);
     double *tarDat_pt = A.getMat().get();
     double *srcDat_pt = src.getMat().get();
 
@@ -93,21 +94,21 @@ jbMat jbimgproc::histoPmf(const jbMat& src){
     return A;
 }
 
-jbMat jbimgproc::histoCmf(const jbMat& src){
+Mat jbimgproc::histoCmf(const Mat& src){
     int ch  = src.getChannel();
 
     if( src.isEmpty() ){
         fprintf(stdout,"histoCmf : src argument is empty matrix\n");
-        return jbMat();
+        return Mat();
     }else if( ch != 1) {
         fprintf(stdout,"histoCmf : src is not 1 channel matrix\n");
-        return jbMat();
+        return Mat();
     }
 
-    jbMat cmf = jbImgproc::histoPmf(src);
+    Mat cmf = jbImgproc::histoPmf(src);
     if( cmf.isEmpty()){
         fprintf(stdout,"histoPmf is empty matrix\n");
-        return jbMat();
+        return Mat();
     }
 
     double *srcDat_pt = cmf.getMat().get();
@@ -119,20 +120,20 @@ jbMat jbimgproc::histoCmf(const jbMat& src){
     return cmf;
 }
 
-jbMat jbimgproc::clip_HistoPmf(const jbMat& src,const unsigned int clipVal){
+Mat jbimgproc::clip_HistoPmf(const Mat& src,const unsigned int clipVal){
     int ch  = src.getChannel();
     if( src.isEmpty() ){
         fprintf(stdout,"clip_histoPmf : src argument is empty matrix\n");
-        return jbMat();
+        return Mat();
     }else if( ch != 1) {
         fprintf(stdout,"clip_histoPmf : src is not 1 channel matrix\n");
-        return jbMat();
+        return Mat();
     }
 
-    jbMat pmf = jbImgproc::histoPmf(src);
+    Mat pmf = jbImgproc::histoPmf(src);
     if( pmf.isEmpty()){
         fprintf(stdout,"histoPmf is empty matrix\n");
-        return jbMat();
+        return Mat();
     }
 
     double *srcDat_pt = pmf.getMat().get();
@@ -156,21 +157,21 @@ jbMat jbimgproc::clip_HistoPmf(const jbMat& src,const unsigned int clipVal){
     return pmf;
 }
 
-jbMat jbimgproc::clip_HistoCmf(const jbMat& src,const unsigned int clipVal){
+Mat jbimgproc::clip_HistoCmf(const Mat& src,const unsigned int clipVal){
     int ch  = src.getChannel();
 
     if( src.isEmpty() ){
         fprintf(stdout,"histoCmf : src argument is empty matrix\n");
-        return jbMat();
+        return Mat();
     }else if( ch != 1) {
         fprintf(stdout,"histoCmf : src is not 1 channel matrix\n");
-        return jbMat();
+        return Mat();
     }
 
-    jbMat cmf = jbImgproc::histoPmf(src);
+    Mat cmf = jbImgproc::histoPmf(src);
     if( cmf.isEmpty()){
         fprintf(stdout,"histoPmf is empty matrix\n");
-        return jbMat();
+        return Mat();
     }
 
     double *srcDat_pt = cmf.getMat().get();
@@ -198,21 +199,21 @@ jbMat jbimgproc::clip_HistoCmf(const jbMat& src,const unsigned int clipVal){
     return cmf;
 }
 
-jbMat jbimgproc::clip_HistoEqual(const jbMat& src,const jbMat& histCmf){
+Mat jbimgproc::clip_HistoEqual(const Mat& src,const Mat& histCmf){
     int ch  = src.getChannel();
 
     if( src.isEmpty() ){
         fprintf(stdout,"histoEqual : src argument is empty matrix\n");
-        return jbMat();
+        return Mat();
     }else if( ch != 1) {
         fprintf(stdout,"histoEqual : src is not 1 channel matrix\n");
-        return jbMat();
+        return Mat();
     }else if( histCmf.isEmpty()){
         fprintf(stdout,"histCmf is empty \n");
-        return jbMat();
+        return Mat();
     }
 
-    jbMat A = src.copy();
+    Mat A = src.copy();
 
     double *srcDat_pt = src.getMat().get();
     double *mapDat_pt = histCmf.getMat().get();
@@ -230,4 +231,5 @@ jbMat jbimgproc::clip_HistoEqual(const jbMat& src,const jbMat& histCmf){
 }
 */
 
-}
+} // end of imgproc namespace
+} // end of jmat namespace

@@ -15,6 +15,8 @@
     #include <string.h>
 #endif
 
+using namespace jmat;
+
 int main(int argc, char *argv[])
 {
 
@@ -22,7 +24,7 @@ int main(int argc, char *argv[])
     uint col = 7;
     uint ch = 2;
     uint rowcol = row*col;
-    jbMat ma(DTYP::DOUBLE, row,col,ch);
+    Mat ma(DTYP::DOUBLE, row,col,ch);
 
     double* a = ma.getDataPtr<double>();
     uint k = 1;
@@ -35,7 +37,7 @@ int main(int argc, char *argv[])
     ma.printMat();
     ma += 10;
     ma.printMat();
-    jbMat maa = ma.copy();
+    Mat maa = ma.copy();
     //maa.plusMat(ma);
     maa += ma;
     maa.printMat();
@@ -45,31 +47,31 @@ int main(int argc, char *argv[])
     ma.printMat();
     ma.at<int>(2,2,1) = 2000;
     ma.printMat();
-    jbMat mab = ma*ma;
+    Mat mab = ma*ma;
     mab.printMat();
-    jbMat mac = ma/ma;
+    Mat mac = ma/ma;
     mac.printMat();
-    jbMat mad = ma -maa;
+    Mat mad = ma -maa;
     mad.printMat();
-    jbMat mae(DTYP::DOUBLE, 5, 5, 2);
+    Mat mae(DTYP::DOUBLE, 5, 5, 2);
 
     for(uint c = 0; c< mae.getLength(); c++)
         mae.at<double>(c) = rand()%100;
     mae.printMat();
 
-    jbMat maf = jbmath::inverse(mae);
+    Mat maf = inverse(mae);
     maf.printMat("inversed mat");
 
-    jbMat mag(DTYP::DOUBLE, 3,4,2);
-    jbMat mah(DTYP::DOUBLE, 4,3,2);
+    Mat mag(DTYP::DOUBLE, 3,4,2);
+    Mat mah(DTYP::DOUBLE, 4,3,2);
     double *mag_m = mag.getDataPtr<double>();
     double *mah_m = mah.getDataPtr<double>();
     for(uint c=0; c < mag.getLength(); c++){
         mag_m[c] = c;
         mah_m[c] = c + c%4;
     }
-    jbMat mai = jbmath::dot(mag,mah);
-    jbMat maj = jbmath::dot(mah,mag);
+    Mat mai = dot(mag,mah);
+    Mat maj = dot(mah,mag);
     mag.printMat();
     mah.printMat();
     mai.printMat();
@@ -77,8 +79,8 @@ int main(int argc, char *argv[])
 
     //-- conv
     k=0;
-    jbMat mb(DTYP::DOUBLE,5,5,2,"mb");
-    jbMat mc(DTYP::DOUBLE,5,5,2,"mc");
+    Mat mb(DTYP::DOUBLE,5,5,2,"mb");
+    Mat mc(DTYP::DOUBLE,5,5,2,"mc");
     double* b = mb.getDataPtr<double>();
     for(uint c=0; c < mb.getChannel(); c++){
         for(uint i=0; i < 5; i++){
@@ -91,15 +93,14 @@ int main(int argc, char *argv[])
     ma.printMat("ma");
     mb.printMat("mb");
     fprintf(stdout,"1) full\n");
-    jbMat convO = jbmath::conv2d(ma,mb,"zero","full");
+    Mat convO = conv2d(ma,mb,"zero","full");
     convO.printMat("conv0: full");
     fprintf(stdout,"2) same\n");
-    convO = jbmath::conv2d(ma,mb,"zero","same");
+    convO = conv2d(ma,mb,"zero","same");
     convO.printMat("conv0: same");
 
-
-    jbMat me = ma.copy();
-    jbMat mf = ma;
+    Mat me = ma.copy();
+    Mat mf = ma;
     fprintf(stdout," me_mA_ptr: %p, md_mA_ptr: %p , mf_mA_ptr: %p\n", me.getMat().get(), ma.getMat().get(), mf.getMat().get());
     me.printMat();
     mf.printMat();
@@ -109,15 +110,15 @@ int main(int argc, char *argv[])
     QString fname1 = QString("../jbmat_bench/test.jpg");
     QString fname2 = QString("../jbmat_bench/test_filt.bmp");
     QImage img(fname1);
-    jbMat matIm = qimmat::qim2jbmat(img);
-    jbMat filt  = jbMat::ones(5,5,matIm.getChannel())/25;
-    jbMat FiltIm = jbmath::conv2d(matIm, filt,"zero","same");
-    //jbMat FiltIm = jbMath::conv2d(matIm, filt,"zero","full");
-    QImage cvim = qimmat::jbmat2qim(FiltIm);
+    Mat matIm = qimmat::qim2mat(img);
+    Mat filt  =  Mat::ones(5,5,matIm.getChannel())/25;
+    Mat FiltIm = conv2d(matIm, filt,"zero","same");
+    // Mat FiltIm = jbMath::conv2d(matIm, filt,"zero","full");
+    QImage cvim = qimmat::mat2qim(FiltIm);
     //QImage cvim = QimMat::jbmat2qim(matIm);
     cvim.save(fname2);
 
-    jbMat mg(DTYP::DOUBLE,1,7,3) ;
+    Mat mg(DTYP::DOUBLE,1,7,3) ;
     mg.at<double>(0,0,0) = 1;
     mg.at<double>(0,0,1) = 1;
     mg.at<double>(0,0,2) = 1;
@@ -141,23 +142,23 @@ int main(int argc, char *argv[])
     mg.at<double>(0,6,2) = 1;
 
     mg.printMat();
-    jbMat mh = jbimgproc::rgb2ycc(mg,1);
+    Mat mh = imgproc::rgb2ycc(mg,1);
     mh.printMat();
-    jbMat mi = jbimgproc::ycc2rgb(mh,1);
+    Mat mi = imgproc::ycc2rgb(mh,1);
     mi.printMat();
-    jbMat mj = jbimgproc::rgb2gray(mg);
+    Mat mj = imgproc::rgb2gray(mg);
     mj.printMat();
 /*
-    jbMat mk(3,4,2,"mk");
-    jbMat ml(4,3,2,"ml");
-    jbMat mn(4,4,1,"mn");
+    Mat mk(DTYP::DOUBLE,3,4,2,"mk");
+    Mat ml(DTYP::DOUBLE,4,3,2,"ml");
+    Mat mn(DTYP::DOUBLE,4,4,1,"mn");
     for(int i=0; i < 24; i++){
         mk[i] = rand() % 50;
         ml[i] = rand() % 80;
         if(i < 16)
             mn[i] = rand() % 100;
     }
-    jbMat mm = jbMath::mulMatrix(mk,ml);
+     Mat mm = mulMatrix(mk,ml);
     mk.printMat(); //std::string("mk"));
     ml.printMat(); //std::string("ml"));
     mm.printMat(); //std::string("mm"));
@@ -168,29 +169,29 @@ int main(int argc, char *argv[])
     mn.printMat(std::string("mn"));
     //mn = jbMath::inverse(mn);
     //mn.printMat(std::string("mn inverse"));
-    jbMat Y  = jbimgproc::rgb2gray(matIm);
-    jbMat yccIm = jbimgproc::rgb2ycc(matIm);
-    jbMat ms = jbimgproc::clip_HistoCmf(Y, 1000);
+     Mat Y  = imgproc::rgb2gray(matIm);
+     Mat yccIm = imgproc::rgb2ycc(matIm);
+     Mat ms = imgproc::clip_HistoCmf(Y, 1000);
     ms /= ms[255];
     ms *= 255;
-    jbMat mv = jbimgproc::clip_HistoEqual(Y,ms);
+     Mat mv = imgproc::clip_HistoEqual(Y,ms);
     yccIm.setChannelN(mv,0,1,0);
-    jbMat mvv;
+     Mat mvv;
     mvv.setName("mvv");
     mvv.setChannelN(Y,0,1,0);
     //for(int i=0; i < Y.getRow()*Y.getCol(); i++)
     //    yccIm[i] = mv[i] ;
-    jbMat histEqIm = jbimgproc::ycc2rgb(yccIm);
-    QImage cvim2 = QimMat::jbmat2qim(histEqIm);
+     Mat histEqIm = imgproc::ycc2rgb(yccIm);
+    QImage cvim2 = QimMat::mat2qim(histEqIm);
     //QImage cvim = QimMat::jbmat2qim(matIm);
     cvim2.save(QString("../jbmat_bench/test_histEq.bmp"));
-    QImage cvim3 = QimMat::jbmat2qim(mvv);
+    QImage cvim3 = QimMat::mat2qim(mvv);
     cvim3.save(QString("../jbmat_bench/test_y.bmp"));
-    jbMat mx = matIm.copySubMat(1,4,100,104);
+     Mat mx = matIm.copySubMat(1,4,100,104);
     mx.setName("mx_subMat");
     mx.printMat();
-    jbMat my = matIm.copyChannelN(0);
-    jbMat mz = my.copySubMat(1,4,100,104);
+     Mat my = matIm.copyChannelN(0);
+     Mat mz = my.copySubMat(1,4,100,104);
     mz.printMat();
 */
     return 0;

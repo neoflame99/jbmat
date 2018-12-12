@@ -2,19 +2,18 @@
 #define QIMMAT_H
 
 #include <QImage>
+
 #include "jbMat.h"
 
+using namespace jmat;
 namespace qimmat {
-    jbMat  qim2jbmat( QImage& src, const DTYP matDtype=DTYP::DOUBLE);
-    QImage jbmat2qim(const jbMat& src);
+    Mat  qim2mat( QImage& src, const DTYP matDtype=DTYP::DOUBLE);
+    QImage mat2qim(const Mat& src);
 
-    template <typename _T> void _datqim2jbmat(jbMat& tar, QImage& src);
-    template <typename _T> void _datjbmat2qim(QImage& tar, const jbMat& src);    
-}
+    template <typename _T> void _datqim2mat(Mat& tar, QImage& src);
+    template <typename _T> void _datmat2qim(QImage& tar, const Mat& src);
 
-namespace qimmat {
-
-    template <typename _T> void _datqim2jbmat(jbMat& tar, QImage& src){
+    template <typename _T> void _datqim2mat(Mat& tar, QImage& src){
         if(tar.isEmpty()) return ;
 
         uchar* qim_dat = src.bits();
@@ -45,7 +44,7 @@ namespace qimmat {
         }
     }
 
-    template <typename _T> void _datjbmat2qim(QImage& tar, const jbMat& src){
+    template <typename _T> void _datmat2qim(QImage& tar, const Mat& src){
         if(src.isEmpty()) return;
 
         uint col = src.getCol();

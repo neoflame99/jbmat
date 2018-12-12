@@ -2,11 +2,12 @@
 #define JBMAT_H
 
 #include <stddef.h>
-#include <memory>
+
 #include <initializer_list>
 #include <vector>
 #include <float.h>
 #include <assert.h>
+#include "types.h"
 
 #ifdef _MACOS_
     #include <string>
@@ -14,20 +15,10 @@
     #include <string.h>
 #endif
 
-//-- shallow copy version & using shared_ptr
-typedef unsigned char uchar;
-typedef unsigned int  uint;
+namespace jmat {
 
-typedef std::shared_ptr<uchar> shr_ptr;
-enum    DTYP {UCHAR=0 , INT=1 , FLOAT=2, DOUBLE=3};
-struct rawMat{
-    uchar* dat_ptr;
-    uint rows;
-    uint cols;
-    uint channels;
-    DTYP dtype;
-};
-class jbMat{
+
+class Mat{
 private: // member fields
     shr_ptr mA;
     uchar *dat_ptr;
@@ -53,67 +44,67 @@ private:
 
 public: // constructors and destructor
 
-    jbMat(DTYP dt = DTYP::DOUBLE);
-    jbMat(DTYP dt, uint r, uint c, uint ch );
-    jbMat(DTYP dt, uint r, uint c, uint ch, std::string name);
-    jbMat(DTYP dt, uint rc);
-    jbMat(shr_ptr ma, DTYP dt, uint r, uint c, uint ch );
-    jbMat(const jbMat& mat);
-    jbMat( std::initializer_list<double> list );
-    jbMat( std::initializer_list<int> list );
-    jbMat( std::initializer_list<float> list );
-    ~jbMat();
+    Mat(DTYP dt = DTYP::DOUBLE);
+    Mat(DTYP dt, uint r, uint c, uint ch );
+    Mat(DTYP dt, uint r, uint c, uint ch, std::string name);
+    Mat(DTYP dt, uint rc);
+    Mat(shr_ptr ma, DTYP dt, uint r, uint c, uint ch );
+    Mat(const Mat& mat);
+    Mat( std::initializer_list<double> list );
+    Mat( std::initializer_list<int> list );
+    Mat( std::initializer_list<float> list );
+    ~Mat();
 
 public:
     //-- overloading operators
-    jbMat  operator+(const jbMat& other ) const;
-    jbMat  operator+(const double scalar) const;
-    jbMat  operator-(const jbMat& other ) const;
-    jbMat  operator-(const double scalar) const;
-    jbMat  operator*(const jbMat& other ) const;
-    jbMat  operator*(const double scalar) const;
-    jbMat  operator/(const jbMat& other ) const;
-    jbMat  operator/(const double scalar) const;
+    Mat  operator+(const Mat& other ) const;
+    Mat  operator+(const double scalar) const;
+    Mat  operator-(const Mat& other ) const;
+    Mat  operator-(const double scalar) const;
+    Mat  operator*(const Mat& other ) const;
+    Mat  operator*(const double scalar) const;
+    Mat  operator/(const Mat& other ) const;
+    Mat  operator/(const double scalar) const;
 
-    jbMat& operator= (const jbMat& other );
-    jbMat& operator+=(const jbMat& other );
-    jbMat& operator+=(const double scalar);
-    jbMat& operator-=(const jbMat& other );
-    jbMat& operator-=(const double scalar);
-    jbMat& operator*=(const jbMat& other );
-    jbMat& operator*=(const double scalar);
-    jbMat& operator/=(const jbMat& other );
-    jbMat& operator/=(const double scalar);
+    Mat& operator= (const Mat& other );
+    Mat& operator+=(const Mat& other );
+    Mat& operator+=(const double scalar);
+    Mat& operator-=(const Mat& other );
+    Mat& operator-=(const double scalar);
+    Mat& operator*=(const Mat& other );
+    Mat& operator*=(const double scalar);
+    Mat& operator/=(const Mat& other );
+    Mat& operator/=(const double scalar);
 
-    jbMat& plusMat    (const jbMat& other);
-    jbMat& minusMat   (const jbMat& other);
-    jbMat& multiplyMat(const jbMat& other);
-    jbMat& divideMat  (const jbMat& other);
+    Mat& plusMat    (const Mat& other);
+    Mat& minusMat   (const Mat& other);
+    Mat& multiplyMat(const Mat& other);
+    Mat& divideMat  (const Mat& other);
 
-    jbMat& plusScalar(const double scalar);
-    jbMat& plusScalar(const  float scalar);
-    jbMat& plusScalar(const    int scalar);
-    jbMat& plusScalar(const  uchar scalar);
-    jbMat& minusScalar(const double scalar);
-    jbMat& minusScalar(const  float scalar);
-    jbMat& minusScalar(const    int scalar);
-    jbMat& minusScalar(const  uchar scalar);
-    jbMat& multiplyScalar(const double scalar);
-    jbMat& multiplyScalar(const  float scalar);
-    jbMat& multiplyScalar(const    int scalar);
-    jbMat& multiplyScalar(const  uchar scalar);
-    jbMat& divideScalar(const double scalar);
-    jbMat& divideScalar(const  float scalar);
-    jbMat& divideScalar(const    int scalar);
-    jbMat& divideScalar(const  uchar scalar);
+    Mat& plusScalar(const double scalar);
+    Mat& plusScalar(const  float scalar);
+    Mat& plusScalar(const    int scalar);
+    Mat& plusScalar(const  uchar scalar);
+    Mat& minusScalar(const double scalar);
+    Mat& minusScalar(const  float scalar);
+    Mat& minusScalar(const    int scalar);
+    Mat& minusScalar(const  uchar scalar);
+    Mat& multiplyScalar(const double scalar);
+    Mat& multiplyScalar(const  float scalar);
+    Mat& multiplyScalar(const    int scalar);
+    Mat& multiplyScalar(const  uchar scalar);
+    Mat& divideScalar(const double scalar);
+    Mat& divideScalar(const  float scalar);
+    Mat& divideScalar(const    int scalar);
+    Mat& divideScalar(const  uchar scalar);
 
     void    setRowCol(uint r, uint c, uint ch=1);
-    void    setChannelN(const jbMat& src, const uint srcfromCh=0,const uint Channels=1, const uint tarToCh=0);
+    void    setChannelN(const Mat& src, const uint srcfromCh=0,const uint Channels=1, const uint tarToCh=0);
     void    setName(std::string name);
 
-    jbMat   copy() const;
-    jbMat   copyChannelN(const uint NoCh=0) const;
-    jbMat   copySubMat(const uint startRow, const uint endRow, const uint startCol, const uint endCol) const;
+    Mat   copy() const;
+    Mat   copyChannelN(const uint NoCh=0) const;
+    Mat   copySubMat(const uint startRow, const uint endRow, const uint startCol, const uint endCol) const;
 
     inline bool    isEmpty() const { return ((length <= 0) ? true : false); }
     inline shr_ptr getMat () const { return mA; }
@@ -130,8 +121,8 @@ public:
     void    printMat(const std::string objname);
 
 public : // static methods
-    static jbMat ones (uint r, uint c, uint ch= 1, DTYP dt = DTYP::DOUBLE);
-    static jbMat zeros(uint r, uint c, uint ch= 1, DTYP dt = DTYP::DOUBLE);
+    static Mat ones (uint r, uint c, uint ch= 1, DTYP dt = DTYP::DOUBLE);
+    static Mat zeros(uint r, uint c, uint ch= 1, DTYP dt = DTYP::DOUBLE);
     static int instant_count;
 
 public : // public template methods
@@ -154,66 +145,66 @@ private: // private template methods
 };
 
 
-template <typename _T> inline _T& jbMat::at(uint i) const {
+template <typename _T> inline _T& Mat::at(uint i) const {
     if(isEmpty()) return *((_T *)nullptr); //*((_T *)mA.get()); //*mA;
 
     assert(i < length);
     if(i >= length){
-        //fprintf(stderr,"The Index of jbMat is out of bound\n");
+        //fprintf(stderr,"The Index of Mat is out of bound\n");
         i = length-1;
     }
     return ((_T *)dat_ptr)[i]; //return ((_T *)mA.get())[i];
 }
-template <typename _T> inline _T& jbMat::at(uint r, uint c, uint ch) const {
+template <typename _T> inline _T& Mat::at(uint r, uint c, uint ch) const {
     if(isEmpty()) return *((_T *)nullptr);
     uint i = ch*lenRowCol + r*col + c;
     assert(i < length);
     if(i >= length){
-        fprintf(stderr,"The Index of jbMat is out of bound\n");
+        fprintf(stderr,"The Index of Mat is out of bound\n");
         i = length-1;
     }
     return ((_T *)dat_ptr)[i];
 }
 
-template <typename _T> inline _T* jbMat::getDataPtr() const {
+template <typename _T> inline _T* Mat::getDataPtr() const {
     return (_T *)dat_ptr;
 }
 
-template <typename _Tslf, typename _Totr> void jbMat::_plus_mat(_Tslf* self, _Totr* other, uint len){
+template <typename _Tslf, typename _Totr> void Mat::_plus_mat(_Tslf* self, _Totr* other, uint len){
     for(uint k=0; k < len; k++ )
         self[k] += other[k];
 }
-template <typename _Tslf, typename _Totr> void jbMat::_minus_mat(_Tslf* self, _Totr* other, uint len){
+template <typename _Tslf, typename _Totr> void Mat::_minus_mat(_Tslf* self, _Totr* other, uint len){
     for(uint k=0; k < len; k++ )
         self[k] -= other[k];
 }
-template <typename _Tslf, typename _Totr> void jbMat::_multiply_mat(_Tslf* self, _Totr* other, uint len){
+template <typename _Tslf, typename _Totr> void Mat::_multiply_mat(_Tslf* self, _Totr* other, uint len){
     for(uint k=0; k < len; k++ )
         self[k] *= other[k];
 }
-template <typename _Tslf, typename _Totr> void jbMat::_divide_mat(_Tslf* self, _Totr* other, uint len){
+template <typename _Tslf, typename _Totr> void Mat::_divide_mat(_Tslf* self, _Totr* other, uint len){
     for(uint k=0; k < len; k++ )
         self[k] /= other[k];
 }
 
-template <typename _Tslf, typename _Totr> void jbMat::_plus_scalar(_Tslf* self, _Totr scalar, uint len){
+template <typename _Tslf, typename _Totr> void Mat::_plus_scalar(_Tslf* self, _Totr scalar, uint len){
     for(uint k=0; k < len ; k++)
         self[k] += scalar;
 }
-template <typename _Tslf, typename _Totr> void jbMat::_minus_scalar(_Tslf* self, _Totr scalar, uint len){
+template <typename _Tslf, typename _Totr> void Mat::_minus_scalar(_Tslf* self, _Totr scalar, uint len){
     for(uint k=0; k < len ; k++)
         self[k] -= scalar;
 }
-template <typename _Tslf, typename _Totr> void jbMat::_multiply_scalar(_Tslf* self, _Totr scalar, uint len){
+template <typename _Tslf, typename _Totr> void Mat::_multiply_scalar(_Tslf* self, _Totr scalar, uint len){
     for(uint k=0; k < len ; k++)
         self[k] *= scalar;
 }
-template <typename _Tslf, typename _Totr> void jbMat::_divide_scalar(_Tslf* self, _Totr scalar, uint len){
+template <typename _Tslf, typename _Totr> void Mat::_divide_scalar(_Tslf* self, _Totr scalar, uint len){
     for(uint k=0; k < len ; k++)
         self[k] /= scalar;
 }
 
-template <typename _Tsrc, typename _Ttar> void jbMat::_type_change(){
+template <typename _Tsrc, typename _Ttar> void Mat::_type_change(){
     _Tsrc* src_pt = (_Tsrc *)mA.get();
     _Ttar* tar_pt;
     try{
@@ -234,7 +225,7 @@ template <typename _Tsrc, typename _Ttar> void jbMat::_type_change(){
     byteLen  = length * byteStep;
 }
 
-template <typename _T> void jbMat::_print(_T* mdat){
+template <typename _T> void Mat::_print(_T* mdat){
     const int bufsz = 2049;
     char buf[bufsz]="\0";
     char tmp[bufsz];
@@ -283,5 +274,6 @@ template <typename _T> void jbMat::_print(_T* mdat){
     }
 }
 
+} // namespace jmat
 
 #endif // JBMAT_H

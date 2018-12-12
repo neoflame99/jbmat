@@ -7,28 +7,27 @@
 #include <iostream>
 #include <assert.h>
 
-namespace  jbmath {
+namespace jmat {
 
-    jbMat dot(const jbMat& mA,const jbMat& mB);
-    jbMat triu(const jbMat& mA);
-    jbMat tril(const jbMat& mA);
-    jbMat augment(const jbMat& mA);
-    jbMat inverse(const jbMat& mA);
-    jbMat tranpose(const jbMat& mA);
+    Mat dot(const Mat& mA,const Mat& mB);
+    Mat triu(const Mat& mA);
+    Mat tril(const Mat& mA);
+    Mat augment(const Mat& mA);
+    Mat inverse(const Mat& mA);
+    Mat tranpose(const Mat& mA);
 
-    jbMat conv2d(const jbMat& mA, const jbMat& mB, std::string opt_conv="" , std::string opt_out="");
+    Mat conv2d(const Mat& mA, const Mat& mB, std::string opt_conv="" , std::string opt_out="");
 
-    template <typename _Ta, typename _Tb, typename _To > bool _dot_prod(const jbMat& rMA,const jbMat& rMB, jbMat& rMO);
-    template <typename _T > void _triu(jbMat& utri_mat);
-    template <typename _T > void _tril(jbMat& ltri_mat);
-    template <typename _T > std::shared_ptr<uchar> _augment(const jbMat&, const uint augCols);
-    template <typename _T> jbMat _inverse(const jbMat& srcmat);
-    template <typename _Ta, typename _Tb, typename _To> void _conv2d(const jbMat& mA, const jbMat& mB, jbMat& mO, const bool fullout,const std::string& opt_conv);
+    template <typename _Ta, typename _Tb, typename _To > bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO);
+    template <typename _T > void _triu(Mat& utri_mat);
+    template <typename _T > void _tril(Mat& ltri_mat);
+    template <typename _T > std::shared_ptr<uchar> _augment(const Mat&, const uint augCols);
+    template <typename _T> Mat _inverse(const Mat& srcmat);
+    template <typename _Ta, typename _Tb, typename _To> void _conv2d(const Mat& mA, const Mat& mB, Mat& mO, const bool fullout,const std::string& opt_conv);
 
-}
 
 template <typename _Ta, typename _Tb, typename _To>
-bool jbmath::_dot_prod(const jbMat& rMA,const jbMat& rMB, jbMat& rMO){
+bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO){
     uint Ar  = rMA.getRow();
     uint Ac  = rMA.getCol();
     uint Ach = rMA.getChannel();
@@ -81,7 +80,7 @@ bool jbmath::_dot_prod(const jbMat& rMA,const jbMat& rMB, jbMat& rMO){
     return true;
 }
 
-template <typename _T> void jbmath::_triu( jbMat& utri_mat){
+template <typename _T> void _triu( Mat& utri_mat){
     uint rows = utri_mat.getRow();
     uint cols = utri_mat.getCol();
     uint ch   = utri_mat.getChannel();
@@ -111,7 +110,7 @@ template <typename _T> void jbmath::_triu( jbMat& utri_mat){
     }
 }
 
-template <typename _T> void jbmath::_tril( jbMat& ltri_mat){
+template <typename _T> void _tril( Mat& ltri_mat){
     uint rows = ltri_mat.getRow();
     uint cols = ltri_mat.getCol();
     uint ch   = ltri_mat.getChannel();
@@ -139,7 +138,7 @@ template <typename _T> void jbmath::_tril( jbMat& ltri_mat){
         }
     }
 }
-template <typename _T> std::shared_ptr<uchar> jbmath::_augment(const jbMat& srcmat, const uint augCols){
+template <typename _T> std::shared_ptr<uchar> _augment(const Mat& srcmat, const uint augCols){
     uint rows = srcmat.getRow();
     uint cols = srcmat.getCol();
     uint ch   = srcmat.getChannel();
@@ -181,13 +180,13 @@ template <typename _T> std::shared_ptr<uchar> jbmath::_augment(const jbMat& srcm
 }
 
 template <typename _T>
-jbMat jbmath::_inverse(const jbMat& srcmat){
+Mat _inverse(const Mat& srcmat){
     DTYP srcDtype = srcmat.getDatType();
 
     if(!(srcDtype == DTYP::DOUBLE || srcDtype == DTYP::FLOAT)){
         assert(false && "data type of srcmat into inverse is neither DOUBLE nor FLOAT");
         fprintf(stderr,"data type of srcmat into inverse is neither DOUBLE nor FLOAT\n");
-        return jbMat();
+        return Mat();
     }
     uint rows = srcmat.getRow();
     uint cols = srcmat.getCol();
@@ -195,24 +194,24 @@ jbMat jbmath::_inverse(const jbMat& srcmat){
 
     if(rows != cols) {
         std::cout << "The inverse matrix cannot be computed because source matrix is not square!";
-        return jbMat();
+        return Mat();
     }
 
-    jbMat mataug = augment(srcmat);
-    jbMat utri   = triu(mataug);
-    jbMat ltri   = tril(utri);        
+    Mat mataug = augment(srcmat);
+    Mat utri   = triu(mataug);
+    Mat ltri   = tril(utri);
     uint ltri_col = ltri.getCol();
     uint pv,j, pvr;
 
     double pivot;
-    jbMat invmat;
+    Mat invmat;
     uint rc = ltri.getRow() * ltri.getCol();
     uint rc2 = rows*cols;
     uint pvmax= rows;
     uint ci, cii;
     uint invchr_off , ltrichr_off;
 
-    invmat = jbMat(srcDtype, rows,cols,chs);
+    invmat = Mat(srcDtype, rows,cols,chs);
     _T* invmat_pt = invmat.getDataPtr<_T>();
     _T* ltri_pt   = ltri.getDataPtr<_T>();
 
@@ -242,7 +241,7 @@ jbMat jbmath::_inverse(const jbMat& srcmat){
     return invmat;
 }
 template <typename _Ta, typename _Tb, typename _To>
-void jbmath::_conv2d(const jbMat& mA, const jbMat& mB, jbMat& mO, const bool fullout, const std::string& opt_conv ){
+void _conv2d(const Mat& mA, const Mat& mB, Mat& mO, const bool fullout, const std::string& opt_conv ){
 
     uint tX , tY;
     uint xdummy , ydummy;
@@ -260,8 +259,8 @@ void jbmath::_conv2d(const jbMat& mA, const jbMat& mB, jbMat& mO, const bool ful
         tY = mA.getRow() + mB.getRow() -1;
     }
 
-    //jbMat tmpA(mA.getDatType(),tY, tX, ch);
-    jbMat tmpA = jbMat::zeros(tY, tX, ch, mA.getDatType());
+    //Mat tmpA(mA.getDatType(),tY, tX, ch);
+    Mat tmpA = Mat::zeros(tY, tX, ch, mA.getDatType());
     uint ich, y, x;
     if( fullout ){
         for( ich=0; ich < ch; ich++){
@@ -368,5 +367,7 @@ void jbmath::_conv2d(const jbMat& mA, const jbMat& mB, jbMat& mO, const bool ful
             }
         }
     }
+}
+
 }
 #endif // JBMATH_H
