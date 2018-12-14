@@ -21,19 +21,19 @@ namespace jmat {
     template <typename _Ta, typename _Tb, typename _To > bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO);
     template <typename _T > void _triu(Mat& utri_mat);
     template <typename _T > void _tril(Mat& ltri_mat);
-    template <typename _T > std::shared_ptr<uchar> _augment(const Mat&, const uint augCols);
+    template <typename _T > std::shared_ptr<uchar> _augment(const Mat&, const uint32 augCols);
     template <typename _T> Mat _inverse(const Mat& srcmat);
     template <typename _Ta, typename _Tb, typename _To> void _conv2d(const Mat& mA, const Mat& mB, Mat& mO, const bool fullout,const std::string& opt_conv);
 
 
 template <typename _Ta, typename _Tb, typename _To>
 bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO){
-    uint Ar  = rMA.getRow();
-    uint Ac  = rMA.getCol();
-    uint Ach = rMA.getChannel();
-    uint Br  = rMB.getRow();
-    uint Bc  = rMB.getCol();
-    uint Bch = rMB.getChannel();
+    uint32 Ar  = rMA.getRow();
+    uint32 Ac  = rMA.getCol();
+    uint32 Ach = rMA.getChannel();
+    uint32 Br  = rMB.getRow();
+    uint32 Bc  = rMB.getCol();
+    uint32 Bch = rMB.getChannel();
     _Ta* MA  = rMA.getDataPtr<_Ta>();
     _Tb* MB  = rMB.getDataPtr<_Tb>();
     _To* MO  = rMO.getDataPtr<_To>();
@@ -49,17 +49,17 @@ bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO){
         return false;
     }
 
-    uint i,j;
-    uint k, lr, lc, rc, rra, rrb;
+    uint32 i,j;
+    uint32 k, lr, lc, rc, rra, rrb;
     _Ta av;
     _Tb bv;
     _To cv;
 
-    uint mo_chidx, ma_chidx, mb_chidx;
-    uint Arc = Ar * Ac;
-    uint Brc = Br * Bc;
-    uint Orc = Ar * Bc;
-    uint m;
+    uint32 mo_chidx, ma_chidx, mb_chidx;
+    uint32 Arc = Ar * Ac;
+    uint32 Brc = Br * Bc;
+    uint32 Orc = Ar * Bc;
+    uint32 m;
     mo_chidx=0; ma_chidx=0; mb_chidx=0;
     for( m=0; m < Ach ; m++ ){
         for( i = 0 , lr =0, rra=0 ; i < Ar ; i++, lr += Bc, rra+= Ac){
@@ -81,18 +81,18 @@ bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO){
 }
 
 template <typename _T> void _triu( Mat& utri_mat){
-    uint rows = utri_mat.getRow();
-    uint cols = utri_mat.getCol();
-    uint ch   = utri_mat.getChannel();
+    uint32 rows = utri_mat.getRow();
+    uint32 cols = utri_mat.getCol();
+    uint32 ch   = utri_mat.getChannel();
 
-    uint pivtmax = (rows < cols ) ? rows : cols;
-    uint pv, i,j, cr, pvr;
+    uint32 pivtmax = (rows < cols ) ? rows : cols;
+    uint32 pv, i,j, cr, pvr;
     double fact;
-    uint rcstep = rows*cols;
-    uint tlen   = rcstep*ch;    
+    uint32 rcstep = rows*cols;
+    uint32 tlen   = rcstep*ch;
     _T* mat = utri_mat.getDataPtr<_T>();
     // do triu
-    for( uint cc=0; cc < tlen ; cc+=rcstep){
+    for( uint32 cc=0; cc < tlen ; cc+=rcstep){
         for( pv=0; pv < pivtmax-1 ; pv++){
             //std::cout << "pv = " << pv << " ";
             pvr = pv* cols + cc;
@@ -111,19 +111,19 @@ template <typename _T> void _triu( Mat& utri_mat){
 }
 
 template <typename _T> void _tril( Mat& ltri_mat){
-    uint rows = ltri_mat.getRow();
-    uint cols = ltri_mat.getCol();
-    uint ch   = ltri_mat.getChannel();
+    uint32 rows = ltri_mat.getRow();
+    uint32 cols = ltri_mat.getCol();
+    uint32 ch   = ltri_mat.getChannel();
 
-    uint pivtmax = (rows < cols) ? rows : cols;
-    uint rcstep = rows*cols;
-    uint tlen = rcstep*ch;
-    uint   pv, j, cr, pvr;
-    int i;
+    uint32 pivtmax = (rows < cols) ? rows : cols;
+    uint32 rcstep = rows*cols;
+    uint32 tlen = rcstep*ch;
+    uint32   pv, j, cr, pvr;
+    int32 i;
     double fact;
     _T* mat = ltri_mat.getDataPtr<_T>();
     // do tril
-    for(uint cc=0; cc < tlen ; cc+= rcstep){
+    for(uint32 cc=0; cc < tlen ; cc+= rcstep){
         for(pv=pivtmax-1 ; pv>0 ; pv--){
             pvr = pv*cols + cc;
             for(i=pv-1 ; i >= 0; i--){
@@ -138,28 +138,28 @@ template <typename _T> void _tril( Mat& ltri_mat){
         }
     }
 }
-template <typename _T> std::shared_ptr<uchar> _augment(const Mat& srcmat, const uint augCols){
-    uint rows = srcmat.getRow();
-    uint cols = srcmat.getCol();
-    uint ch   = srcmat.getChannel();
+template <typename _T> std::shared_ptr<uchar> _augment(const Mat& srcmat, const uint32 augCols){
+    uint32 rows = srcmat.getRow();
+    uint32 cols = srcmat.getCol();
+    uint32 ch   = srcmat.getChannel();
 
-    uint pivmax = (rows < cols)? rows : cols;
-    uint augmentCols = cols + pivmax;
+    uint32 pivmax = (rows < cols)? rows : cols;
+    uint32 augmentCols = cols + pivmax;
 
     assert( augmentCols == augCols );
 
-    uint len     = rows*augCols*ch;
-    uint bytelen = len*sizeof(_T);
+    uint32 len     = rows*augCols*ch;
+    uint32 bytelen = len*sizeof(_T);
 
     std::shared_ptr<uchar> augm = std::shared_ptr<uchar>(new uchar[bytelen], std::default_delete<uchar[]>());
     _T* augm_ma = (_T*)augm.get();
     _T* mA      = srcmat.getDataPtr<_T>();
 
-    uint i,j;
-    uint cr,scr;
-    uint cis, cio;
-    uint rcstep_o  = rows*augCols;
-    uint rcstep_s  = rows*cols;
+    uint32 i,j;
+    uint32 cr,scr;
+    uint32 cis, cio;
+    uint32 rcstep_o  = rows*augCols;
+    uint32 rcstep_s  = rows*cols;
     //--augmenting
     for( cis=0, cio=0; cio < len ; cis += rcstep_s, cio += rcstep_o){
         for( i=0 ; i < rows ; i++){
@@ -188,9 +188,9 @@ Mat _inverse(const Mat& srcmat){
         fprintf(stderr,"data type of srcmat into inverse is neither DOUBLE nor FLOAT\n");
         return Mat();
     }
-    uint rows = srcmat.getRow();
-    uint cols = srcmat.getCol();
-    uint chs  = srcmat.getChannel();
+    uint32 rows = srcmat.getRow();
+    uint32 cols = srcmat.getCol();
+    uint32 chs  = srcmat.getChannel();
 
     if(rows != cols) {
         std::cout << "The inverse matrix cannot be computed because source matrix is not square!";
@@ -200,16 +200,16 @@ Mat _inverse(const Mat& srcmat){
     Mat mataug = augment(srcmat);
     Mat utri   = triu(mataug);
     Mat ltri   = tril(utri);
-    uint ltri_col = ltri.getCol();
-    uint pv,j, pvr;
+    uint32 ltri_col = ltri.getCol();
+    uint32 pv,j, pvr;
 
     double pivot;
     Mat invmat;
-    uint rc = ltri.getRow() * ltri.getCol();
-    uint rc2 = rows*cols;
-    uint pvmax= rows;
-    uint ci, cii;
-    uint invchr_off , ltrichr_off;
+    uint32 rc = ltri.getRow() * ltri.getCol();
+    uint32 rc2 = rows*cols;
+    uint32 pvmax= rows;
+    uint32 ci, cii;
+    uint32 invchr_off , ltrichr_off;
 
     invmat = Mat(srcDtype, rows,cols,chs);
     _T* invmat_pt = invmat.getDataPtr<_T>();
@@ -225,9 +225,9 @@ Mat _inverse(const Mat& srcmat){
                 ltri_pt[ltrichr_off + j] /= pivot;
         }
     }
-    uint cr;
+    uint32 cr;
     for( ci = 0, cii=0 ; ci < ltri.getLength(); ci += rc, cii += rc2){
-        for(uint i=0; i < rows ; i++){
+        for(uint32 i=0; i < rows ; i++){
             pvr = i * ltri_col + cols;
             cr  = i * cols;
             invchr_off = cii+cr;
@@ -243,11 +243,11 @@ Mat _inverse(const Mat& srcmat){
 template <typename _Ta, typename _Tb, typename _To>
 void _conv2d(const Mat& mA, const Mat& mB, Mat& mO, const bool fullout, const std::string& opt_conv ){
 
-    uint tX , tY;
-    uint xdummy , ydummy;
-    uint mbHcol = mB.getCol()/2;
-    uint mbHrow = mB.getRow()/2;
-    uint ch     = mA.getChannel();
+    uint32 tX , tY;
+    uint32 xdummy , ydummy;
+    uint32 mbHcol = mB.getCol()/2;
+    uint32 mbHrow = mB.getRow()/2;
+    uint32 ch     = mA.getChannel();
 
     if(fullout){
         xdummy = mB.getCol() -1;
@@ -261,7 +261,7 @@ void _conv2d(const Mat& mA, const Mat& mB, Mat& mO, const bool fullout, const st
 
     //Mat tmpA(mA.getDatType(),tY, tX, ch);
     Mat tmpA = Mat::zeros(tY, tX, ch, mA.getDatType());
-    uint ich, y, x;
+    uint32 ich, y, x;
     if( fullout ){
         for( ich=0; ich < ch; ich++){
             for( y =0; y < tY; y++){
@@ -336,8 +336,8 @@ void _conv2d(const Mat& mA, const Mat& mB, Mat& mO, const bool fullout, const st
             for( y=ydummy; y < tY; y++){
                 for( x=xdummy; x < tX; x++){
                     sum = 0;
-                    for(int m= mB.getRow()-1; m >= 0; m--){
-                        for(int n= mB.getCol()-1; n >= 0; n--){
+                    for(int32 m= mB.getRow()-1; m >= 0; m--){
+                        for(int32 n= mB.getCol()-1; n >= 0; n--){
                             sum += (tmpA.at<_Ta>(y-m,x-n,ich)* mB.at<_Tb>(m,n,ich));
                             //a = tmpA.at<_Ta>(y-mbHrow+m,x-mbHcol+n,ich);
                             //b = mB.at<_Tb>(m,n,ich);
@@ -353,8 +353,8 @@ void _conv2d(const Mat& mA, const Mat& mB, Mat& mO, const bool fullout, const st
             for( y=mbHrow; y < tY-mbHrow; y++){
                 for( x=mbHcol; x < tX-mbHcol; x++){
                     sum = 0.0;
-                    for(int m= mB.getRow()-1; m >= 0; m--){
-                        for(int n= mB.getCol()-1; n >= 0; n--){
+                    for(int32 m= mB.getRow()-1; m >= 0; m--){
+                        for(int32 n= mB.getCol()-1; n >= 0; n--){
                             //sum += (tmpA(y-m,x-n,ich)* mB(-m+mbHrow,-n+mbHcol,ich));
                             sum += (tmpA.at<_Ta>(y+mbHrow-m,x+mbHcol-n,ich)* mB.at<_Tb>(m,n,ich));
                             //a = tmpA.at<_Ta>(y-mbHrow+m,x-mbHcol+n,ich);

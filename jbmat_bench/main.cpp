@@ -17,19 +17,19 @@
 
 using namespace jmat;
 
-int main(int argc, char *argv[])
+int32 main(int32 argc, char *argv[])
 {
 
-    uint row = 7;
-    uint col = 7;
-    uint ch = 2;
-    uint rowcol = row*col;
+    uint32 row = 7;
+    uint32 col = 7;
+    uint32 ch = 2;
+    uint32 rowcol = row*col;
     Mat ma(DTYP::DOUBLE, row,col,ch);
 
     double* a = ma.getDataPtr<double>();
-    uint k = 1;
-    for(uint c=0; c < ch; c++){
-        for(uint i=0; i < row*col; i++){
+    uint32 k = 1;
+    for(uint32 c=0; c < ch; c++){
+        for(uint32 i=0; i < row*col; i++){
             a[c*rowcol + i] = k++;
         }
     }
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     ma.printMat();
     ma.changeDType(DTYP::INT);
     ma.printMat();
-    ma.at<int>(2,2,1) = 2000;
+    ma.at<int32>(2,2,1) = 2000;
     ma.printMat();
     Mat mab = ma*ma;
     mab.printMat();
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     mad.printMat();
     Mat mae(DTYP::DOUBLE, 5, 5, 2);
 
-    for(uint c = 0; c< mae.getLength(); c++)
+    for(uint32 c = 0; c< mae.getLength(); c++)
         mae.at<double>(c) = rand()%100;
     mae.printMat();
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     Mat mah(DTYP::DOUBLE, 4,3,2);
     double *mag_m = mag.getDataPtr<double>();
     double *mah_m = mah.getDataPtr<double>();
-    for(uint c=0; c < mag.getLength(); c++){
+    for(uint32 c=0; c < mag.getLength(); c++){
         mag_m[c] = c;
         mah_m[c] = c + c%4;
     }
@@ -82,9 +82,9 @@ int main(int argc, char *argv[])
     Mat mb(DTYP::DOUBLE,5,5,2,"mb");
     Mat mc(DTYP::DOUBLE,5,5,2,"mc");
     double* b = mb.getDataPtr<double>();
-    for(uint c=0; c < mb.getChannel(); c++){
-        for(uint i=0; i < 5; i++){
-            for (uint j=0; j < 5; j++){
+    for(uint32 c=0; c < mb.getChannel(); c++){
+        for(uint32 i=0; i < 5; i++){
+            for (uint32 j=0; j < 5; j++){
                 b[i*5+j+c*25] = 100+k++;
                 mc.at<double>(i,j,c) = k;
             }
@@ -148,11 +148,13 @@ int main(int argc, char *argv[])
     mi.printMat();
     Mat mj = imgproc::rgb2gray(mg);
     mj.printMat();
+
+
 /*
     Mat mk(DTYP::DOUBLE,3,4,2,"mk");
     Mat ml(DTYP::DOUBLE,4,3,2,"ml");
     Mat mn(DTYP::DOUBLE,4,4,1,"mn");
-    for(int i=0; i < 24; i++){
+    for(int32 i=0; i < 24; i++){
         mk[i] = rand() % 50;
         ml[i] = rand() % 80;
         if(i < 16)
@@ -179,7 +181,7 @@ int main(int argc, char *argv[])
      Mat mvv;
     mvv.setName("mvv");
     mvv.setChannelN(Y,0,1,0);
-    //for(int i=0; i < Y.getRow()*Y.getCol(); i++)
+    //for(int32 i=0; i < Y.getRow()*Y.getCol(); i++)
     //    yccIm[i] = mv[i] ;
      Mat histEqIm = imgproc::ycc2rgb(yccIm);
     QImage cvim2 = QimMat::mat2qim(histEqIm);

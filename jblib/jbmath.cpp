@@ -21,9 +21,9 @@ Mat dot(const Mat& mA,const Mat& mB){
         return Mat();
     }
 
-    uint aRow = mA.getRow();
-    uint bCol = mB.getCol();
-    uint ch   = mA.getChannel();
+    uint32 aRow = mA.getRow();
+    uint32 bCol = mB.getCol();
+    uint32 ch   = mA.getChannel();
 
     Mat mO;
     DTYP maDtype = mA.getDatType();
@@ -37,7 +37,7 @@ Mat dot(const Mat& mA,const Mat& mB){
         case DTYP::FLOAT : mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<double,float ,double>(mA, mB, mO); break;
         case DTYP::INT   : mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<double,int   ,double>(mA, mB, mO); break;
+            result_prod = _dot_prod<double,int32   ,double>(mA, mB, mO); break;
         case DTYP::UCHAR : mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<double,uchar ,double>(mA, mB, mO); break;
         }
@@ -48,20 +48,20 @@ Mat dot(const Mat& mA,const Mat& mB){
         case DTYP::FLOAT : mO = Mat(DTYP::FLOAT , aRow, bCol, ch);
             result_prod = _dot_prod<float ,float ,float >(mA, mB, mO ); break;
         case DTYP::INT   : mO = Mat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<float ,int   ,float >(mA, mB, mO ); break;
+            result_prod = _dot_prod<float ,int32   ,float >(mA, mB, mO ); break;
         case DTYP::UCHAR : mO = Mat(DTYP::FLOAT , aRow, bCol, ch);
             result_prod = _dot_prod<float ,uchar ,float >(mA, mB, mO ); break;
         }
     }else if(maDtype == DTYP::INT ){
         switch(mbDtype){
         case DTYP::DOUBLE: mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,double,double>(mA, mB, mO ); break;
+            result_prod = _dot_prod<int32   ,double,double>(mA, mB, mO ); break;
         case DTYP::FLOAT : mO = Mat(DTYP::FLOAT , aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,float ,float >(mA, mB, mO ); break;
+            result_prod = _dot_prod<int32   ,float ,float >(mA, mB, mO ); break;
         case DTYP::INT   : mO = Mat(DTYP::INT   , aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,int   ,int   >(mA, mB, mO ); break;
+            result_prod = _dot_prod<int32   ,int32   ,int32   >(mA, mB, mO ); break;
         case DTYP::UCHAR : mO = Mat(DTYP::INT   , aRow, bCol, ch);
-            result_prod = _dot_prod<int   ,uchar ,int   >(mA, mB, mO ); break;
+            result_prod = _dot_prod<int32   ,uchar ,int32   >(mA, mB, mO ); break;
         }
     }else if(maDtype == DTYP::UCHAR ){
         switch(mbDtype){
@@ -70,7 +70,7 @@ Mat dot(const Mat& mA,const Mat& mB){
         case DTYP::FLOAT : mO = Mat(DTYP::FLOAT , aRow, bCol, ch);
             result_prod = _dot_prod<uchar ,float ,float >(mA, mB, mO ); break;
         case DTYP::INT   : mO = Mat(DTYP::INT   , aRow, bCol, ch);
-            result_prod = _dot_prod<uchar ,int   ,int   >(mA, mB, mO ); break;
+            result_prod = _dot_prod<uchar ,int32   ,int32   >(mA, mB, mO ); break;
         case DTYP::UCHAR : mO = Mat(DTYP::UCHAR , aRow, bCol, ch);
             result_prod = _dot_prod<uchar ,uchar ,uchar >(mA, mB, mO ); break;
         }
@@ -87,7 +87,7 @@ Mat triu(const Mat& mA)
     switch(utri.getDatType()){
     case DTYP::DOUBLE : _triu<double>(utri); break;
     case DTYP::FLOAT  : _triu<float >(utri); break;
-    case DTYP::INT    : _triu<int   >(utri); break;
+    case DTYP::INT    : _triu<int32   >(utri); break;
     case DTYP::UCHAR  : _triu<uchar >(utri); break;
     }
     return utri;
@@ -100,7 +100,7 @@ Mat tril(const Mat& srcmat)
     switch(ltri.getDatType()){
     case DTYP::DOUBLE : _tril<double>(ltri); break;
     case DTYP::FLOAT  : _tril<float >(ltri); break;
-    case DTYP::INT    : _tril<int   >(ltri); break;
+    case DTYP::INT    : _tril<int32   >(ltri); break;
     case DTYP::UCHAR  : _tril<uchar >(ltri); break;
     }
 
@@ -110,11 +110,11 @@ Mat tril(const Mat& srcmat)
 Mat augment(const Mat& srcmat)
 {
 
-    uint rows = srcmat.getRow();
-    uint cols = srcmat.getCol();
-    uint ch   = srcmat.getChannel();
-    uint pivmax = (rows < cols)? rows : cols;
-    uint augmentCols = cols + pivmax;
+    uint32 rows = srcmat.getRow();
+    uint32 cols = srcmat.getCol();
+    uint32 ch   = srcmat.getChannel();
+    uint32 pivmax = (rows < cols)? rows : cols;
+    uint32 augmentCols = cols + pivmax;
 
     DTYP datType = srcmat.getDatType();    
     Mat augm ;
@@ -122,7 +122,7 @@ Mat augment(const Mat& srcmat)
     switch(datType){
     case DTYP::DOUBLE : augm = Mat(_augment<double>(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
     case DTYP::FLOAT  : augm = Mat(_augment<float >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
-    case DTYP::INT    : augm = Mat(_augment<int   >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
+    case DTYP::INT    : augm = Mat(_augment<int32   >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
     case DTYP::UCHAR  : augm = Mat(_augment<uchar >(srcmat, augmentCols), datType, rows, augmentCols, ch); break;
     }
 
@@ -167,7 +167,7 @@ Mat conv2d(const Mat& mA, const Mat& mB, std::string opt_conv, std::string opt_o
         return Mat();
     }
 
-    uint ch      = mA.getChannel();
+    uint32 ch      = mA.getChannel();
     bool fullout = false;    
     if( opt_out.compare("full")==0 )
         fullout = true;
@@ -187,28 +187,28 @@ Mat conv2d(const Mat& mA, const Mat& mB, std::string opt_conv, std::string opt_o
         switch(bDtype){
         case DTYP::DOUBLE : _conv2d<double, double, double>(mA, mB, mO, fullout, opt_conv); break;
         case DTYP::FLOAT  : _conv2d<double, float , double>(mA, mB, mO, fullout, opt_conv); break;
-        case DTYP::INT    : _conv2d<double, int   , double>(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::INT    : _conv2d<double, int32   , double>(mA, mB, mO, fullout, opt_conv); break;
         case DTYP::UCHAR  : _conv2d<double, uchar , double>(mA, mB, mO, fullout, opt_conv); break;
         }
     }else if(aDtype == DTYP::FLOAT){
         switch(bDtype){
         case DTYP::DOUBLE : _conv2d<float , double, double>(mA, mB, mO, fullout, opt_conv); break;
         case DTYP::FLOAT  : _conv2d<float , float , float >(mA, mB, mO, fullout, opt_conv); break;
-        case DTYP::INT    : _conv2d<float , int   , float >(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::INT    : _conv2d<float , int32   , float >(mA, mB, mO, fullout, opt_conv); break;
         case DTYP::UCHAR  : _conv2d<float , uchar , float >(mA, mB, mO, fullout, opt_conv); break;
         }
     }else if(aDtype == DTYP::INT){
         switch(bDtype){
-        case DTYP::DOUBLE : _conv2d<int   , double, double>(mA, mB, mO, fullout, opt_conv); break;
-        case DTYP::FLOAT  : _conv2d<int   , float , float >(mA, mB, mO, fullout, opt_conv); break;
-        case DTYP::INT    : _conv2d<int   , int   , int   >(mA, mB, mO, fullout, opt_conv); break;
-        case DTYP::UCHAR  : _conv2d<int   , uchar , int   >(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::DOUBLE : _conv2d<int32   , double, double>(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::FLOAT  : _conv2d<int32   , float , float >(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::INT    : _conv2d<int32   , int32   , int32   >(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::UCHAR  : _conv2d<int32   , uchar , int32   >(mA, mB, mO, fullout, opt_conv); break;
         }
     }else if(aDtype == DTYP::UCHAR){
         switch(bDtype){
         case DTYP::DOUBLE : _conv2d<uchar , double, double>(mA, mB, mO, fullout, opt_conv); break;
         case DTYP::FLOAT  : _conv2d<uchar , float , float >(mA, mB, mO, fullout, opt_conv); break;
-        case DTYP::INT    : _conv2d<uchar , int   , int   >(mA, mB, mO, fullout, opt_conv); break;
+        case DTYP::INT    : _conv2d<uchar , int32   , int32   >(mA, mB, mO, fullout, opt_conv); break;
         case DTYP::UCHAR  : _conv2d<uchar , uchar , uchar >(mA, mB, mO, fullout, opt_conv); break;
         }
     }

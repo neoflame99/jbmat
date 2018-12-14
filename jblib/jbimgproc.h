@@ -20,23 +20,23 @@ namespace imgproc {
                                   { 1.0000 ,  -0.1873 ,  -0.4681 },
                                   { 1.0000 ,   1.8556 ,  -0.0000 }};
 
-    Mat rgb2ycc(const Mat& rgbIm, const int sel_eq = 0);
-    Mat ycc2rgb(const Mat& yccIm, const int sel_eq = 0);
-    Mat rgb2gray(const Mat& rgbIm, const int HowToGray = 0);
+    Mat rgb2ycc(const Mat& rgbIm, const int32 sel_eq = 0);
+    Mat ycc2rgb(const Mat& yccIm, const int32 sel_eq = 0);
+    Mat rgb2gray(const Mat& rgbIm, const int32 HowToGray = 0);
     Mat histoPmf(const Mat& src);
     Mat histoCmf(const Mat& src);
-    Mat clip_HistoPmf(const Mat& src, const unsigned int clipVal);
-    Mat clip_HistoCmf(const Mat& src, const unsigned int clipVal);
+    Mat clip_HistoPmf(const Mat& src, const uint32 clipVal);
+    Mat clip_HistoCmf(const Mat& src, const uint32 clipVal);
     Mat clip_HistoEqual(const Mat& src, const Mat& histCmf);
 
 
-    template <typename _T> Mat _rgb2ycc(const Mat& rgbIm, const int sel_eq );
-    template <typename _T> Mat _ycc2rgb(const Mat& yccIm, const int sel_eq );
-    template <typename _T> Mat _rgb2gray(const Mat& rgbIm, const int HowToGray);
+    template <typename _T> Mat _rgb2ycc(const Mat& rgbIm, const int32 sel_eq );
+    template <typename _T> Mat _ycc2rgb(const Mat& yccIm, const int32 sel_eq );
+    template <typename _T> Mat _rgb2gray(const Mat& rgbIm, const int32 HowToGray);
 
 
 
-    template <typename _T> Mat _rgb2ycc(const Mat& rgbIm, const int sel_eq ){
+    template <typename _T> Mat _rgb2ycc(const Mat& rgbIm, const int32 sel_eq ){
     /*
      *   if sel_eq = 0 (BT 601)
      *  Y = [  0.299    ,  0.587    ,  0.114    ]   [ r ]
@@ -50,10 +50,10 @@ namespace imgproc {
      *
      */
 
-        uint row = rgbIm.getRow();
-        uint col = rgbIm.getCol();
-        uint imsize = row * col;
-        uint chsize = rgbIm.getChannel();
+        uint32 row = rgbIm.getRow();
+        uint32 col = rgbIm.getCol();
+        uint32 imsize = row * col;
+        uint32 chsize = rgbIm.getChannel();
         if( chsize != 3 ) {
             fprintf(stdout,"rgbIm is not three channel image\n");
             return Mat();
@@ -63,10 +63,10 @@ namespace imgproc {
         _T* srcDat_pt = rgbIm.getDataPtr<_T>();
         _T* tarDat_pt = A.getDataPtr<_T>();
 
-        uint ch_offset1 = imsize;
-        uint ch_offset2 = imsize << 1;
+        uint32 ch_offset1 = imsize;
+        uint32 ch_offset2 = imsize << 1;
 
-        uint x;
+        uint32 x;
         if( sel_eq == 0){
             for(x= 0 ; x < imsize; x++ ){
                 tarDat_pt[x           ] = bt601_r2y[0][0] * srcDat_pt[x  ] + bt601_r2y[0][1] * srcDat_pt[x+ch_offset1] + bt601_r2y[0][2] * srcDat_pt[x+ch_offset2];
@@ -82,7 +82,7 @@ namespace imgproc {
         }
         return A;
     }
-    template <typename _T> Mat _ycc2rgb(const Mat& yccIm, const int sel_eq ){
+    template <typename _T> Mat _ycc2rgb(const Mat& yccIm, const int32 sel_eq ){
         /*
          *   if sel_eq = 0 (BT 601)
          *
@@ -97,10 +97,10 @@ namespace imgproc {
          *
          */
 
-         uint row = yccIm.getRow();
-         uint col = yccIm.getCol();
-         uint imsize = row * col;
-         uint chsize = yccIm.getChannel();
+         uint32 row = yccIm.getRow();
+         uint32 col = yccIm.getCol();
+         uint32 imsize = row * col;
+         uint32 chsize = yccIm.getChannel();
          if( chsize != 3 ) {
              fprintf(stdout,"rgbIm is not three channel image\n");
              return Mat();
@@ -110,9 +110,9 @@ namespace imgproc {
          _T *srcDat_pt = yccIm.getDataPtr<_T>();
          _T *tarDat_pt = A.getDataPtr<_T>();
 
-         uint ch_offset1 = imsize ;
-         uint ch_offset2 = imsize << 1;
-         uint x;
+         uint32 ch_offset1 = imsize ;
+         uint32 ch_offset2 = imsize << 1;
+         uint32 x;
          _T tmp1, tmp2, tmp3;
          if( sel_eq == 0){
              for(x= 0 ; x < imsize; x++){
@@ -140,7 +140,7 @@ namespace imgproc {
     }
 
 
-    template <typename _T> Mat _rgb2gray(const Mat& rgbIm, const int HowToGray){
+    template <typename _T> Mat _rgb2gray(const Mat& rgbIm, const int32 HowToGray){
     /*
      *  if HowToGray = 0 (BT 601)
      *  Y =  0.299 * r   +  0.587 * g +  0.114 * b
@@ -152,10 +152,10 @@ namespace imgproc {
      *  Y = 0.333 * r + 0.334 * g + 0.333 * b
      */
 
-        uint row = rgbIm.getRow();
-        uint col = rgbIm.getCol();
-        uint imsize = row * col;
-        uint chsize = rgbIm.getChannel();
+        uint32 row = rgbIm.getRow();
+        uint32 col = rgbIm.getCol();
+        uint32 imsize = row * col;
+        uint32 chsize = rgbIm.getChannel();
         if( chsize != 3 ) {
             fprintf(stdout,"rgbIm is not three channel image\n");
             return Mat();
@@ -165,9 +165,9 @@ namespace imgproc {
         _T *srcDat_pt = rgbIm.getDataPtr<_T>();
         _T *tarDat_pt = A.getDataPtr<_T>();
 
-        uint ch_offset1 = imsize;
-        uint ch_offset2 = imsize << 1;
-        uint x,k;
+        uint32 ch_offset1 = imsize;
+        uint32 ch_offset2 = imsize << 1;
+        uint32 x,k;
 
         if( HowToGray==0){
             for(x= 0, k=0 ; x < imsize; x++, k++)

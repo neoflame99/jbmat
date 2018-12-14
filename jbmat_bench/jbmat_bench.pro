@@ -23,6 +23,7 @@ SOURCES += \
 
 HEADERS += \
     ../jblib/types.h \
+    ../jblib/satcast.h \
     ../jblib/jbMat.h \
     ../jblib/jbmath.h \
     ../jblib/qimmat.h \

@@ -5,10 +5,10 @@
 namespace jmat {
 
 
-int Mat::instant_count = 0;
+int32 Mat::instant_count = 0;
 
 //-- shallow copy version & using shared_ptr
-void Mat::alloc(uint len){
+void Mat::alloc(uint32 len){
 
     if(len < 0){
         mA = nullptr;
@@ -26,7 +26,7 @@ void Mat::alloc(uint len){
     }
     */
 }
-void Mat::init(uint r, uint c, uint ch, DTYP dt){
+void Mat::init(uint32 r, uint32 c, uint32 ch, DTYP dt){
     row = r;
     col = c;
     Nch = ch;
@@ -53,16 +53,16 @@ Mat::Mat(DTYP dt):mA(nullptr){
     initName();
 
 }
-Mat::Mat(DTYP dt, uint rc ):mA(nullptr){
+Mat::Mat(DTYP dt, uint32 rc ):mA(nullptr){
     init(rc, rc, 1, dt);
     initName();
 }
-Mat::Mat(DTYP dt, uint r, uint c, uint ch):mA(nullptr){
+Mat::Mat(DTYP dt, uint32 r, uint32 c, uint32 ch):mA(nullptr){
     init(r, c, ch, dt);
     initName();
 }
 
-Mat::Mat(shr_ptr ma, DTYP dt, uint r, uint c, uint ch):mA(ma),row(r),col(c),Nch(ch),datT(dt){
+Mat::Mat(shr_ptr ma, DTYP dt, uint32 r, uint32 c, uint32 ch):mA(ma),row(r),col(c),Nch(ch),datT(dt){
     lenRowCol = r*c;
     length = lenRowCol * ch;
     switch(dt){
@@ -77,7 +77,7 @@ Mat::Mat(shr_ptr ma, DTYP dt, uint r, uint c, uint ch):mA(ma),row(r),col(c),Nch(
     initName();
 }
 
-Mat::Mat(DTYP dt, uint r, uint c, uint ch, std::string name):mA(nullptr){
+Mat::Mat(DTYP dt, uint32 r, uint32 c, uint32 ch, std::string name):mA(nullptr){
     init(r, c, ch, dt);
     obj_name = name;
 }
@@ -100,7 +100,7 @@ Mat::Mat(const Mat& mat){
 
     double *pt_matdat = mat.getMat().get();
     double *pt_thisdat = mA.get();
-    //for(int i=0; i < length; i++)
+    //for(int32 i=0; i < length; i++)
     //    pt_thisdat[i] = pt_matdat[i];
     std::copy(pt_matdat,pt_matdat+mat.length,pt_thisdat);
     */
@@ -116,21 +116,21 @@ Mat::Mat( std::initializer_list<double> list ){
         std::vector<double> v;
         v.insert(v.end(),list.begin(),list.end());
 
-        for(int i=0;i<length;i++){
+        for(int32 i=0;i<length;i++){
             dat_p[i] = v.at(i);
         }
     }
 }
-Mat::Mat( std::initializer_list<int> list ){
+Mat::Mat( std::initializer_list<int32> list ){
     //-- Making a vector by column vector type
     init(list.size(),1,1,DTYP::INT);
 
-    int *dat_p = (int *)mA.get();
+    int32 *dat_p = (int32 *)mA.get();
     if(mA!=nullptr){
-        std::vector<int> v;
+        std::vector<int32> v;
         v.insert(v.end(),list.begin(),list.end());
 
-        for(int i=0;i<length;i++){
+        for(int32 i=0;i<length;i++){
             dat_p[i] = v.at(i);
         }
     }
@@ -144,7 +144,7 @@ Mat::Mat( std::initializer_list<float> list ){
         std::vector<float> v;
         v.insert(v.end(),list.begin(),list.end());
 
-        for(int i=0;i<length;i++){
+        for(int32 i=0;i<length;i++){
             dat_p[i] = v.at(i);
         }
     }
@@ -152,9 +152,9 @@ Mat::Mat( std::initializer_list<float> list ){
 
 Mat::~Mat(){}
 
-void Mat::setRowCol(uint r, uint c, uint ch){
-    int lenrc = r*c;
-    int len   = lenrc*ch;
+void Mat::setRowCol(uint32 r, uint32 c, uint32 ch){
+    int32 lenrc = r*c;
+    int32 len   = lenrc*ch;
 
     if(length != len){
         mA.reset();
@@ -339,9 +339,9 @@ Mat Mat::operator/(const double scalar) const{
 }
 
 
-uint Mat::reshape(uint r, uint c, uint ch){
-    int rc   = r*c;
-    int tlen = rc*ch;
+uint32 Mat::reshape(uint32 r, uint32 c, uint32 ch){
+    int32 rc   = r*c;
+    int32 tlen = rc*ch;
     if( tlen != length){
         fprintf(stderr," reshape argument is not correct!\n");
         return -1;
@@ -358,7 +358,7 @@ void Mat::changeDType(const DTYP dt){
     if(dt == DTYP::DOUBLE){
         switch (datT) {
         case DTYP::FLOAT : _type_change<float,double>(); break;
-        case DTYP::INT   : _type_change<int  ,double>(); break;
+        case DTYP::INT   : _type_change<int32  ,double>(); break;
         case DTYP::UCHAR : _type_change<uchar,double>(); break;
         default          : break;
         }
@@ -366,16 +366,16 @@ void Mat::changeDType(const DTYP dt){
     }else if( dt== DTYP::FLOAT){
         switch (datT) {
         case DTYP::DOUBLE: _type_change<double,float>(); break;
-        case DTYP::INT   : _type_change<int   ,float>(); break;
+        case DTYP::INT   : _type_change<int32   ,float>(); break;
         case DTYP::UCHAR : _type_change<uchar ,float>(); break;
         default          : break;
         }
         datT = dt;
     }else if( dt== DTYP::INT){
         switch (datT) {
-        case DTYP::DOUBLE: _type_change<double,int>(); break;
-        case DTYP::FLOAT : _type_change<float ,int>(); break;
-        case DTYP::UCHAR : _type_change<uchar ,int>(); break;
+        case DTYP::DOUBLE: _type_change<double,int32>(); break;
+        case DTYP::FLOAT : _type_change<float ,int32>(); break;
+        case DTYP::UCHAR : _type_change<uchar ,int32>(); break;
         default          : break;
         }
         datT = dt;
@@ -383,7 +383,7 @@ void Mat::changeDType(const DTYP dt){
         switch (datT) {
         case DTYP::DOUBLE: _type_change<double,uchar>(); break;
         case DTYP::FLOAT : _type_change<float ,uchar>(); break;
-        case DTYP::INT   : _type_change<int   ,uchar>(); break;
+        case DTYP::INT   : _type_change<int32   ,uchar>(); break;
         default          : break;
         }
         datT = dt;
@@ -394,7 +394,7 @@ void Mat::changeDType(const DTYP dt){
     switch(datT){
     case DTYP::DOUBLE: fprintf(stdout,"datT is changed to double\n"); break;
     case DTYP::FLOAT : fprintf(stdout,"datT is changed to float \n"); break;
-    case DTYP::INT   : fprintf(stdout,"datT is changed to int   \n"); break;
+    case DTYP::INT   : fprintf(stdout,"datT is changed to int32   \n"); break;
     case DTYP::UCHAR : fprintf(stdout,"datT is changed to uchar \n"); break;
     }
 #endif
@@ -417,7 +417,7 @@ void Mat::transpose(){
     }
 
     mdat = mA.get();
-    uint i, j, k, m, ch_offset, lhs_idx, rhs_idx;
+    uint32 i, j, k, m, ch_offset, lhs_idx, rhs_idx;
     for(k=0; k < Nch; k++){       // channel step
         ch_offset = k* lenRowCol * byteStep;
         for(i=0; i < row; i++){   // row step
@@ -433,7 +433,7 @@ void Mat::transpose(){
     mA.reset(tmA,std::default_delete<uchar[]>());
     sync_data_ptr();
 
-    int row_tr = col;
+    int32 row_tr = col;
     col = row;
     row = row_tr;
 }
@@ -450,7 +450,7 @@ void Mat::printMat(const std::string objname) {
     switch(datT){
     case DTYP::DOUBLE : _print((double *)dat_ptr); break;
     case DTYP::FLOAT  : _print((float  *)dat_ptr); break;
-    case DTYP::INT    : _print((int    *)dat_ptr); break;
+    case DTYP::INT    : _print((int32    *)dat_ptr); break;
     case DTYP::UCHAR  : _print((uchar  *)dat_ptr); break;
     default           : fprintf(stdout, "datT is not matching with any type\n");
     }
@@ -471,7 +471,7 @@ Mat Mat::copy() const{
     return A;
 }
 
-Mat Mat::ones(uint r, uint c, uint ch, DTYP dt){
+Mat Mat::ones(uint32 r, uint32 c, uint32 ch, DTYP dt){
     if( r <= 0 || c <= 0 || ch <= 0){
         fprintf(stdout,"In ones method: arguments r , c and ch are to be larger than 0 ");
         return Mat();
@@ -481,19 +481,19 @@ Mat Mat::ones(uint r, uint c, uint ch, DTYP dt){
 
     if(dt==DTYP::DOUBLE){
         double* pt_dat = (double *)A.getMat().get();
-        for(uint i=0; i < r*c*ch; i++)
+        for(uint32 i=0; i < r*c*ch; i++)
             pt_dat[i] = 1.0;
     }else if(dt==DTYP::FLOAT){
         float* pt_dat = (float *)A.getMat().get();
-        for(uint i=0; i < r*c*ch; i++)
+        for(uint32 i=0; i < r*c*ch; i++)
             pt_dat[i] = 1.0f;
     }else if(dt==DTYP::INT){
-        int* pt_dat = (int *)A.getMat().get();
-        for(uint i=0; i < r*c*ch; i++)
+        int32* pt_dat = (int32 *)A.getMat().get();
+        for(uint32 i=0; i < r*c*ch; i++)
             pt_dat[i] = 1;
     }else{
         uchar* pt_dat = (uchar *)A.getMat().get();
-        for(uint i=0; i < r*c*ch; i++)
+        for(uint32 i=0; i < r*c*ch; i++)
             pt_dat[i] = 1.0;
     }
 
@@ -501,7 +501,7 @@ Mat Mat::ones(uint r, uint c, uint ch, DTYP dt){
 }
 
 
-Mat Mat::zeros(uint r, uint c, uint ch, DTYP dt){
+Mat Mat::zeros(uint32 r, uint32 c, uint32 ch, DTYP dt){
     if( r <= 0 || c <= 0 || ch <= 0){
         fprintf(stdout,"In zeros method: arguments r , c and ch are to be larger than 0 ");
         return Mat();
@@ -510,17 +510,17 @@ Mat Mat::zeros(uint r, uint c, uint ch, DTYP dt){
     Mat A(dt, r, c, ch);
 
     uchar* pt_dat = A.getMat().get();
-    for(uint i=0; i < r*c*ch*A.getByteStep(); i++){
+    for(uint32 i=0; i < r*c*ch*A.getByteStep(); i++){
         pt_dat[i] = 0;
     }
 
     return A;
 }
 
-Mat Mat::copyChannelN(const uint NoCh) const{
+Mat Mat::copyChannelN(const uint32 NoCh) const{
     Mat A(this->datT, row,col,1);
 
-    int numCh = NoCh;
+    int32 numCh = NoCh;
     if(numCh >= A.getChannel()){
         fprintf(stdout,"channel number of getNchannel() is out of bound\n The last channel is selected\n");
         numCh = A.getChannel()-1;
@@ -528,20 +528,20 @@ Mat Mat::copyChannelN(const uint NoCh) const{
 
     uchar *srcDat_pt = mA.get();
     uchar *tarDat_pt = A.mA.get();
-    uint offset = numCh*lenRowCol*byteStep;
-    for(uint i=offset; i < lenRowCol*byteStep; i++ )
+    uint32 offset = numCh*lenRowCol*byteStep;
+    for(uint32 i=offset; i < lenRowCol*byteStep; i++ )
         tarDat_pt[i] = srcDat_pt[i];
 
     return A;
 }
 
-void Mat::setChannelN(const Mat& src, const uint srcFromCh,const uint Channels, const uint tarToCh){
+void Mat::setChannelN(const Mat& src, const uint32 srcFromCh,const uint32 Channels, const uint32 tarToCh){
     if(src.getChannel() < srcFromCh+Channels ){
         fprintf(stdout,"setChannelN(): srcFromCh and Channels are not correct! \n");
         return ;
     }
 
-    uint tar_ch;
+    uint32 tar_ch;
     if(isEmpty()){
         init(src.getRow(),src.getCol(), Channels, src.getDatType() );
         tar_ch = 0;
@@ -556,12 +556,12 @@ void Mat::setChannelN(const Mat& src, const uint srcFromCh,const uint Channels, 
 
     sync_data_ptr();
     uchar *srcdat_ptr = src.getMat().get();
-    uint src_idx = srcFromCh*lenRowCol*byteStep;
-    uint tar_idx = tar_ch*lenRowCol*byteStep;
-    uint chStep  = lenRowCol*byteStep;
+    uint32 src_idx = srcFromCh*lenRowCol*byteStep;
+    uint32 tar_idx = tar_ch*lenRowCol*byteStep;
+    uint32 chStep  = lenRowCol*byteStep;
 
-    for(uint j=0; j < Channels ; j++){
-        for(uint i=0; i < lenRowCol*byteStep; i++ ){
+    for(uint32 j=0; j < Channels ; j++){
+        for(uint32 i=0; i < lenRowCol*byteStep; i++ ){
             dat_ptr[tar_idx++] = srcdat_ptr[src_idx++];
         }
     }
@@ -571,28 +571,28 @@ void Mat::setName(std::string name){
     obj_name = name;
 }
 
-Mat Mat::copySubMat(const uint startRow, const uint endRow, const uint startCol, const uint endCol) const {
+Mat Mat::copySubMat(const uint32 startRow, const uint32 endRow, const uint32 startCol, const uint32 endCol) const {
     if( startRow > row || endRow > row || startCol > col || endCol > col){
         fprintf(stdout,"copySubMat() : one or more arguments are out of bound from *this mat \n");
         return Mat();
     }
 
-    int new_row = endRow-startRow+1;
-    int new_col = endCol-startCol+1;
+    int32 new_row = endRow-startRow+1;
+    int32 new_col = endCol-startCol+1;
     Mat A( datT, new_row, new_col, Nch);
     uchar *tardat_ptr = A.getMat().get();
 
-    uint ch_offset = 0 ;
-    uint k = 0;
-    uint r, c, ch;
-    uint offset;
-    uint lenRCByteStep = lenRowCol*byteStep;
-    uint rowByteStep   = col*byteStep;
-    uint startColByte  = startCol*byteStep;
-    uint endColByte    = endCol*byteStep;
-    uint colstart, colend;
-    uint rowstart      = startRow*rowByteStep;
-    uint rowend        = endRow*rowByteStep;
+    uint32 ch_offset = 0 ;
+    uint32 k = 0;
+    uint32 r, c, ch;
+    uint32 offset;
+    uint32 lenRCByteStep = lenRowCol*byteStep;
+    uint32 rowByteStep   = col*byteStep;
+    uint32 startColByte  = startCol*byteStep;
+    uint32 endColByte    = endCol*byteStep;
+    uint32 colstart, colend;
+    uint32 rowstart      = startRow*rowByteStep;
+    uint32 rowend        = endRow*rowByteStep;
     for( ch=0; ch < Nch; ch++){
         for( r = rowstart; r <= rowend; r+=rowByteStep ){
             offset   = ch_offset + r ;
@@ -618,7 +618,7 @@ Mat& Mat::plusMat(const Mat& other){
         switch ( datT ){
         case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
         case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
-        case DTYP::INT    : _plus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _plus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<double>(), length); break;
         case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
         default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
         }
@@ -626,23 +626,23 @@ Mat& Mat::plusMat(const Mat& other){
         switch ( datT ){
         case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
         case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-        case DTYP::INT    : _plus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _plus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<float >(), length); break;
         case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
         default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<int   >(), length); break;
-        case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<int   >(), length); break;
-        case DTYP::INT    : _plus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-        case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
-        default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::INT    : _plus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
+        default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
         }
     }else{
         switch ( datT ){
         case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
         case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::INT    : _plus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _plus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<uchar >(), length); break;
         case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
         default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
         }
@@ -660,7 +660,7 @@ Mat& Mat::minusMat(const Mat& other){
         switch ( datT ){
         case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
         case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
-        case DTYP::INT    : _minus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _minus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<double>(), length); break;
         case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
         default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
         }
@@ -668,23 +668,23 @@ Mat& Mat::minusMat(const Mat& other){
         switch ( datT ){
         case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
         case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-        case DTYP::INT    : _minus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _minus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<float >(), length); break;
         case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
         default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<int   >(), length); break;
-        case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<int   >(), length); break;
-        case DTYP::INT    : _minus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-        case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
-        default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::INT    : _minus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
+        default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
         }
     }else{
         switch ( datT ){
         case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
         case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::INT    : _minus_mat<int   >( getDataPtr<int   >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _minus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<uchar >(), length); break;
         case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
         default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
         }
@@ -702,7 +702,7 @@ Mat& Mat::multiplyMat(const Mat& other){
         switch ( datT ){
         case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
         case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
-        case DTYP::INT    : _multiply_mat<int   >( getDataPtr<int   >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _multiply_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<double>(), length); break;
         case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
         default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
         }
@@ -710,23 +710,23 @@ Mat& Mat::multiplyMat(const Mat& other){
         switch ( datT ){
         case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
         case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-        case DTYP::INT    : _multiply_mat<int   >( getDataPtr<int   >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _multiply_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<float >(), length); break;
         case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
         default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<int   >(), length); break;
-        case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<int   >(), length); break;
-        case DTYP::INT    : _multiply_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-        case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
-        default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::INT    : _multiply_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
+        default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
         }
     }else{
         switch ( datT ){
         case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
         case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::INT    : _multiply_mat<int   >( getDataPtr<int   >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _multiply_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<uchar >(), length); break;
         case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
         default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
         }
@@ -744,7 +744,7 @@ Mat& Mat::divideMat(const Mat& other){
         switch ( datT ){
         case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
         case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
-        case DTYP::INT    : _divide_mat<int   >( getDataPtr<int   >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _divide_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<double>(), length); break;
         case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
         default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
         }
@@ -752,23 +752,23 @@ Mat& Mat::divideMat(const Mat& other){
         switch ( datT ){
         case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
         case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-        case DTYP::INT    : _divide_mat<int   >( getDataPtr<int   >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _divide_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<float >(), length); break;
         case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
         default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<int   >(), length); break;
-        case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<int   >(), length); break;
-        case DTYP::INT    : _divide_mat<int   >( getDataPtr<int   >(), other.getDataPtr<int   >(), length); break;
-        case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
-        default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int   >(), length); break;
+        case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::INT    : _divide_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
+        default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
         }
     }else{
         switch ( datT ){
         case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
         case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::INT    : _divide_mat<int   >( getDataPtr<int   >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _divide_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<uchar >(), length); break;
         case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
         default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
         }
@@ -782,7 +782,7 @@ Mat& Mat::plusScalar(const double scalar){
     switch(datT){
     case DTYP::DOUBLE : _plus_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _plus_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _plus_scalar<int   ,double>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _plus_scalar<int32   ,double>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _plus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
     default           : _plus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
     }
@@ -795,22 +795,22 @@ Mat& Mat::plusScalar(const float scalar){
     switch(datT){
     case DTYP::DOUBLE : _plus_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _plus_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _plus_scalar<int   ,float>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _plus_scalar<int32   ,float>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _plus_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
     default           : _plus_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }
 
-Mat& Mat::plusScalar(const int scalar){
+Mat& Mat::plusScalar(const int32 scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _plus_scalar<double,int>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _plus_scalar<float ,int>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _plus_scalar<int   ,int>(getDataPtr<int   >(), scalar, length); break;
-    case DTYP::UCHAR  : _plus_scalar<uchar ,int>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _plus_scalar<uchar ,int>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _plus_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _plus_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _plus_scalar<int32   ,int32>(getDataPtr<int32   >(), scalar, length); break;
+    case DTYP::UCHAR  : _plus_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _plus_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }
@@ -820,7 +820,7 @@ Mat& Mat::plusScalar(const uchar scalar){
     switch(datT){
     case DTYP::DOUBLE : _plus_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _plus_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _plus_scalar<int   ,uchar>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _plus_scalar<int32   ,uchar>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _plus_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
     default           : _plus_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
     }
@@ -833,7 +833,7 @@ Mat& Mat::minusScalar(const double scalar){
     switch(datT){
     case DTYP::DOUBLE : _minus_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _minus_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _minus_scalar<int   ,double>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _minus_scalar<int32   ,double>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _minus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
     default           : _minus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
     }
@@ -846,22 +846,22 @@ Mat& Mat::minusScalar(const float scalar){
     switch(datT){
     case DTYP::DOUBLE : _minus_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _minus_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _minus_scalar<int   ,float>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _minus_scalar<int32   ,float>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _minus_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
     default           : _minus_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }
 
-Mat& Mat::minusScalar(const int scalar){
+Mat& Mat::minusScalar(const int32 scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _minus_scalar<double,int>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _minus_scalar<float ,int>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _minus_scalar<int   ,int>(getDataPtr<int   >(), scalar, length); break;
-    case DTYP::UCHAR  : _minus_scalar<uchar ,int>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _minus_scalar<uchar ,int>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _minus_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _minus_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _minus_scalar<int32   ,int32>(getDataPtr<int32   >(), scalar, length); break;
+    case DTYP::UCHAR  : _minus_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _minus_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }
@@ -871,7 +871,7 @@ Mat& Mat::minusScalar(const uchar scalar){
     switch(datT){
     case DTYP::DOUBLE : _minus_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _minus_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _minus_scalar<int   ,uchar>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _minus_scalar<int32   ,uchar>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _minus_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
     default           : _minus_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
     }
@@ -884,7 +884,7 @@ Mat& Mat::multiplyScalar(const double scalar){
     switch(datT){
     case DTYP::DOUBLE : _multiply_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _multiply_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _multiply_scalar<int   ,double>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _multiply_scalar<int32   ,double>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _multiply_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
     default           : _multiply_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
     }
@@ -897,22 +897,22 @@ Mat& Mat::multiplyScalar(const float scalar){
     switch(datT){
     case DTYP::DOUBLE : _multiply_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _multiply_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _multiply_scalar<int   ,float>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _multiply_scalar<int32   ,float>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _multiply_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
     default           : _multiply_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }
 
-Mat& Mat::multiplyScalar(const int scalar){
+Mat& Mat::multiplyScalar(const int32 scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _multiply_scalar<double,int>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _multiply_scalar<float ,int>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _multiply_scalar<int   ,int>(getDataPtr<int   >(), scalar, length); break;
-    case DTYP::UCHAR  : _multiply_scalar<uchar ,int>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _multiply_scalar<uchar ,int>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _multiply_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _multiply_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _multiply_scalar<int32   ,int32>(getDataPtr<int32   >(), scalar, length); break;
+    case DTYP::UCHAR  : _multiply_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _multiply_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }
@@ -922,7 +922,7 @@ Mat& Mat::multiplyScalar(const uchar scalar){
     switch(datT){
     case DTYP::DOUBLE : _multiply_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _multiply_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _multiply_scalar<int   ,uchar>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _multiply_scalar<int32   ,uchar>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _multiply_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
     default           : _multiply_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
     }
@@ -935,7 +935,7 @@ Mat& Mat::divideScalar(const double scalar){
     switch(datT){
     case DTYP::DOUBLE : _divide_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _divide_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divide_scalar<int   ,double>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _divide_scalar<int32   ,double>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _divide_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
     default           : _divide_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
     }
@@ -948,22 +948,22 @@ Mat& Mat::divideScalar(const float scalar){
     switch(datT){
     case DTYP::DOUBLE : _divide_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _divide_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divide_scalar<int   ,float>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _divide_scalar<int32   ,float>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _divide_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
     default           : _divide_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }
 
-Mat& Mat::divideScalar(const int scalar){
+Mat& Mat::divideScalar(const int32 scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _divide_scalar<double,int>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _divide_scalar<float ,int>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divide_scalar<int   ,int>(getDataPtr<int   >(), scalar, length); break;
-    case DTYP::UCHAR  : _divide_scalar<uchar ,int>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _divide_scalar<uchar ,int>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _divide_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _divide_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _divide_scalar<int32   ,int32>(getDataPtr<int32   >(), scalar, length); break;
+    case DTYP::UCHAR  : _divide_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _divide_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }
@@ -973,7 +973,7 @@ Mat& Mat::divideScalar(const uchar scalar){
     switch(datT){
     case DTYP::DOUBLE : _divide_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
     case DTYP::FLOAT  : _divide_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divide_scalar<int   ,uchar>(getDataPtr<int   >(), scalar, length); break;
+    case DTYP::INT    : _divide_scalar<int32   ,uchar>(getDataPtr<int32   >(), scalar, length); break;
     case DTYP::UCHAR  : _divide_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
     default           : _divide_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
     }
