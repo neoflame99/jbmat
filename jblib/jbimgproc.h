@@ -23,11 +23,11 @@ namespace imgproc {
     Mat rgb2ycc(const Mat& rgbIm, const int32 sel_eq = 0);
     Mat ycc2rgb(const Mat& yccIm, const int32 sel_eq = 0);
     Mat rgb2gray(const Mat& rgbIm, const int32 HowToGray = 0);
-    Mat histoPmf(const Mat& src);
-    Mat histoCmf(const Mat& src);
-    Mat clip_HistoPmf(const Mat& src, const uint32 clipVal);
-    Mat clip_HistoCmf(const Mat& src, const uint32 clipVal);
-    Mat clip_HistoEqual(const Mat& src, const Mat& histCmf);
+    Mat histoPmf(const Mat& src,const int32 bins, const int32 step);
+    Mat histoCmf(const Mat& src,const int32 bins, const int32 step);
+    Mat clip_HistoPmf(const Mat& src, const int32 clipVal,const int32 bins, const int32 step);
+    Mat clip_HistoCmf(const Mat& src, const int32 clipVal,const int32 bins, const int32 step);
+    Mat clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step);
 
 
     template <typename _T> Mat _rgb2ycc(const Mat& rgbIm, const int32 sel_eq );
@@ -180,6 +180,114 @@ namespace imgproc {
                 tarDat_pt[k  ] =  0.333 * srcDat_pt[x  ] + 0.334 * srcDat_pt[x+ch_offset1] + 0.333 * srcDat_pt[x+ch_offset2];
         }
 
+        return A;
+    }
+
+    template <typename _T> inline Mat _histoPmf(const Mat& src, const int32 bins , const int32 step){
+
+        Mat A = Mat::zeros(1,bins,1,DTYP::DOUBLE);
+        double *tarDat_pt = A.getDataPtr<double>();
+        _T *srcDat_pt = src.getDataPtr<_T>();
+
+        int32 len = src.getLength();
+        int32 k, d ;
+
+        for(k=0; k < len ; k++){
+            d = int32(srcDat_pt[k]/step);
+            d = (d < 0) ? 0 : (d >= bins) ? bins-1: d;  // bin index range : 0 ~ bins-1
+            tarDat_pt[d]++;
+        }
+        return A;
+    }
+
+    template <typename _T> inline Mat _histoCmf(const Mat& src, const int32 bins, const int32 step){
+
+        Mat cmf = _histoPmf<_T>(src, bins, step);
+
+        double *srcDat_pt = cmf.getDataPtr<double>();
+
+        for(int32 k=1; k < bins ; k++)
+            srcDat_pt[k] += srcDat_pt[k-1];
+
+        return cmf;
+    }
+
+    template <typename _T> inline Mat _clip_HistoPmf(const Mat& src,const int32 clipVal, const int32 bins, const int32 step){
+
+        Mat pmf = _histoPmf<_T>(src, bins, step );
+        double *srcDat_pt = pmf.getDataPtr<double>();
+
+        // clipping
+        int32 sum_clipped =0;
+        int32 binval;
+        int32 k;
+        for( k=0; k < bins ; k++){
+            binval = int32(srcDat_pt[k]);
+            if( binval > clipVal){
+                sum_clipped += binval - clipVal;
+                srcDat_pt[k] = clipVal;
+            }
+        }
+        sum_clipped /= bins;
+        // distributing the clipped sum
+        for( k=0; k < bins ; k++){
+            srcDat_pt[k] += sum_clipped;
+        }
+
+        return pmf;
+    }
+
+    template <typename _T> inline Mat _clip_HistoCmf(const Mat& src,const int32 clipVal, const int32 bins, const int32 step){
+
+        Mat cmf = _clip_HistoPmf<_T>(src, clipVal, bins, step);
+        double *srcDat_pt = cmf.getDataPtr<double>();
+
+        // making cumiltive data
+        for(int32 k=1; k < bins ; k++)
+            srcDat_pt[k] += srcDat_pt[k-1];
+
+        return cmf;
+    }
+
+    template <typename _T> Mat _clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step){
+
+        Mat A = src.copy();
+
+        _T *srcDat_pt = src.getDataPtr<_T>();
+        _T *tarDat_pt = A.getDataPtr<_T>();
+        double *mapDat_pt = histCmf.getDataPtr<double>();
+
+        int32 d0, d1, d2 , d3;
+        int32 i0, i1;
+        double mp1, mp2, mv;
+        int32 bins = histCmf.getLength();
+        int32 halfstep = step >> 1;
+        int32 lowlmt = halfstep;
+        int32 upplmt = (bins-1)*step + halfstep;
+        for(int32 i=0; i < src.getLength(); i++){
+            d0 = int32(srcDat_pt[i]);
+            d1 = d0 / step;
+            d3 = d0 - d1*step;
+            if( d0 < lowlmt ){
+                tarDat_pt[i] = _T(mapDat_pt[0]);
+            }else if( d0 >= upplmt ){
+                tarDat_pt[i] = _T(mapDat_pt[bins-1]);
+            }else {
+                if( d3 < halfstep ){
+                    i0 = d1-1;
+                    i1 = d1;
+                    d2 = halfstep + d3;
+                }else{
+                    i0 = d1;
+                    i1 = d1+1;
+                    d2 = d3 - halfstep;
+                }
+                mp1 = mapDat_pt[i0];
+                mp2 = mapDat_pt[i1];
+                mv  = (mp2-mp1)/d2;
+                tarDat_pt[i] = _T(mp1 + mv);
+            }
+        }
         return A;
     }
 } // end of imgproc namespace

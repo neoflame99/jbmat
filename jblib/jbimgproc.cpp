@@ -21,7 +21,8 @@ Mat rgb2ycc(const Mat& rgbIm, const int32 sel_eq){
     case DTYP::DOUBLE : return _rgb2ycc<double>(rgbIm, sel_eq);
     case DTYP::FLOAT  : return _rgb2ycc<float >(rgbIm, sel_eq);
     case DTYP::INT    : return _rgb2ycc<int32 >(rgbIm, sel_eq);
-    case DTYP::UCHAR  : return _rgb2ycc<uchar >(rgbIm, sel_eq);
+    //case DTYP::UCHAR  : return _rgb2ycc<uchar >(rgbIm, sel_eq);
+    default           : return _rgb2ycc<uchar >(rgbIm, sel_eq);
     }
 }
 
@@ -45,7 +46,8 @@ Mat ycc2rgb(const Mat& rgbIm, const int32 sel_eq){
     case DTYP::DOUBLE : return _ycc2rgb<double>(rgbIm, sel_eq);
     case DTYP::FLOAT  : return _ycc2rgb<float >(rgbIm, sel_eq);
     case DTYP::INT    : return _ycc2rgb<int32 >(rgbIm, sel_eq);
-    case DTYP::UCHAR  : return _ycc2rgb<uchar >(rgbIm, sel_eq);
+    //case DTYP::UCHAR  : return _ycc2rgb<uchar >(rgbIm, sel_eq);
+    default           : return _ycc2rgb<uchar >(rgbIm, sel_eq);
     }
 }
 
@@ -65,141 +67,116 @@ Mat rgb2gray(const Mat& rgbIm, const int32 HowToGray){
     case DTYP::DOUBLE : return _rgb2gray<double>(rgbIm, HowToGray);
     case DTYP::FLOAT  : return _rgb2gray<float >(rgbIm, HowToGray);
     case DTYP::INT    : return _rgb2gray<int32 >(rgbIm, HowToGray);
-    case DTYP::UCHAR  : return _rgb2gray<uchar >(rgbIm, HowToGray);
+    //case DTYP::UCHAR  : return _rgb2gray<uchar >(rgbIm, HowToGray);
+    default           : return _rgb2gray<uchar >(rgbIm, HowToGray);
     }
 }
-/*
-Mat jbimgproc::histoPmf(const Mat& src){
+
+
+Mat histoPmf(const Mat& src, const int32 bins, const int32 step){
     int32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
-        fprintf(stdout,"histoPmf : src argument is empty matrix\n");
+        fprintf(stderr,"histoPmf : src argument is empty matrix\n");
         return Mat();
     }else if( ch != 1) {
-        fprintf(stdout,"histoPmf : src is not 1 channel matrix\n");
+        fprintf(stderr,"histoPmf : src is not 1 channel matrix\n");
+        return Mat();
+    }else if( bins < 1) {
+        fprintf(stderr,"histoPmf : 'bins' should be larger than or equal 1 \n");
+        return Mat();
+    }else if( step < 1) {
+        fprintf(stderr,"histoPmf : 'step' should be larger than or equal 1 \n");
         return Mat();
     }
-
-    Mat A = Mat::zeros(1,256,1);
-    double *tarDat_pt = A.getMat().get();
-    double *srcDat_pt = src.getMat().get();
-
-    int32 len = src.getLength();
-    int32 k, d ;
-    for(k=0; k < len ; k++){
-        d = static_cast<int32>(srcDat_pt[k]);
-        d = (d > 255) ? 255 : (d < 0) ? 0 : d;
-        tarDat_pt[d]++;
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _histoPmf<double>(src, bins, step);
+    case DTYP::FLOAT  : return _histoPmf<float >(src, bins, step);
+    case DTYP::INT    : return _histoPmf<int32 >(src, bins, step);
+    //case DTYP::UCHAR  : return _histoPmf<uchar >(src, bins, step);
+    default           : return _histoPmf<uchar >(src, bins, step);
     }
-    return A;
 }
 
-Mat jbimgproc::histoCmf(const Mat& src){
+Mat histoCmf(const Mat& src, const int32 bins, const int32 step){
     int32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
-        fprintf(stdout,"histoCmf : src argument is empty matrix\n");
+        fprintf(stderr,"histoCmf : src argument is empty matrix\n");
         return Mat();
     }else if( ch != 1) {
-        fprintf(stdout,"histoCmf : src is not 1 channel matrix\n");
+        fprintf(stderr,"histoCmf : src is not 1 channel matrix\n");
+        return Mat();
+    }else if( bins < 1) {
+        fprintf(stderr,"histoCmf : 'bins' should be larger than or equal 1 \n");
+        return Mat();
+    }else if( step < 1) {
+        fprintf(stderr,"histoCmf : 'step' should be larger than or equal 1 \n");
         return Mat();
     }
 
-    Mat cmf = jbImgproc::histoPmf(src);
-    if( cmf.isEmpty()){
-        fprintf(stdout,"histoPmf is empty matrix\n");
-        return Mat();
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _histoCmf<double>(src, bins, step);
+    case DTYP::FLOAT  : return _histoCmf<float >(src, bins, step);
+    case DTYP::INT    : return _histoCmf<int32 >(src, bins, step);
+    //case DTYP::UCHAR  : return _histoCmf<uchar >(src, bins, step);
+    default           : return _histoCmf<uchar >(src, bins, step);
     }
-
-    double *srcDat_pt = cmf.getMat().get();
-
-    for(int32 k=1; k < 256 ; k++)
-        srcDat_pt[k] += srcDat_pt[k-1];
-
-
-    return cmf;
 }
 
-Mat jbimgproc::clip_HistoPmf(const Mat& src,const unsigned int32 clipVal){
+
+Mat clip_HistoPmf(const Mat& src,const int32 clipVal,const int32 bins, const int32 step){
     int32 ch  = src.getChannel();
     if( src.isEmpty() ){
-        fprintf(stdout,"clip_histoPmf : src argument is empty matrix\n");
+        fprintf(stderr,"clip_histoPmf : src argument is empty matrix\n");
         return Mat();
     }else if( ch != 1) {
-        fprintf(stdout,"clip_histoPmf : src is not 1 channel matrix\n");
+        fprintf(stderr,"clip_histoPmf : src is not 1 channel matrix\n");
+        return Mat();
+    }else if( bins < 1) {
+        fprintf(stderr,"clip_histoPmf : 'bins' should be larger than or equal 1 \n");
+        return Mat();
+    }else if( step < 1) {
+        fprintf(stderr,"clip_histoPmf : 'step' should be larger than or equal 1 \n");
         return Mat();
     }
 
-    Mat pmf = jbImgproc::histoPmf(src);
-    if( pmf.isEmpty()){
-        fprintf(stdout,"histoPmf is empty matrix\n");
-        return Mat();
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _clip_HistoPmf<double>(src, clipVal, bins, step);
+    case DTYP::FLOAT  : return _clip_HistoPmf<float >(src, clipVal, bins, step);
+    case DTYP::INT    : return _clip_HistoPmf<int32 >(src, clipVal, bins, step);
+    //case DTYP::UCHAR  : return _clip_HistoPmf<uchar >(src, clipVal, bins, step);
+    default           : return _clip_HistoPmf<uchar >(src, clipVal, bins, step);
     }
-
-    double *srcDat_pt = pmf.getMat().get();
-
-    // clipping
-    unsigned int32 sum_clipped =0;
-    unsigned int32 binval;
-    for(int32 k=0; k < 256 ; k++){
-        binval = (unsigned int32)srcDat_pt[k];
-        if( binval > clipVal){
-            sum_clipped += binval - clipVal;
-            srcDat_pt[k] = clipVal;
-        }
-    }
-    sum_clipped >>= 8; // divided by 256
-    // distributing the clipped sum
-    for(int32 k=0; k < 256 ; k++){
-        srcDat_pt[k] += sum_clipped;
-    }
-
-    return pmf;
 }
 
-Mat jbimgproc::clip_HistoCmf(const Mat& src,const unsigned int32 clipVal){
+Mat clip_HistoCmf(const Mat& src,const int32 clipVal,const int32 bins, const int32 step){
     int32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
-        fprintf(stdout,"histoCmf : src argument is empty matrix\n");
+        fprintf(stderr,"clip_histoCmf : src argument is empty matrix\n");
         return Mat();
     }else if( ch != 1) {
-        fprintf(stdout,"histoCmf : src is not 1 channel matrix\n");
+        fprintf(stderr,"clip_histoCmf : src is not 1 channel matrix\n");
+        return Mat();
+    }else if( bins < 1) {
+        fprintf(stderr,"clip_histoPmf : 'bins' should be larger than or equal 1 \n");
+        return Mat();
+    }else if( step < 1) {
+        fprintf(stderr,"clip_histoPmf : 'step' should be larger than or equal 1 \n");
         return Mat();
     }
 
-    Mat cmf = jbImgproc::histoPmf(src);
-    if( cmf.isEmpty()){
-        fprintf(stdout,"histoPmf is empty matrix\n");
-        return Mat();
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _clip_HistoCmf<double>(src, clipVal, bins, step);
+    case DTYP::FLOAT  : return _clip_HistoCmf<float >(src, clipVal, bins, step);
+    case DTYP::INT    : return _clip_HistoCmf<int32 >(src, clipVal, bins, step);
+    //case DTYP::UCHAR  : return _clip_HistoCmf<uchar >(src, clipVal, bins, step);
+    default           : return _clip_HistoCmf<uchar >(src, clipVal, bins, step);
     }
-
-    double *srcDat_pt = cmf.getMat().get();
-
-    // clipping
-    unsigned int32 sum_clipped =0;
-    unsigned int32 binval;
-    for(int32 k=0; k < 256 ; k++){
-        binval = (unsigned int32)srcDat_pt[k];
-        if( binval > clipVal){
-            sum_clipped += binval - clipVal;
-            srcDat_pt[k] = clipVal;
-        }
-    }
-    sum_clipped >>= 8; // divided by 256
-    // distributing the clipped sum
-    for(int32 k=0; k < 256 ; k++){
-        srcDat_pt[k] += sum_clipped;
-    }
-
-    // making cumiltive data
-    for(int32 k=1; k < 256 ; k++)
-        srcDat_pt[k] += srcDat_pt[k-1];
-
-    return cmf;
 }
 
-Mat jbimgproc::clip_HistoEqual(const Mat& src,const Mat& histCmf){
+Mat clip_HistoEqual(const Mat& src,const Mat& histCmf, const int32 step){
     int32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
@@ -212,24 +189,15 @@ Mat jbimgproc::clip_HistoEqual(const Mat& src,const Mat& histCmf){
         fprintf(stdout,"histCmf is empty \n");
         return Mat();
     }
-
-    Mat A = src.copy();
-
-    double *srcDat_pt = src.getMat().get();
-    double *mapDat_pt = histCmf.getMat().get();
-    double *tarDat_pt = A.getMat().get();
-    unsigned int32 dat;
-    unsigned int32 binCnt = histCmf.getLength();
-    for(int32 i=0; i < src.getLength(); i++){
-        dat = static_cast<unsigned int32>(srcDat_pt[i]);
-        if(binCnt < dat )
-            dat = binCnt;
-        tarDat_pt[i] = mapDat_pt[dat];
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _clip_HistoEqual<double>(src, histCmf, step);
+    case DTYP::FLOAT  : return _clip_HistoEqual<float >(src, histCmf, step);
+    case DTYP::INT    : return _clip_HistoEqual<int32 >(src, histCmf, step);
+    //case DTYP::UCHAR: return _clip_HistoEqual<uchar >(src, histCmf, step);
+    default           : return _clip_HistoEqual<uchar >(src, histCmf, step);
     }
-
-    return A;
 }
-*/
+
 
 } // end of imgproc namespace
 } // end of jmat namespace

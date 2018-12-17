@@ -98,9 +98,9 @@ public:
     Mat& divideScalar(const    int32 scalar);
     Mat& divideScalar(const  uchar scalar);
 
-    void    setRowCol(uint32 r, uint32 c, uint32 ch=1);
-    void    setChannelN(const Mat& src, const uint32 srcfromCh=0,const uint32 Channels=1, const uint32 tarToCh=0);
-    void    setName(std::string name);
+    void setRowCol(uint32 r, uint32 c, uint32 ch=1);
+    void setChannelN(const Mat& src, const uint32 srcfromCh=0,const uint32 Channels=1, const uint32 tarToCh=0);
+    void setName(std::string name);
 
     Mat   copy() const;
     Mat   copyChannelN(const uint32 NoCh=0) const;
@@ -108,13 +108,13 @@ public:
 
     inline bool    isEmpty() const { return ((length <= 0) ? true : false); }
     inline shr_ptr getMat () const { return mA; }
-    inline uint32    getLength() const{ return length; }
-    inline uint32    getRow() const { return row; }
-    inline uint32    getCol() const { return col; }
-    inline uint32    getChannel() const { return Nch; }
+    inline uint32  getLength() const{ return length; }
+    inline uint32  getRow() const { return row; }
+    inline uint32  getCol() const { return col; }
+    inline uint32  getChannel() const { return Nch; }
     inline DTYP    getDatType() const { return datT; }
-    inline uint32    getByteStep() const { return byteStep; }
-    uint32    reshape(uint32 r, uint32 c, uint32 ch=1);
+    inline uint32  getByteStep() const { return byteStep; }
+    uint32  reshape(uint32 r, uint32 c, uint32 ch=1);
     void    transpose();
     void    changeDType(const DTYP dt);
     void    printMat() ;
