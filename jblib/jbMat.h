@@ -111,9 +111,11 @@ public:
     inline uint32  getLength() const{ return length; }
     inline uint32  getRow() const { return row; }
     inline uint32  getCol() const { return col; }
+    inline uint32  getRowColSize() const {return lenRowCol; }
     inline uint32  getChannel() const { return Nch; }
     inline DTYP    getDatType() const { return datT; }
     inline uint32  getByteStep() const { return byteStep; }
+
     uint32  reshape(uint32 r, uint32 c, uint32 ch=1);
     void    transpose();
     void    changeDType(const DTYP dt);
@@ -129,6 +131,8 @@ public : // public template methods
     template <typename _T> _T& at(uint32 i) const;
     template <typename _T> _T& at(uint32 r, uint32 c, uint32 nch=0) const;
     template <typename _T> _T* getDataPtr() const;
+    template <typename _T> Mat max() ;
+    template <typename _T> Mat min() ;
 
 private: // private template methods
     template <typename _T> void _print(_T* mdat);
@@ -272,6 +276,47 @@ template <typename _T> void Mat::_print(_T* mdat){
             }
         }
     }
+}
+
+template <typename _T> Mat Mat::max() {
+    _T* datPtr = this->getDataPtr<_T>();
+
+    uint32 ch  = getChannel();
+    uint32 rclen = getRowColSize();
+
+    Mat A(getDatType(),1,ch,1);
+    _T large;
+    uint32 k, m, n;
+    n=0;
+    for(k=0 ; k < ch; k++){
+        large = datPtr[n++];
+        for(m = 1 ; m < rclen; m++, n++ ){
+            if( large < datPtr[n])
+                large = datPtr[n];
+        }
+        A.at<_T>(k) = large;
+    }
+    return A;
+}
+template <typename _T> Mat Mat::min() {
+    _T* datPtr = this->getDataPtr<_T>();
+
+    uint32 ch  = getChannel();
+    uint32 rclen = getRowColSize();
+
+    Mat A(getDatType(),1,ch,1);
+    _T less;
+    uint32 k, m, n;
+    n=0;
+    for(k=0 ; k < ch; k++){
+        less = datPtr[n++];
+        for(m = 1 ; m < rclen; m++, n++ ){
+            if( less > datPtr[n])
+                less = datPtr[n];
+        }
+        A.at<_T>(k) = less;
+    }
+    return A;
 }
 
 } // namespace jmat
