@@ -8,6 +8,7 @@
 #include <float.h>
 #include <assert.h>
 #include "types.h"
+#include <math.h>
 
 #ifdef _MACOS_
     #include <string>
@@ -133,6 +134,8 @@ public : // public template methods
     template <typename _T> _T* getDataPtr() const;
     template <typename _T> Mat max() ;
     template <typename _T> Mat min() ;
+    template <typename _T> Mat mean();
+    template <typename _T> Mat std() ;
 
 private: // private template methods
     template <typename _T> void _print(_T* mdat);
@@ -318,7 +321,51 @@ template <typename _T> Mat Mat::min() {
     }
     return A;
 }
+template <typename _T> Mat Mat::mean() {
+    _T* datPtr = this->getDataPtr<_T>();
 
+    uint32 ch    = getChannel();
+    uint32 rclen = getRowColSize();
+
+    Mat A(DTYP::DOUBLE,1,ch,1);
+    double sum;
+    uint32 k, m, n;
+    n = 0;
+    for(k=0 ; k < ch; k++){
+        sum = 0;
+        for(m = 0 ; m < rclen; m++){
+            sum += double(datPtr[n++]);
+        }
+        A.at<double>(k) = sum/rclen;
+    }
+    return A;
+}
+
+template <typename _T> Mat Mat::std() {
+    _T* datPtr = this->getDataPtr<_T>();
+
+    uint32 ch    = getChannel();
+    uint32 rclen = getRowColSize();
+
+    Mat avg = mean<_T>();
+    Mat A(DTYP::DOUBLE,1,ch,1);
+    double sqsum;
+    double diff;
+    double ch_avg;
+    uint32 k, m, n;
+    n = 0;
+    uint32 Div = rclen -1;
+    for(k=0 ; k < ch; k++){
+        sqsum  = 0;
+        ch_avg = A.at<double>(k);
+        for(m = 0 ; m < rclen; m++){
+           diff = double(datPtr[n++]) - ch_avg;
+           sqsum += diff*diff;
+        }
+        A.at<double>(k) = sqrt(sqsum / Div);
+    }
+    return A;
+}
 } // namespace jmat
 
 #endif // JBMAT_H
