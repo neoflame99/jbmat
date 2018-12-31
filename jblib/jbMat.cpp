@@ -235,7 +235,7 @@ Mat& Mat::operator/=(const Mat& other){
 }
 
 Mat& Mat::operator/=(const double scalar){
-    return divideScalar(scalar);
+    return dividedByScalar(scalar);
 }
 
 
@@ -253,18 +253,6 @@ Mat Mat::operator+(const Mat& other) const{
 
     return sum;
 }
-
-Mat Mat::operator+(const double scalar) const{
-    if(isEmpty()){
-        fprintf(stderr," operator+ with scalar : this mat is empty \n");
-        return Mat();
-    }
-    Mat sum = this->copy();
-    sum.plusScalar(scalar);
-
-    return sum;
-}
-
 Mat Mat::operator-(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
@@ -279,17 +267,6 @@ Mat Mat::operator-(const Mat& other) const{
 
     return subtract;
 }
-Mat Mat::operator-(const double scalar) const{
-    if(isEmpty()){
-        fprintf(stderr," operator- with scalar : this mat is empty \n");
-        return Mat();
-    }
-    Mat subtract = this->copy();
-    subtract.minusScalar(scalar);
-
-    return subtract;
-}
-
 Mat Mat::operator*(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
@@ -303,17 +280,6 @@ Mat Mat::operator*(const Mat& other) const{
 
     return product;
 }
-Mat Mat::operator*(const double scalar) const{
-    if(isEmpty()){
-        fprintf(stderr," operator* with scalar : this mat is empty \n");
-        return Mat();
-    }
-    Mat product = this->copy();
-    product.multiplyScalar(scalar);
-
-    return product;
-}
-
 Mat Mat::operator/(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
         fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
@@ -327,17 +293,90 @@ Mat Mat::operator/(const Mat& other) const{
 
     return div;
 }
-Mat Mat::operator/(const double scalar) const{
-    if(isEmpty()){
+
+jmat::Mat operator+(const Mat& A, const double scalar){
+    if(A.isEmpty()){
+        fprintf(stderr," operator+ with scalar : Mat A is empty \n");
+        return Mat();
+    }
+    Mat sum = A.copy();
+    sum.plusScalar(scalar);
+
+    return sum;
+}
+Mat operator+(const double scalar , const Mat& A){
+    if(A.isEmpty()){
+        fprintf(stderr," operator+ with scalar : Mat A is empty \n");
+        return Mat();
+    }
+    Mat sum = A.copy();
+    sum.plusScalar(scalar);
+
+    return sum;
+}
+
+Mat operator-(const Mat& A, const double scalar) {
+    if(A.isEmpty()){
+        fprintf(stderr," operator- with scalar : this mat is empty \n");
+        return Mat();
+    }
+    Mat subtract = A.copy();
+    subtract.minusScalar(scalar);
+
+    return subtract;
+}
+Mat operator-(const double scalar,const Mat& A) {
+    if(A.isEmpty()){
+        fprintf(stderr," operator- with scalar : this mat is empty \n");
+        return Mat();
+    }
+    Mat subtract = A.copy();
+    subtract.minusScalar(scalar);
+
+    return subtract;
+}
+
+Mat operator*(const Mat& A, const double scalar){
+    if(A.isEmpty()){
+        fprintf(stderr," operator* with scalar : this mat is empty \n");
+        return Mat();
+    }
+    Mat product = A.copy();
+    product.multiplyScalar(scalar);
+
+    return product;
+}
+Mat operator*(const double scalar, const Mat& A){
+    if(A.isEmpty()){
+        fprintf(stderr," operator* with scalar : this mat is empty \n");
+        return Mat();
+    }
+    Mat product = A.copy();
+    product.multiplyScalar(scalar);
+
+    return product;
+}
+
+Mat operator/(const Mat& lhs, const double scalar){
+    if(lhs.isEmpty()){
         fprintf(stderr," operator/ with scalar : this mat is empty \n");
         return Mat();
     }
-    Mat div = this->copy();
-    div.divideScalar(scalar);
+    Mat div = lhs.copy();
+    div.dividedByScalar(scalar);
 
     return div;
 }
+Mat operator/(const double scalar, const Mat& rhs){
+    if(rhs.isEmpty()){
+        fprintf(stderr," operator/ with scalar : this mat is empty \n");
+        return Mat();
+    }
+    Mat div = rhs.copy();
+    div.dividingScalar(scalar);
 
+    return div;
+}
 
 uint32 Mat::reshape(uint32 r, uint32 c, uint32 ch){
     int32 rc   = r*c;
@@ -929,53 +968,104 @@ Mat& Mat::multiplyScalar(const uchar scalar){
     return *this;
 }
 
-Mat& Mat::divideScalar(const double scalar){
+Mat& Mat::dividedByScalar(const double scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _divide_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _divide_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divide_scalar<int32   ,double>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _divide_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _divide_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _divided_by_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _divided_by_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _divided_by_scalar<int32 ,double>(getDataPtr<int32   >(), scalar, length); break;
+//  case DTYP::UCHAR  : _divided_by_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _divided_by_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }
 
-Mat& Mat::divideScalar(const float scalar){
+Mat& Mat::dividedByScalar(const float scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _divide_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _divide_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divide_scalar<int32   ,float>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _divide_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _divide_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _divided_by_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _divided_by_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _divided_by_scalar<int32 ,float>(getDataPtr<int32   >(), scalar, length); break;
+//  case DTYP::UCHAR  : _divided_by_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _divided_by_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }
 
-Mat& Mat::divideScalar(const int32 scalar){
+Mat& Mat::dividedByScalar(const int32 scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _divide_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _divide_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divide_scalar<int32   ,int32>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _divide_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _divide_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _divided_by_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _divided_by_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _divided_by_scalar<int32 ,int32>(getDataPtr<int32   >(), scalar, length); break;
+//  case DTYP::UCHAR  : _divided_by_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _divided_by_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }
-Mat& Mat::divideScalar(const uchar scalar){
+Mat& Mat::dividedByScalar(const uchar scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _divide_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _divide_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divide_scalar<int32   ,uchar>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _divide_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _divide_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _divided_by_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _divided_by_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _divided_by_scalar<int32 ,uchar>(getDataPtr<int32   >(), scalar, length); break;
+//  case DTYP::UCHAR  : _divided_by_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _divided_by_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
+    }
+    return *this;
+}
+
+Mat& Mat::dividingScalar(const double scalar){
+    if(isEmpty()) return *this;
+
+    switch(datT){
+    case DTYP::DOUBLE : _dividing_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _dividing_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _dividing_scalar<int32 ,double>(getDataPtr<int32   >(), scalar, length); break;
+//  case DTYP::UCHAR  : _dividing_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _dividing_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
+    }
+    return *this;
+}
+
+Mat& Mat::dividingScalar(const float scalar){
+    if(isEmpty()) return *this;
+
+    switch(datT){
+    case DTYP::DOUBLE : _dividing_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _dividing_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _dividing_scalar<int32 ,float>(getDataPtr<int32   >(), scalar, length); break;
+//  case DTYP::UCHAR  : _dividing_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _dividing_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
+    }
+    return *this;
+}
+
+Mat& Mat::dividingScalar(const int32 scalar){
+    if(isEmpty()) return *this;
+
+    switch(datT){
+    case DTYP::DOUBLE : _dividing_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _dividing_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _dividing_scalar<int32 ,int32>(getDataPtr<int32   >(), scalar, length); break;
+//  case DTYP::UCHAR  : _dividing_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _dividing_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
+    }
+    return *this;
+}
+Mat& Mat::dividingScalar(const uchar scalar){
+    if(isEmpty()) return *this;
+
+    switch(datT){
+    case DTYP::DOUBLE : _dividing_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _dividing_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _dividing_scalar<int32 ,uchar>(getDataPtr<int32   >(), scalar, length); break;
+//  case DTYP::UCHAR  : _dividing_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
+    default           : _dividing_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
     }
     return *this;
 }

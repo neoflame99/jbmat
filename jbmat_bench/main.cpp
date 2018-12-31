@@ -24,7 +24,7 @@ int32 main(int32 argc, char *argv[])
     uint32 col = 7;
     uint32 ch = 2;
     uint32 rowcol = row*col;
-    Mat ma(DTYP::DOUBLE, row,col,ch);
+    Mat ma(DTYP::DOUBLE, row,col,ch,"ma");
 
     double* a = ma.getDataPtr<double>();
     uint32 k = 1;
@@ -35,7 +35,9 @@ int32 main(int32 argc, char *argv[])
     }
 
     ma.printMat();
-    ma += 10;
+    ma = ma + 10;
+    ma.setName("ma");
+    //ma += 10;
     ma.printMat();
     Mat maa = ma.copy();
     //maa.plusMat(ma);
@@ -64,18 +66,30 @@ int32 main(int32 argc, char *argv[])
 
     Mat mag(DTYP::DOUBLE, 3,4,2);
     Mat mah(DTYP::DOUBLE, 4,3,2);
+    Mat man(DTYP::DOUBLE, 3,4,2,"man");
     double *mag_m = mag.getDataPtr<double>();
     double *mah_m = mah.getDataPtr<double>();
     for(uint32 c=0; c < mag.getLength(); c++){
         mag_m[c] = c;
         mah_m[c] = c + c%4;
+        man.at<double>(c) = rand()%1000;
     }
     Mat mai = dot(mag,mah);
     Mat maj = dot(mah,mag);
+    mai.setName("mai");
     mag.printMat();
     mah.printMat();
     mai.printMat();
     maj.printMat();
+    Mat mak = mai.mean<double>();
+    Mat mal = mai.std<double>();
+    mak.printMat("mak : mean of mai");
+    mal.printMat("mal : std of mai");
+
+    man.printMat();
+    man.max<double>().printMat("man max");
+    man.min<double>().printMat("man min");
+
 
     //-- conv
     k=0;

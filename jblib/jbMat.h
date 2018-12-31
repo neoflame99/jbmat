@@ -18,6 +18,7 @@
 
 namespace jmat {
 
+class Mat;
 
 class Mat{
 private: // member fields
@@ -59,13 +60,19 @@ public: // constructors and destructor
 public:
     //-- overloading operators
     Mat  operator+(const Mat& other ) const;
-    Mat  operator+(const double scalar) const;
     Mat  operator-(const Mat& other ) const;
-    Mat  operator-(const double scalar) const;
     Mat  operator*(const Mat& other ) const;
-    Mat  operator*(const double scalar) const;
     Mat  operator/(const Mat& other ) const;
-    Mat  operator/(const double scalar) const;
+
+    friend Mat operator+(const Mat& A, const double scalar);
+    friend Mat operator-(const Mat& A, const double scalar);
+    friend Mat operator*(const Mat& A, const double scalar);
+    friend Mat operator/(const Mat& A, const double scalar);
+
+    friend Mat operator+(const double scalar, const Mat& A);
+    friend Mat operator-(const double scalar, const Mat& A);
+    friend Mat operator*(const double scalar, const Mat& A);
+    friend Mat operator/(const double scalar, const Mat& A);
 
     Mat& operator= (const Mat& other );
     Mat& operator+=(const Mat& other );
@@ -84,20 +91,24 @@ public:
 
     Mat& plusScalar(const double scalar);
     Mat& plusScalar(const  float scalar);
-    Mat& plusScalar(const    int32 scalar);
+    Mat& plusScalar(const  int32 scalar);
     Mat& plusScalar(const  uchar scalar);
     Mat& minusScalar(const double scalar);
     Mat& minusScalar(const  float scalar);
-    Mat& minusScalar(const    int32 scalar);
+    Mat& minusScalar(const  int32 scalar);
     Mat& minusScalar(const  uchar scalar);
     Mat& multiplyScalar(const double scalar);
     Mat& multiplyScalar(const  float scalar);
-    Mat& multiplyScalar(const    int32 scalar);
+    Mat& multiplyScalar(const  int32 scalar);
     Mat& multiplyScalar(const  uchar scalar);
-    Mat& divideScalar(const double scalar);
-    Mat& divideScalar(const  float scalar);
-    Mat& divideScalar(const    int32 scalar);
-    Mat& divideScalar(const  uchar scalar);
+    Mat& dividedByScalar(const double scalar);
+    Mat& dividedByScalar(const  float scalar);
+    Mat& dividedByScalar(const  int32 scalar);
+    Mat& dividedByScalar(const  uchar scalar);
+    Mat& dividingScalar(const double scalar);
+    Mat& dividingScalar(const  float scalar);
+    Mat& dividingScalar(const  int32 scalar);
+    Mat& dividingScalar(const  uchar scalar);
 
     void setRowCol(uint32 r, uint32 c, uint32 ch=1);
     void setChannelN(const Mat& src, const uint32 srcfromCh=0,const uint32 Channels=1, const uint32 tarToCh=0);
@@ -147,8 +158,8 @@ private: // private template methods
     template <typename _Tslf, typename _Totr> void _plus_scalar    (_Tslf* self, _Totr scalar, uint32 len );
     template <typename _Tslf, typename _Totr> void _minus_scalar   (_Tslf* self, _Totr scalar, uint32 len );
     template <typename _Tslf, typename _Totr> void _multiply_scalar(_Tslf* self, _Totr scalar, uint32 len );
-    template <typename _Tslf, typename _Totr> void _divide_scalar  (_Tslf* self, _Totr scalar, uint32 len );
-
+    template <typename _Tslf, typename _Totr> void _dividing_scalar  (_Tslf* self, _Totr scalar, uint32 len );
+    template <typename _Tslf, typename _Totr> void _divided_by_scalar(_Tslf* self, _Totr scalar, uint32 len );
 };
 
 
@@ -206,9 +217,13 @@ template <typename _Tslf, typename _Totr> void Mat::_multiply_scalar(_Tslf* self
     for(uint32 k=0; k < len ; k++)
         self[k] *= scalar;
 }
-template <typename _Tslf, typename _Totr> void Mat::_divide_scalar(_Tslf* self, _Totr scalar, uint32 len){
+template <typename _Tslf, typename _Totr> void Mat::_divided_by_scalar(_Tslf* self, _Totr scalar, uint32 len){
     for(uint32 k=0; k < len ; k++)
-        self[k] /= scalar;
+        self[k] = self[k] / scalar;
+}
+template <typename _Tslf, typename _Totr> void Mat::_dividing_scalar(_Tslf* self, _Totr scalar, uint32 len){
+    for(uint32 k=0; k < len ; k++)
+        self[k] = scalar / self[k];
 }
 
 template <typename _Tsrc, typename _Ttar> void Mat::_type_change(){
@@ -357,7 +372,7 @@ template <typename _T> Mat Mat::std() {
     uint32 Div = rclen -1;
     for(k=0 ; k < ch; k++){
         sqsum  = 0;
-        ch_avg = A.at<double>(k);
+        ch_avg = avg.at<double>(k);
         for(m = 0 ; m < rclen; m++){
            diff = double(datPtr[n++]) - ch_avg;
            sqsum += diff*diff;
