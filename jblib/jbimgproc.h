@@ -19,6 +19,12 @@ namespace imgproc {
     const double bt709_y2r[3][3]={{ 1.0000 ,   0.0000 ,   1.5748 },
                                   { 1.0000 ,  -0.1873 ,  -0.4681 },
                                   { 1.0000 ,   1.8556 ,  -0.0000 }};
+    const double rgb2xyz_bt709[3][3] = { {0.4124564, 0.3575761, 0.1804375},
+                                   {0.2126729, 0.7151522, 0.0721750},
+                                   {0.0193339, 0.1191920, 0.9503041} };
+    const double xyz2rgb_bt709[3][3] = { { 3.2404542, -1.5371385, -0.4985314},
+                                   {-0.9692660,  1.8760108,  0.0415560},
+                                   { 0.0556434, -0.2040259,  1.0572252} };
 
     Mat rgb2ycc(const Mat& rgbIm, const int32 sel_eq = 0);
     Mat ycc2rgb(const Mat& yccIm, const int32 sel_eq = 0);
@@ -30,9 +36,19 @@ namespace imgproc {
     Mat clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step);
 
 
-    template <typename _T> Mat _rgb2ycc(const Mat& rgbIm, const int32 sel_eq );
-    template <typename _T> Mat _ycc2rgb(const Mat& yccIm, const int32 sel_eq );
-    template <typename _T> Mat _rgb2gray(const Mat& rgbIm, const int32 HowToGray);
+    template <typename _T> inline Mat _rgb2ycc(const Mat& rgbIm, const int32 sel_eq );
+    template <typename _T> inline Mat _ycc2rgb(const Mat& yccIm, const int32 sel_eq );
+    template <typename _T> inline Mat _rgb2gray(const Mat& rgbIm, const int32 HowToGray);
+    template <typename _T> inline Mat _conv_rgb2xyz(const Mat& rgbIm);
+    template <typename _T> inline Mat _conv_xyz2rgb(const Mat& xyzIm);
+    template <typename _T> inline Mat _conv_rgb2Yxy(const Mat& rgbIm);
+    template <typename _T> inline Mat _conv_Yxy2rgb(const Mat& YxyIm);
+
+    template <typename _T> inline Mat _histoPmf(const Mat& src, const int32 bins , const int32 step);
+    template <typename _T> inline Mat _histoCmf(const Mat& src, const int32 bins, const int32 step);
+    template <typename _T> inline Mat _clip_HistoPmf(const Mat& src,const int32 clipVal, const int32 bins, const int32 step);
+    template <typename _T> inline Mat _clip_HistoCmf(const Mat& src,const int32 clipVal, const int32 bins, const int32 step);
+    template <typename _T> inline Mat _clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step);
 
 
 
@@ -54,10 +70,6 @@ namespace imgproc {
         uint32 col = rgbIm.getCol();
         uint32 imsize = row * col;
         uint32 chsize = rgbIm.getChannel();
-        if( chsize != 3 ) {
-            fprintf(stdout,"rgbIm is not three channel image\n");
-            return Mat();
-        }
 
         Mat  A(rgbIm.getDatType(), row, col, chsize);
         _T* srcDat_pt = rgbIm.getDataPtr<_T>();
@@ -101,10 +113,6 @@ namespace imgproc {
          uint32 col = yccIm.getCol();
          uint32 imsize = row * col;
          uint32 chsize = yccIm.getChannel();
-         if( chsize != 3 ) {
-             fprintf(stdout,"rgbIm is not three channel image\n");
-             return Mat();
-         }
 
          Mat A(yccIm.getDatType(), row, col, chsize);
          _T *srcDat_pt = yccIm.getDataPtr<_T>();
@@ -154,12 +162,7 @@ namespace imgproc {
 
         uint32 row = rgbIm.getRow();
         uint32 col = rgbIm.getCol();
-        uint32 imsize = row * col;
-        uint32 chsize = rgbIm.getChannel();
-        if( chsize != 3 ) {
-            fprintf(stdout,"rgbIm is not three channel image\n");
-            return Mat();
-        }
+        uint32 imsize = row * col;                
 
         Mat A(rgbIm.getDatType(), row, col, 1);
         _T *srcDat_pt = rgbIm.getDataPtr<_T>();
@@ -182,6 +185,129 @@ namespace imgproc {
 
         return A;
     }
+
+
+    template <typename _T> inline Mat _conv_rgb2xyz(const Mat& rgbIm){
+        uint32 row    = rgbIm.getRow();
+        uint32 col    = rgbIm.getCol();
+        uint32 chsize = rgbIm.getChannel();
+        if( chsize != 3) return Mat();
+
+        uint32 rcsize = rgbIm.getRowColSize();
+        uint32 ch2    = rcsize;
+        uint32 ch3    = rcsize << 1;
+
+        Mat A(rgbIm.getDatType(), row, col, chsize);
+        _T* dat64f = A.getDataPtr<_T>();
+        _T x, y, z;
+        for(uint32 i=0; i < rcsize ; i++ ){
+            x = rgb2xyz_bt709[0][0] * dat64f[i] + rgb2xyz_bt709[0][1] *dat64f[i+ch2] + rgb2xyz_bt709[0][2] *dat64f[i+ch3];
+            y = rgb2xyz_bt709[1][0] * dat64f[i] + rgb2xyz_bt709[1][1] *dat64f[i+ch2] + rgb2xyz_bt709[1][2] *dat64f[i+ch3];
+            z = rgb2xyz_bt709[2][0] * dat64f[i] + rgb2xyz_bt709[2][1] *dat64f[i+ch2] + rgb2xyz_bt709[2][2] *dat64f[i+ch3];
+            dat64f[i    ]= x;
+            dat64f[i+ch2]= y;
+            dat64f[i+ch3]= z;
+        }
+
+        return A;
+    }
+    template <typename _T> inline Mat _conv_xyz2rgb(const Mat& xyzIm){
+        uint32 row    = xyzIm.getRow();
+        uint32 col    = xyzIm.getCol();
+        uint32 chsize = xyzIm.getChannel();
+        if( chsize != 3) return Mat();
+
+        uint32 rcsize = row * col;
+        uint32 ch2    = rcsize;
+        uint32 ch3    = rcsize << 1;
+
+        Mat A(xyzIm.getDatType(), row, col, chsize);
+        _T* dat64f = A.getDataPtr<_T>();
+        _T r, g, b;
+        for(size_t i=0; i < rcsize; i++){
+            r = xyz2rgb_bt709[0][0] * dat64f[i] + xyz2rgb_bt709[0][1] *dat64f[i+ch2] + xyz2rgb_bt709[0][2] *dat64f[i+ch3];
+            g = xyz2rgb_bt709[1][0] * dat64f[i] + xyz2rgb_bt709[1][1] *dat64f[i+ch2] + xyz2rgb_bt709[1][2] *dat64f[i+ch3];
+            b = xyz2rgb_bt709[2][0] * dat64f[i] + xyz2rgb_bt709[2][1] *dat64f[i+ch2] + xyz2rgb_bt709[2][2] *dat64f[i+ch3];
+            dat64f[i    ]= r;
+            dat64f[i+ch2]= g;
+            dat64f[i+ch3]= b;
+        }
+
+        return A;
+    }
+
+    template <typename _T> inline Mat _conv_rgb2Yxy(const Mat& rgbIm){
+        uint32 row    = rgbIm.getRow();
+        uint32 col    = rgbIm.getCol();
+        uint32 chsize = rgbIm.getChannel();
+        if( chsize != 3) return Mat();
+
+        uint32 rcsize = rgbIm.getRowColSize();
+        uint32 ch2    = rcsize;
+        uint32 ch3    = rcsize << 1;
+
+        Mat A(rgbIm.getDatType(), row, col, chsize);
+        _T* dat64f = A.getDataPtr<_T>();
+
+        _T X, Y, Z, W, x, y;
+        _T r,g,b;
+        for(uint32 i=0; i < rcsize; i++){
+            r = dat64f[i    ];
+            g = dat64f[i+ch2];
+            b = dat64f[i+ch3];
+            X = rgb2xyz_bt709[0][0] * dat64f[i] + rgb2xyz_bt709[0][1] *dat64f[i+ch2] + rgb2xyz_bt709[0][2] *dat64f[i+ch3];
+            Y = rgb2xyz_bt709[1][0] * dat64f[i] + rgb2xyz_bt709[1][1] *dat64f[i+ch2] + rgb2xyz_bt709[1][2] *dat64f[i+ch3];
+            Z = rgb2xyz_bt709[2][0] * dat64f[i] + rgb2xyz_bt709[2][1] *dat64f[i+ch2] + rgb2xyz_bt709[2][2] *dat64f[i+ch3];
+            W = X + Y + Z;
+            if( W <= 0.0) {
+                x = 0.0;
+                y = 0.0;
+            }else{
+                x = X/W;
+                y = Y/W;
+            }
+
+            dat64f[i    ]= Y;
+            dat64f[i+ch2]= x;
+            dat64f[i+ch3]= y;
+        }
+
+        return A;
+    }
+
+    template <typename _T> inline Mat _conv_Yxy2rgb(const Mat& YxyIm){
+        uint32 row    = YxyIm.getRow();
+        uint32 col    = YxyIm.getCol();
+        uint32 chsize = YxyIm.getChannel();
+        if( chsize != 3) return Mat();
+
+        uint32 rcsize = YxyIm.getRowColSize();
+        uint32 ch2    = rcsize;
+        uint32 ch3    = rcsize << 1;
+
+        Mat A(YxyIm.getDatType(), row, col, chsize);
+        _T* dat64f = A.getDataPtr<_T>();
+
+        _T  r, g, b;
+        _T  X,Y,Z,x,y,W;
+        for(uint32 i=0; i < rcsize; i++){
+            Y = dat64f[i    ];
+            x = dat64f[i+ch2];
+            y = dat64f[i+ch3];
+            W = Y/y;
+            X = x * W;
+            Z = W-Y-X;
+            r = xyz2rgb_bt709[0][0] *X + xyz2rgb_bt709[0][1] *Y + xyz2rgb_bt709[0][2] *Z;
+            g = xyz2rgb_bt709[1][0] *X + xyz2rgb_bt709[1][1] *Y + xyz2rgb_bt709[1][2] *Z;
+            b = xyz2rgb_bt709[2][0] *X + xyz2rgb_bt709[2][1] *Y + xyz2rgb_bt709[2][2] *Z;
+            dat64f[i    ]= r;
+            dat64f[i+ch2]= g;
+            dat64f[i+ch3]= b;
+        }
+
+        return A;
+    }
+
 
     template <typename _T> inline Mat _histoPmf(const Mat& src, const int32 bins , const int32 step){
 
@@ -249,7 +375,7 @@ namespace imgproc {
         return cmf;
     }
 
-    template <typename _T> Mat _clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step){
+    template <typename _T> inline Mat _clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step){
 
         Mat A = src.copy();
 
@@ -264,7 +390,7 @@ namespace imgproc {
         int32 halfstep = step >> 1;
         int32 lowlmt = halfstep;
         int32 upplmt = (bins-1)*step + halfstep;
-        for(int32 i=0; i < src.getLength(); i++){
+        for(uint32 i=0; i < src.getLength(); i++){
             d0 = int32(srcDat_pt[i]);
             d1 = d0 / step;
             d3 = d0 - d1*step;
@@ -290,6 +416,9 @@ namespace imgproc {
         }
         return A;
     }
+
+
+
 } // end of imgproc namespace
 } // end of jmat namespace
 #endif // JBIMGPROC_H

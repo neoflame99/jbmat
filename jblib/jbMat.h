@@ -128,7 +128,7 @@ public:
     inline DTYP    getDatType() const { return datT; }
     inline uint32  getByteStep() const { return byteStep; }
 
-    uint32  reshape(uint32 r, uint32 c, uint32 ch=1);
+    int32   reshape(uint32 r, uint32 c, uint32 ch=1);
     void    transpose();
     void    changeDType(const DTYP dt);
     void    printMat() ;

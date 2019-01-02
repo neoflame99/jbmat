@@ -57,7 +57,7 @@ namespace qimmat {
 
         uchar* qim_dat = tar.bits();
         _T*    mat_dat = src.getDataPtr<_T>();
-        _T a,b,c;
+        //_T a,b,c;
         uint32 y, k;
         uint32 lenRowCol  = row*col;
         uint32 lenRowCol2 = lenRowCol << 1;

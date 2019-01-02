@@ -10,7 +10,7 @@ int32 Mat::instant_count = 0;
 //-- shallow copy version & using shared_ptr
 void Mat::alloc(uint32 len){
 
-    if(len < 0){
+    if(len == 0){
         mA = nullptr;
         dat_ptr = nullptr;
     }else{
@@ -116,7 +116,7 @@ Mat::Mat( std::initializer_list<double> list ){
         std::vector<double> v;
         v.insert(v.end(),list.begin(),list.end());
 
-        for(int32 i=0;i<length;i++){
+        for(uint32 i=0;i<length;i++){
             dat_p[i] = v.at(i);
         }
     }
@@ -130,7 +130,7 @@ Mat::Mat( std::initializer_list<int32> list ){
         std::vector<int32> v;
         v.insert(v.end(),list.begin(),list.end());
 
-        for(int32 i=0;i<length;i++){
+        for(uint32 i=0;i<length;i++){
             dat_p[i] = v.at(i);
         }
     }
@@ -144,7 +144,7 @@ Mat::Mat( std::initializer_list<float> list ){
         std::vector<float> v;
         v.insert(v.end(),list.begin(),list.end());
 
-        for(int32 i=0;i<length;i++){
+        for(uint32 i=0;i<length;i++){
             dat_p[i] = v.at(i);
         }
     }
@@ -153,8 +153,8 @@ Mat::Mat( std::initializer_list<float> list ){
 Mat::~Mat(){}
 
 void Mat::setRowCol(uint32 r, uint32 c, uint32 ch){
-    int32 lenrc = r*c;
-    int32 len   = lenrc*ch;
+    uint32 lenrc = r*c;
+    uint32 len   = lenrc*ch;
 
     if(length != len){
         mA.reset();
@@ -378,9 +378,9 @@ Mat operator/(const double scalar, const Mat& rhs){
     return div;
 }
 
-uint32 Mat::reshape(uint32 r, uint32 c, uint32 ch){
-    int32 rc   = r*c;
-    int32 tlen = rc*ch;
+int32 Mat::reshape(uint32 r, uint32 c, uint32 ch){
+    uint32 rc   = r*c;
+    uint32 tlen = rc*ch;
     if( tlen != length){
         fprintf(stderr," reshape argument is not correct!\n");
         return -1;
@@ -596,8 +596,7 @@ void Mat::setChannelN(const Mat& src, const uint32 srcFromCh,const uint32 Channe
     sync_data_ptr();
     uchar *srcdat_ptr = src.getMat().get();
     uint32 src_idx = srcFromCh*lenRowCol*byteStep;
-    uint32 tar_idx = tar_ch*lenRowCol*byteStep;
-    uint32 chStep  = lenRowCol*byteStep;
+    uint32 tar_idx = tar_ch*lenRowCol*byteStep;    
 
     for(uint32 j=0; j < Channels ; j++){
         for(uint32 i=0; i < lenRowCol*byteStep; i++ ){

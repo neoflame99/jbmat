@@ -272,9 +272,9 @@ int Jreadhdr::conv_rgb2xyz(){
     }
     double x, y, z;
     for(size_t i=0; i < xsize*ysize*3; i+=3){
-        x = rgb2xyz_bt709[0][0] * dat64f[i] + rgb2xyz_bt709[0][1] *dat64f[i+1] + rgb2xyz_bt709[0][2] *dat64f[i+3];
-        y = rgb2xyz_bt709[1][0] * dat64f[i] + rgb2xyz_bt709[1][1] *dat64f[i+1] + rgb2xyz_bt709[1][2] *dat64f[i+3];
-        z = rgb2xyz_bt709[2][0] * dat64f[i] + rgb2xyz_bt709[2][1] *dat64f[i+1] + rgb2xyz_bt709[2][2] *dat64f[i+3];
+        x = rgb2xyz_bt709[0][0] * dat64f[i] + rgb2xyz_bt709[0][1] *dat64f[i+1] + rgb2xyz_bt709[0][2] *dat64f[i+2];
+        y = rgb2xyz_bt709[1][0] * dat64f[i] + rgb2xyz_bt709[1][1] *dat64f[i+1] + rgb2xyz_bt709[1][2] *dat64f[i+2];
+        z = rgb2xyz_bt709[2][0] * dat64f[i] + rgb2xyz_bt709[2][1] *dat64f[i+1] + rgb2xyz_bt709[2][2] *dat64f[i+2];
         dat64f[i]  = x;
         dat64f[i+1]= y;
         dat64f[i+2]= z;
@@ -291,9 +291,9 @@ int Jreadhdr::conv_xyz2rgb(){
     }
     double r, g, b;
     for(size_t i=0; i < xsize*ysize*3; i+=3){
-        r = xyz2rgb_bt709[0][0] * dat64f[i] + xyz2rgb_bt709[0][1] *dat64f[i+1] + xyz2rgb_bt709[0][2] *dat64f[i+3];
-        g = xyz2rgb_bt709[1][0] * dat64f[i] + xyz2rgb_bt709[1][1] *dat64f[i+1] + xyz2rgb_bt709[1][2] *dat64f[i+3];
-        b = xyz2rgb_bt709[2][0] * dat64f[i] + xyz2rgb_bt709[2][1] *dat64f[i+1] + xyz2rgb_bt709[2][2] *dat64f[i+3];
+        r = xyz2rgb_bt709[0][0] * dat64f[i] + xyz2rgb_bt709[0][1] *dat64f[i+1] + xyz2rgb_bt709[0][2] *dat64f[i+2];
+        g = xyz2rgb_bt709[1][0] * dat64f[i] + xyz2rgb_bt709[1][1] *dat64f[i+1] + xyz2rgb_bt709[1][2] *dat64f[i+2];
+        b = xyz2rgb_bt709[2][0] * dat64f[i] + xyz2rgb_bt709[2][1] *dat64f[i+1] + xyz2rgb_bt709[2][2] *dat64f[i+2];
         dat64f[i]  = r;
         dat64f[i+1]= g;
         dat64f[i+2]= b;
