@@ -164,23 +164,16 @@ private: // private template methods
 
 
 template <typename _T> inline _T& Mat::at(uint32 i) const {
-    if(isEmpty()) return *((_T *)nullptr); //*((_T *)mA.get()); //*mA;
 
-    assert(i < length);
-    if(i >= length){
-        //fprintf(stderr,"The Index of Mat is out of bound\n");
-        i = length-1;
-    }
-    return ((_T *)dat_ptr)[i]; //return ((_T *)mA.get())[i];
+    assert(!isEmpty() && i < length);
+
+    return ((_T *)dat_ptr)[i];
 }
 template <typename _T> inline _T& Mat::at(uint32 r, uint32 c, uint32 ch) const {
-    if(isEmpty()) return *((_T *)nullptr);
+
     uint32 i = ch*lenRowCol + r*col + c;
-    assert(i < length);
-    if(i >= length){
-        fprintf(stderr,"The Index of Mat is out of bound\n");
-        i = length-1;
-    }
+    assert(!isEmpty() && i < length);
+
     return ((_T *)dat_ptr)[i];
 }
 
