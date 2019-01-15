@@ -11,8 +11,11 @@ namespace jmat {
     typedef int32_t        int32;
     typedef uint64_t      uint64;
     typedef int64_t        int64;
-
+    typedef struct _complex{
+        double re;
+        double im;
+    }cmplx;
     typedef std::shared_ptr<uchar> shr_ptr;
-    enum    DTYP {UCHAR=0 , INT=1 , FLOAT=2, DOUBLE=3};
+    enum    DTYP {UCHAR=0 , INT=1 , FLOAT=2, DOUBLE=3, CMPLX=4};
 }
 #endif // TYPES_H
