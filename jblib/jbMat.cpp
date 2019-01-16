@@ -294,7 +294,7 @@ Mat Mat::operator/(const Mat& other) const{
     return div;
 }
 
-jmat::Mat operator+(const Mat& A, const double scalar){
+Mat operator+(const Mat& A, const double scalar){
     if(A.isEmpty()){
         fprintf(stderr," operator+ with scalar : Mat A is empty \n");
         return Mat();

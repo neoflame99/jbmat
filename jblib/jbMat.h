@@ -146,6 +146,7 @@ public : // public template methods
     template <typename _T> Mat max() ;
     template <typename _T> Mat min() ;
     template <typename _T> Mat mean();
+//    template <> inline     Mat mean<cmplx>();
     template <typename _T> Mat std() ;
 
 private: // private template methods
@@ -345,6 +346,28 @@ template <typename _T> Mat Mat::mean() {
             sum += double(datPtr[n++]);
         }
         A.at<double>(k) = sum/rclen;
+    }
+    return A;
+}
+template <> inline Mat Mat::mean<cmplx>() {
+    cmplx* datPtr = this->getDataPtr<cmplx>();
+
+    uint32 ch    = getChannel();
+    uint32 rclen = getRowColSize();
+
+    Mat A(DTYP::CMPLX,1,ch,1);
+    cmplx sum;
+    cmplx tmp;
+    uint32 k, m, n;
+    n = 0;
+    for(k=0 ; k < ch; k++){
+        sum.zero();
+        for(m = 0 ; m < rclen; m++){
+            //sum += cmplx(datPtr[n++]);
+            tmp = cmplx(datPtr[n++]);
+            sum += tmp;
+        }
+        A.at<cmplx>(k) = sum/rclen;
     }
     return A;
 }
