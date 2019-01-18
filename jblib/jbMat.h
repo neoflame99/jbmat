@@ -146,7 +146,6 @@ public : // public template methods
     template <typename _T> Mat max() ;
     template <typename _T> Mat min() ;
     template <typename _T> Mat mean();
-//    template <> inline     Mat mean<cmplx>();
     template <typename _T> Mat std() ;
 
 private: // private template methods
@@ -310,6 +309,33 @@ template <typename _T> Mat Mat::max() {
     }
     return A;
 }
+template <> inline Mat Mat::max<cmplx>() {
+    cmplx* datPtr = this->getDataPtr<cmplx>();
+
+    uint32 ch    = getChannel();
+    uint32 rclen = getRowColSize();
+
+    Mat A(getDatType(),1,ch,1);
+    cmplx large;
+    cmplx tmp;
+    double large_mag, tmp_mag;
+    uint32 k, m, n;
+    n=0;
+    for(k=0 ; k < ch; k++){
+        large = datPtr[n++];
+        large_mag = large.re*large.re + large.im*large.im;
+        for(m = 1 ; m < rclen; m++, n++ ){
+            tmp = datPtr[n];
+            tmp_mag = tmp.re*tmp.re + tmp.im*tmp.im;
+            if( large_mag < tmp_mag){
+                large = datPtr[n];
+                large_mag = tmp_mag;
+            }
+        }
+        A.at<cmplx>(k) = large;
+    }
+    return A;
+}
 template <typename _T> Mat Mat::min() {
     _T* datPtr = this->getDataPtr<_T>();
 
@@ -327,6 +353,33 @@ template <typename _T> Mat Mat::min() {
                 less = datPtr[n];
         }
         A.at<_T>(k) = less;
+    }
+    return A;
+}
+template <> inline Mat Mat::min<cmplx>() {
+    cmplx* datPtr = this->getDataPtr<cmplx>();
+
+    uint32 ch    = getChannel();
+    uint32 rclen = getRowColSize();
+
+    Mat A(getDatType(),1,ch,1);
+    cmplx less;
+    cmplx tmp;
+    double less_mag, tmp_mag;
+    uint32 k, m, n;
+    n=0;
+    for(k=0 ; k < ch; k++){
+        less = datPtr[n++];
+        less_mag = less.re*less.re + less.im*less.im;
+        for(m = 1 ; m < rclen; m++, n++ ){
+            tmp = datPtr[n];
+            tmp_mag = tmp.re*tmp.re + tmp.im*tmp.im;
+            if( less_mag > tmp_mag){
+                less     = datPtr[n];
+                less_mag = tmp_mag;
+            }
+        }
+        A.at<cmplx>(k) = less;
     }
     return A;
 }
@@ -363,9 +416,7 @@ template <> inline Mat Mat::mean<cmplx>() {
     for(k=0 ; k < ch; k++){
         sum.zero();
         for(m = 0 ; m < rclen; m++){
-            //sum += cmplx(datPtr[n++]);
-            tmp = cmplx(datPtr[n++]);
-            sum += tmp;
+            sum += cmplx(datPtr[n++]);
         }
         A.at<cmplx>(k) = sum/rclen;
     }
@@ -397,6 +448,33 @@ template <typename _T> Mat Mat::std() {
     }
     return A;
 }
+template <> inline Mat Mat::std<cmplx>() {
+    cmplx* datPtr = this->getDataPtr<cmplx>();
+
+    uint32 ch    = getChannel();
+    uint32 rclen = getRowColSize();
+
+    Mat avg = mean<cmplx>();
+    Mat A(DTYP::CMPLX,1,ch,1);
+    cmplx sqsum;
+    cmplx diff;
+    cmplx ch_avg;
+    uint32 k, m, n;
+    n = 0;
+    uint32 Div = rclen -1;
+    for(k=0 ; k < ch; k++){
+        sqsum  = 0;
+        ch_avg = avg.at<cmplx>(k);
+        for(m = 0 ; m < rclen; m++){
+           diff = cmplx(datPtr[n++]) - ch_avg;
+           sqsum += diff*diff;
+        }
+        sqsum /= Div;
+        A.at<cmplx>(k) = sqsum;
+    }
+    return A;
+}
+
 } // namespace jmat
 
 #endif // JBMAT_H
