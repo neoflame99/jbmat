@@ -32,14 +32,21 @@ Mat dot(const Mat& mA,const Mat& mB){
 
     if(maDtype == DTYP::DOUBLE){
         switch(mbDtype){
-        case DTYP::DOUBLE: mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
+        case DTYP::DOUBLE:
+            mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<double,double,double>(mA, mB, mO); break;
-        case DTYP::FLOAT : mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
+        case DTYP::FLOAT :
+            mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<double,float ,double>(mA, mB, mO); break;
-        case DTYP::INT   : mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
+        case DTYP::INT   :
+            mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<double,int32   ,double>(mA, mB, mO); break;
-        case DTYP::UCHAR : mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
+        case DTYP::UCHAR :
+            mO = Mat(DTYP::DOUBLE, aRow, bCol, ch);
             result_prod = _dot_prod<double,uchar ,double>(mA, mB, mO); break;
+        //case DTYP::CMPLX :
+        //    mO = Mat(DTYP::CMPLX, aRow, bCol, ch);
+
         }
     }else if(maDtype == DTYP::FLOAT){
         switch(mbDtype){

@@ -22,8 +22,8 @@ namespace jmat {
         // constructor
         _complex(double r, double i):re(r),im(i){}
         _complex():re(0),im(0){}
-//        _complex(const _complex& ot):re(ot.re),im(ot.im){}
-//        _complex(const _complex&& ot):re(ot.re),im(ot.im){}
+        _complex(const _complex& ot):re(ot.re),im(ot.im){} // copy constructor
+        _complex(const _complex&& ot):re(ot.re),im(ot.im){} // move constructor
 
         // operator override
         friend inline _complex operator+(_complex& lhs, double rhs);
@@ -55,11 +55,13 @@ namespace jmat {
         inline _complex& operator/=(const _complex& rhs);
         inline _complex& operator/=(const double rhs);
 
-//        inline _complex& operator=(const _complex& rhs) { re=rhs.re; im=rhs.im; return *this;}
-        inline _complex& operator=(const double rhs) { re=rhs; im=rhs; return *this;}
+        inline _complex& operator=(const _complex& rhs) {  re = rhs.re; im = rhs.im; return *this; }
+        inline _complex& operator=(const double rhs) { re=rhs; im=0; return *this;}
+        inline _complex& operator=(const _complex&& rhs) { *this=rhs; return *this;} // move assignment
 
         inline void set_val(double r=0, double i=0) { re= r; im = i; }
         inline void zero() {set_val(0,0);}
+        inline void conj() {im=-im; }
     };
 
     inline _complex operator +(_complex& lhs, double rhs){
