@@ -9,7 +9,7 @@
 
 namespace jmat {
 
-    Mat dot(const Mat& mA,const Mat& mB);
+    Mat mul(const Mat& mA,const Mat& mB);
     Mat triu(const Mat& mA);
     Mat tril(const Mat& mA);
     Mat augment(const Mat& mA);
@@ -18,7 +18,8 @@ namespace jmat {
 
     Mat conv2d(const Mat& mA, const Mat& mB, std::string opt_conv="" , std::string opt_out="");
 
-    template <typename _Ta, typename _Tb, typename _To > bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO);
+    template <typename _Ta, typename _Tb, typename _To > bool _mul(const Mat& rMA,const Mat& rMB, Mat& rMO);
+    template <typename _Ta, typename _Tb, typename _To > bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO,uint32 dim);
     template <typename _T > void _triu(Mat& utri_mat);
     template <typename _T > void _tril(Mat& ltri_mat);
     template <typename _T > std::shared_ptr<uchar> _augment(const Mat&, const uint32 augCols);
@@ -27,25 +28,95 @@ namespace jmat {
 
 
 template <typename _Ta, typename _Tb, typename _To>
-bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO){
+bool _mul(const Mat& rMA,const Mat& rMB, Mat& rMO){
     uint32 Ar  = rMA.getRow();
     uint32 Ac  = rMA.getCol();
     uint32 Ach = rMA.getChannel();
     uint32 Br  = rMB.getRow();
     uint32 Bc  = rMB.getCol();
     uint32 Bch = rMB.getChannel();
+    uint32 Or  = rMO.getRow();
+    uint32 Oc  = rMO.getCol();
+    uint32 Och = rMO.getChannel();
+
     _Ta* MA  = rMA.getDataPtr<_Ta>();
     _Tb* MB  = rMB.getDataPtr<_Tb>();
     _To* MO  = rMO.getDataPtr<_To>();
 
+    assert(Ac==Br);
+    assert(Ach==Bch);
+    assert(Or==Ar);
+    assert(Oc==Bc);
+    assert(Ach==Och);
+    assert(MA==nullptr);
+    assert(MB==nullptr);
+    assert(MO==nullptr);
+/*
     if( Ac != Br || Ach != Bch ){
-        fprintf(stderr, "sizes of ma and mb into _dot_prod_ are not match!\n");
+        fprintf(stderr, "sizes of ma and mb into _mul are not match!\n");
         return false;
     }else if( rMO.getRow() != Ar || rMO.getCol() != Bc || rMO.getChannel() != Ach){
         fprintf(stderr, "sizes of mo is not enough!\n");
         return false;
     }else if( MA == nullptr || MB == nullptr || MO == nullptr){
-        fprintf(stderr, "one or more of ma, mb or mo into _dot_prod_ are NULL!\n");
+        fprintf(stderr, "one or more of ma, mb or mo into _mul are NULL!\n");
+        return false;
+    }
+*/
+    uint32 i,j;
+    uint32 k, lr, lc, rc, rra, rrb;
+    _Ta av;
+    _Tb bv;
+    _To cv;
+
+    uint32 mo_chidx, ma_chidx, mb_chidx;
+    uint32 Arc = Ar * Ac;
+    uint32 Brc = Br * Bc;
+    uint32 Orc = Ar * Bc;
+    uint32 m;
+    mo_chidx=0; ma_chidx=0; mb_chidx=0;
+    for( m=0; m < Ach ; m++ ){
+        for( i = 0 , lr =0, rra=0 ; i < Ar ; i++, lr += Bc, rra+= Ac){
+            for( j = 0, lc=0; j< Bc ; j++, lc++ ){
+                MO[lr+lc+mo_chidx] = 0;
+                cv=0;
+                for( k=0, rrb=0, rc =0; k < Ac; k++, rrb += Bc, rc++){
+                    av = MA[rra+rc+ma_chidx];
+                    bv = MB[rrb+lc+mb_chidx];
+                    cv = av*bv;
+                    MO[lr+lc+mo_chidx] += cv;
+                    //MO[lr+lc+m] += MA[rra+rc+m] * MB[rrb+lc+m];
+                }
+            }
+        }
+        mo_chidx += Orc; ma_chidx += Arc; mb_chidx += Brc;
+    }
+    return true;
+}
+template <typename _Ta, typename _Tb, typename _To>
+Mat& _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO, uint32 dim){
+    uint32 Ar  = rMA.getRow();
+    uint32 Ac  = rMA.getCol();
+    uint32 Ach = rMA.getChannel();
+    uint32 Br  = rMB.getRow();
+    uint32 Bc  = rMB.getCol();
+    uint32 Bch = rMB.getChannel();
+    uint32 Or  = rMO.getRow();
+    uint32 Oc  = rMO.getCol();
+    uint32 Och = rMO.getChannel();
+
+    _Ta* MA  = rMA.getDataPtr<_Ta>();
+    _Tb* MB  = rMB.getDataPtr<_Tb>();
+    _To* MO  = rMO.getDataPtr<_To>();
+
+    if( Ac != Br || Ach != Bch ){
+        fprintf(stderr, "sizes of ma and mb into _mul are not match!\n");
+        return false;
+    }else if( Or != Ar || Oc != Bc || Och != Ach){
+        fprintf(stderr, "sizes of mo is not enough!\n");
+        return false;
+    }else if( MA == nullptr || MB == nullptr || MO == nullptr){
+        fprintf(stderr, "one or more of ma, mb or mo into _mul are NULL!\n");
         return false;
     }
 
@@ -79,7 +150,6 @@ bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO){
     }
     return true;
 }
-
 template <typename _T> void _triu( Mat& utri_mat){
     uint32 rows = utri_mat.getRow();
     uint32 cols = utri_mat.getCol();
@@ -87,9 +157,9 @@ template <typename _T> void _triu( Mat& utri_mat){
 
     uint32 pivtmax = (rows < cols ) ? rows : cols;
     uint32 pv, i,j, cr, pvr;
-    double fact;
     uint32 rcstep = rows*cols;
     uint32 tlen   = rcstep*ch;
+    double fact;
     _T* mat = utri_mat.getDataPtr<_T>();
     // do triu
     for( uint32 cc=0; cc < tlen ; cc+=rcstep){
@@ -104,6 +174,36 @@ template <typename _T> void _triu( Mat& utri_mat){
                 for(j=0 ; j<cols ; j++){
                     if(mat[pvr+pv] == 0.0){ std::cout << "Singular Matrix!"; break; }
                     mat[cr+j] = (pv==j) ? 0 : mat[cr+j] - mat[pvr+j] * fact;
+                }
+            }
+        }
+    }
+}
+template <> inline void _triu<cmplx>( Mat& utri_mat){
+    uint32 rows = utri_mat.getRow();
+    uint32 cols = utri_mat.getCol();
+    uint32 ch   = utri_mat.getChannel();
+
+    uint32 pivtmax = (rows < cols ) ? rows : cols;
+    uint32 pv, i,j, cr, pvr;
+    uint32 rcstep = rows*cols;
+    uint32 tlen   = rcstep*ch;
+    cmplx fact;
+    cmplx zero(0,0);
+    cmplx* mat = utri_mat.getDataPtr<cmplx>();
+    // do triu
+    for( uint32 cc=0; cc < tlen ; cc+=rcstep){
+        for( pv=0; pv < pivtmax-1 ; pv++){
+            //std::cout << "pv = " << pv << " ";
+            pvr = pv* cols + cc;
+            for( i = pv+1 ; i < rows ; i++){
+                cr = i* cols + cc;
+                fact = mat[cr+pv] / mat[pvr+pv];
+                //std::cout << "cr= " << cr <<", i = " << i << ", pv= " << pv << " pvr= " << pvr <<" fact = " << fact << " ";
+                //std::cout << "utri_ma[cr+pv] = " << utri_ma[cr+pv] <<" utri_ma[pvr+pv] = " << utri_ma[pvr+pv] << "\n";
+                for(j=0 ; j<cols ; j++){
+                    if(mat[pvr+pv] == zero){ std::cout << "Singular Matrix!"; break; }
+                    mat[cr+j] = (pv==j) ? zero : mat[cr+j] - mat[pvr+j] * fact;
                 }
             }
         }
@@ -133,6 +233,35 @@ template <typename _T> void _tril( Mat& ltri_mat){
                 for(j=0 ; j < cols; j++){
                     if(mat[pvr+pv] == 0.0){ std::cout << "Singular Matrix!"; break; }
                     mat[cr+j] = (pv==j) ? 0 : mat[cr+j] - mat[pvr+j] * fact;
+                }
+            }
+        }
+    }
+}
+template <> inline void _tril<cmplx>( Mat& ltri_mat){
+    uint32 rows = ltri_mat.getRow();
+    uint32 cols = ltri_mat.getCol();
+    uint32 ch   = ltri_mat.getChannel();
+
+    uint32 pivtmax = (rows < cols) ? rows : cols;
+    uint32 rcstep = rows*cols;
+    uint32 tlen = rcstep*ch;
+    uint32   pv, j, cr, pvr;
+    int32 i;
+    cmplx fact;
+    cmplx zero(0,0);
+    cmplx* mat = ltri_mat.getDataPtr<cmplx>();
+    // do tril
+    for(uint32 cc=0; cc < tlen ; cc+= rcstep){
+        for(pv=pivtmax-1 ; pv>0 ; pv--){
+            pvr = pv*cols + cc;
+            for(i=pv-1 ; i >= 0; i--){
+                cr = i* cols + cc;
+                fact = mat[cr+pv] / mat[pvr+pv];
+                //fprintf(stdout,"pv=%d, i=%d, fact=%f",pv,i,fact);
+                for(j=0 ; j < cols; j++){
+                    if(mat[pvr+pv] == zero){ std::cout << "Singular Matrix!"; break; }
+                    mat[cr+j] = (pv==j) ? zero : mat[cr+j] - mat[pvr+j] * fact;
                 }
             }
         }
@@ -179,8 +308,7 @@ template <typename _T> std::shared_ptr<uchar> _augment(const Mat& srcmat, const 
     return augm;
 }
 
-template <typename _T>
-Mat _inverse(const Mat& srcmat){
+template <typename _T> Mat _inverse(const Mat& srcmat){
     DTYP srcDtype = srcmat.getDatType();
 
     if(!(srcDtype == DTYP::DOUBLE || srcDtype == DTYP::FLOAT)){
@@ -214,6 +342,66 @@ Mat _inverse(const Mat& srcmat){
     invmat = Mat(srcDtype, rows,cols,chs);
     _T* invmat_pt = invmat.getDataPtr<_T>();
     _T* ltri_pt   = ltri.getDataPtr<_T>();
+
+    for( ci = 0; ci < ltri.getLength(); ci +=rc){
+        for( pv=0 ; pv < pvmax ; pv++){
+            pvr   = pv * ltri_col;
+            ltrichr_off = ci + pvr;
+            pivot = ltri_pt[ltrichr_off + pv];
+            if(pivot==0.0) continue;
+            for(j=0 ; j < ltri_col ; j++)
+                ltri_pt[ltrichr_off + j] /= pivot;
+        }
+    }
+    uint32 cr;
+    for( ci = 0, cii=0 ; ci < ltri.getLength(); ci += rc, cii += rc2){
+        for(uint32 i=0; i < rows ; i++){
+            pvr = i * ltri_col + cols;
+            cr  = i * cols;
+            invchr_off = cii+cr;
+            ltrichr_off = ci+pvr;
+            for( j=0 ; j < cols ; j++){
+                invmat_pt[invchr_off+j] = ltri_pt[ltrichr_off+j];
+            }
+        }
+    }
+
+    return invmat;
+}
+template <> inline Mat _inverse<cmplx>(const Mat& srcmat){
+    DTYP srcDtype = srcmat.getDatType();
+
+    if(!(srcDtype == DTYP::CMPLX || srcDtype == DTYP::CMPLX)){
+        assert(false && "data type of srcmat into inverse is not CMPLX");
+        fprintf(stderr,"data type of srcmat into inverse is not CMPLX\n");
+        return Mat();
+    }
+    uint32 rows = srcmat.getRow();
+    uint32 cols = srcmat.getCol();
+    uint32 chs  = srcmat.getChannel();
+
+    if(rows != cols) {
+        std::cout << "The inverse matrix cannot be computed because source matrix is not square!";
+        return Mat();
+    }
+
+    Mat mataug = augment(srcmat);
+    Mat utri   = triu(mataug);
+    Mat ltri   = tril(utri);
+    uint32 ltri_col = ltri.getCol();
+    uint32 pv,j, pvr;
+
+    cmplx pivot;
+    Mat invmat;
+    uint32 rc = ltri.getRow() * ltri.getCol();
+    uint32 rc2 = rows*cols;
+    uint32 pvmax= rows;
+    uint32 ci, cii;
+    uint32 invchr_off , ltrichr_off;
+
+    invmat = Mat(srcDtype, rows,cols,chs);
+    cmplx* invmat_pt = invmat.getDataPtr<cmplx>();
+    cmplx* ltri_pt   = ltri.getDataPtr<cmplx>();
 
     for( ci = 0; ci < ltri.getLength(); ci +=rc){
         for( pv=0 ; pv < pvmax ; pv++){

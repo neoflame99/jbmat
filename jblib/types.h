@@ -59,6 +59,10 @@ namespace jmat {
         inline _complex& operator=(const double rhs) { re=rhs; im=0; return *this;}
         inline _complex& operator=(const _complex&& rhs) { *this=rhs; return *this;} // move assignment
 
+        friend bool operator==(const _complex& lhs,const double rhs);
+        friend bool operator==(const double lhs, const _complex& rhs);
+        inline bool operator==(const _complex& rhs) { return (re==rhs.re && im==rhs.im)? true : false; }
+
         inline void set_val(double r=0, double i=0) { re= r; im = i; }
         inline void zero() {set_val(0,0);}
         inline void conj() {im=-im; }
@@ -173,5 +177,11 @@ namespace jmat {
         return (*this);
     }
 
+    inline bool operator==(const _complex& lhs, const double rhs){
+        return (lhs.re == rhs && lhs.im == 0.0) ? true : false;
+    }
+    inline bool operator==(const double lhs, const _complex& rhs){
+        return (rhs.re == lhs && rhs.im == 0.0) ? true : false;
+    }
 }
 #endif // TYPES_H
