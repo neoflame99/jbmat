@@ -38,7 +38,7 @@ void Mat::init(uint32 r, uint32 c, uint32 ch, DTYP dt){
     case DTYP::INT    : byteStep = 4; break;
     case DTYP::FLOAT  : byteStep = 4; break;
     case DTYP::DOUBLE : byteStep = 8; break;
-    default           : byteStep = 1;
+    case DTYP::CMPLX  : byteStep = sizeof(cmplx); break;
     }
     byteLen = length*byteStep;
     alloc(byteLen);

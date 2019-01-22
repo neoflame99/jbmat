@@ -94,7 +94,7 @@ bool _mul(const Mat& rMA,const Mat& rMB, Mat& rMO){
     return true;
 }
 template <typename _Ta, typename _Tb, typename _To>
-Mat& _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO, uint32 dim){
+bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO, uint32 dim){
     uint32 Ar  = rMA.getRow();
     uint32 Ac  = rMA.getCol();
     uint32 Ach = rMA.getChannel();
@@ -111,13 +111,13 @@ Mat& _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO, uint32 dim){
 
     if( Ac != Br || Ach != Bch ){
         fprintf(stderr, "sizes of ma and mb into _mul are not match!\n");
-        return false;
+        //return false;
     }else if( Or != Ar || Oc != Bc || Och != Ach){
         fprintf(stderr, "sizes of mo is not enough!\n");
-        return false;
+        //return false;
     }else if( MA == nullptr || MB == nullptr || MO == nullptr){
         fprintf(stderr, "one or more of ma, mb or mo into _mul are NULL!\n");
-        return false;
+        //return false;
     }
 
     uint32 i,j;
