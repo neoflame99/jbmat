@@ -654,35 +654,43 @@ Mat& Mat::plusMat(const Mat& other){
     DTYP othrdatT = other.getDatType();
     if(  othrdatT == DTYP::DOUBLE){
         switch ( datT ){
-        case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-        case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
-        case DTYP::INT    : _plus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<double>(), length); break;
-        case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
-        default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        case DTYP::DOUBLE : _plus_mat( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
+        case DTYP::FLOAT  : _plus_mat( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _plus_mat( getDataPtr<int32 >(), other.getDataPtr<double>(), length); break;
+        case DTYP::UCHAR  : _plus_mat( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        case DTYP::CMPLX  : _plus_mat( getDataPtr<cmplx >(), other.getDataPtr<double>(), length); break;
         }
     }else if( othrdatT == DTYP::FLOAT){
         switch ( datT ){
-        case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
-        case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-        case DTYP::INT    : _plus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<float >(), length); break;
-        case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
-        default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        case DTYP::DOUBLE : _plus_mat( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
+        case DTYP::FLOAT  : _plus_mat( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _plus_mat( getDataPtr<int32 >(), other.getDataPtr<float >(), length); break;
+        case DTYP::UCHAR  : _plus_mat( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        case DTYP::CMPLX  : _plus_mat( getDataPtr<cmplx >(), other.getDataPtr<float >(), length); break;
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::INT    : _plus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
-        default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::DOUBLE : _plus_mat( getDataPtr<double>(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::FLOAT  : _plus_mat( getDataPtr<float >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::INT    : _plus_mat( getDataPtr<int32 >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::UCHAR  : _plus_mat( getDataPtr<uchar >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::CMPLX  : _plus_mat( getDataPtr<cmplx >(), other.getDataPtr<int32 >(), length); break;
         }
-    }else{
+    }else if (othrdatT== DTYP::UCHAR){
         switch ( datT ){
-        case DTYP::DOUBLE : _plus_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::FLOAT  : _plus_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::INT    : _plus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::UCHAR  : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-        default           : _plus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::DOUBLE : _plus_mat( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::FLOAT  : _plus_mat( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _plus_mat( getDataPtr<int32 >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::UCHAR  : _plus_mat( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::CMPLX  : _plus_mat( getDataPtr<cmplx >(), other.getDataPtr<uchar >(), length); break;
+        }
+    }else if( othrdatT == DTYP::CMPLX){
+        switch ( datT ){
+        case DTYP::DOUBLE : _plus_mat( getDataPtr<double>(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::FLOAT  : _plus_mat( getDataPtr<float >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::INT    : _plus_mat( getDataPtr<int32 >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::UCHAR  : _plus_mat( getDataPtr<uchar >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::CMPLX  : _plus_mat( getDataPtr<cmplx >(), other.getDataPtr<cmplx >(), length); break;
         }
     }
     return *this;
@@ -696,35 +704,43 @@ Mat& Mat::minusMat(const Mat& other){
     DTYP othrdatT = other.getDatType();
     if(  othrdatT == DTYP::DOUBLE){
         switch ( datT ){
-        case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-        case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
-        case DTYP::INT    : _minus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<double>(), length); break;
-        case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
-        default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        case DTYP::DOUBLE : _minus_mat( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
+        case DTYP::FLOAT  : _minus_mat( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _minus_mat( getDataPtr<int32 >(), other.getDataPtr<double>(), length); break;
+        case DTYP::UCHAR  : _minus_mat( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        case DTYP::CMPLX  : _minus_mat( getDataPtr<cmplx >(), other.getDataPtr<double>(), length); break;
         }
     }else if( othrdatT == DTYP::FLOAT){
         switch ( datT ){
-        case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
-        case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-        case DTYP::INT    : _minus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<float >(), length); break;
-        case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
-        default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        case DTYP::DOUBLE : _minus_mat( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
+        case DTYP::FLOAT  : _minus_mat( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _minus_mat( getDataPtr<int32 >(), other.getDataPtr<float >(), length); break;
+        case DTYP::UCHAR  : _minus_mat( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        case DTYP::CMPLX  : _minus_mat( getDataPtr<cmplx >(), other.getDataPtr<float >(), length); break;
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::INT    : _minus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
-        default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::DOUBLE : _minus_mat( getDataPtr<double>(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::FLOAT  : _minus_mat( getDataPtr<float >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::INT    : _minus_mat( getDataPtr<int32 >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::UCHAR  : _minus_mat( getDataPtr<uchar >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::CMPLX  : _minus_mat( getDataPtr<cmplx >(), other.getDataPtr<int32 >(), length); break;
         }
-    }else{
+    }else if( othrdatT == DTYP::UCHAR){
         switch ( datT ){
-        case DTYP::DOUBLE : _minus_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::FLOAT  : _minus_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::INT    : _minus_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::UCHAR  : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-        default           : _minus_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::DOUBLE : _minus_mat( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::FLOAT  : _minus_mat( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _minus_mat( getDataPtr<int32 >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::UCHAR  : _minus_mat( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::CMPLX  : _minus_mat( getDataPtr<cmplx >(), other.getDataPtr<uchar >(), length); break;
+        }
+    }else if( othrdatT == DTYP::CMPLX){
+        switch ( datT ){
+        case DTYP::DOUBLE : _minus_mat( getDataPtr<double>(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::FLOAT  : _minus_mat( getDataPtr<float >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::INT    : _minus_mat( getDataPtr<int32 >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::UCHAR  : _minus_mat( getDataPtr<uchar >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::CMPLX  : _minus_mat( getDataPtr<cmplx >(), other.getDataPtr<cmplx >(), length); break;
         }
     }
     return *this;
@@ -738,35 +754,43 @@ Mat& Mat::multiplyMat(const Mat& other){
     DTYP othrdatT = other.getDatType();
     if(  othrdatT == DTYP::DOUBLE){
         switch ( datT ){
-        case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-        case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
-        case DTYP::INT    : _multiply_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<double>(), length); break;
-        case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
-        default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        case DTYP::DOUBLE : _multiply_mat( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
+        case DTYP::FLOAT  : _multiply_mat( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _multiply_mat( getDataPtr<int32 >(), other.getDataPtr<double>(), length); break;
+        case DTYP::UCHAR  : _multiply_mat( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        case DTYP::CMPLX  : _multiply_mat( getDataPtr<cmplx >(), other.getDataPtr<double>(), length); break;
         }
     }else if( othrdatT == DTYP::FLOAT){
         switch ( datT ){
-        case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
-        case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-        case DTYP::INT    : _multiply_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<float >(), length); break;
-        case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
-        default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        case DTYP::DOUBLE : _multiply_mat( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
+        case DTYP::FLOAT  : _multiply_mat( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _multiply_mat( getDataPtr<int32 >(), other.getDataPtr<float >(), length); break;
+        case DTYP::UCHAR  : _multiply_mat( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        case DTYP::CMPLX  : _multiply_mat( getDataPtr<cmplx >(), other.getDataPtr<float >(), length); break;
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::INT    : _multiply_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
-        default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::DOUBLE : _multiply_mat( getDataPtr<double>(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::FLOAT  : _multiply_mat( getDataPtr<float >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::INT    : _multiply_mat( getDataPtr<int32 >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::UCHAR  : _multiply_mat( getDataPtr<uchar >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::CMPLX  : _multiply_mat( getDataPtr<cmplx >(), other.getDataPtr<int32 >(), length); break;
         }
-    }else{
+    }else if( othrdatT == DTYP::UCHAR){
         switch ( datT ){
-        case DTYP::DOUBLE : _multiply_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::FLOAT  : _multiply_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::INT    : _multiply_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::UCHAR  : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-        default           : _multiply_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::DOUBLE : _multiply_mat( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::FLOAT  : _multiply_mat( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _multiply_mat( getDataPtr<int32 >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::UCHAR  : _multiply_mat( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::CMPLX  : _multiply_mat( getDataPtr<cmplx >(), other.getDataPtr<uchar >(), length); break;
+        }
+    }else if( othrdatT == DTYP::CMPLX){
+        switch ( datT ){
+        case DTYP::DOUBLE : _multiply_mat( getDataPtr<double>(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::FLOAT  : _multiply_mat( getDataPtr<float >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::INT    : _multiply_mat( getDataPtr<int32 >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::UCHAR  : _multiply_mat( getDataPtr<uchar >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::CMPLX  : _multiply_mat( getDataPtr<cmplx >(), other.getDataPtr<cmplx >(), length); break;
         }
     }
     return *this;
@@ -780,35 +804,43 @@ Mat& Mat::divideMat(const Mat& other){
     DTYP othrdatT = other.getDatType();
     if(  othrdatT == DTYP::DOUBLE){
         switch ( datT ){
-        case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
-        case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
-        case DTYP::INT    : _divide_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<double>(), length); break;
-        case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
-        default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        case DTYP::DOUBLE : _divide_mat( getDataPtr<double>(), other.getDataPtr<double>(), length); break;
+        case DTYP::FLOAT  : _divide_mat( getDataPtr<float >(), other.getDataPtr<double>(), length); break;
+        case DTYP::INT    : _divide_mat( getDataPtr<int32 >(), other.getDataPtr<double>(), length); break;
+        case DTYP::UCHAR  : _divide_mat( getDataPtr<uchar >(), other.getDataPtr<double>(), length); break;
+        case DTYP::CMPLX  : _divide_mat( getDataPtr<cmplx >(), other.getDataPtr<double>(), length); break;
         }
     }else if( othrdatT == DTYP::FLOAT){
         switch ( datT ){
-        case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
-        case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
-        case DTYP::INT    : _divide_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<float >(), length); break;
-        case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
-        default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        case DTYP::DOUBLE : _divide_mat( getDataPtr<double>(), other.getDataPtr<float >(), length); break;
+        case DTYP::FLOAT  : _divide_mat( getDataPtr<float >(), other.getDataPtr<float >(), length); break;
+        case DTYP::INT    : _divide_mat( getDataPtr<int32 >(), other.getDataPtr<float >(), length); break;
+        case DTYP::UCHAR  : _divide_mat( getDataPtr<uchar >(), other.getDataPtr<float >(), length); break;
+        case DTYP::CMPLX  : _divide_mat( getDataPtr<cmplx >(), other.getDataPtr<float >(), length); break;
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::INT    : _divide_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<int32   >(), length); break;
-        case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
-        default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<int32   >(), length); break;
+        case DTYP::DOUBLE : _divide_mat( getDataPtr<double>(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::FLOAT  : _divide_mat( getDataPtr<float >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::INT    : _divide_mat( getDataPtr<int32 >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::UCHAR  : _divide_mat( getDataPtr<uchar >(), other.getDataPtr<int32 >(), length); break;
+        case DTYP::CMPLX  : _divide_mat( getDataPtr<cmplx >(), other.getDataPtr<int32 >(), length); break;
         }
-    }else{
+    }else if( othrdatT == DTYP::UCHAR){
         switch ( datT ){
-        case DTYP::DOUBLE : _divide_mat<double>( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::FLOAT  : _divide_mat<float >( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::INT    : _divide_mat<int32   >( getDataPtr<int32   >(), other.getDataPtr<uchar >(), length); break;
-        case DTYP::UCHAR  : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
-        default           : _divide_mat<uchar >( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::DOUBLE : _divide_mat( getDataPtr<double>(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::FLOAT  : _divide_mat( getDataPtr<float >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::INT    : _divide_mat( getDataPtr<int32 >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::UCHAR  : _divide_mat( getDataPtr<uchar >(), other.getDataPtr<uchar >(), length); break;
+        case DTYP::CMPLX  : _divide_mat( getDataPtr<cmplx >(), other.getDataPtr<uchar >(), length); break;
+        }
+    }else if( othrdatT == DTYP::CMPLX){
+        switch ( datT ){
+        case DTYP::DOUBLE : _divide_mat( getDataPtr<double>(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::FLOAT  : _divide_mat( getDataPtr<float >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::INT    : _divide_mat( getDataPtr<int32 >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::UCHAR  : _divide_mat( getDataPtr<uchar >(), other.getDataPtr<cmplx >(), length); break;
+        case DTYP::CMPLX  : _divide_mat( getDataPtr<cmplx >(), other.getDataPtr<cmplx >(), length); break;
         }
     }
     return *this;
@@ -818,11 +850,11 @@ Mat& Mat::plusScalar(const double scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _plus_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _plus_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _plus_scalar<int32   ,double>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _plus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _plus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _plus_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _plus_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _plus_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _plus_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _plus_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -831,11 +863,11 @@ Mat& Mat::plusScalar(const float scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _plus_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _plus_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _plus_scalar<int32   ,float>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _plus_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _plus_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _plus_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _plus_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _plus_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _plus_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _plus_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -844,11 +876,11 @@ Mat& Mat::plusScalar(const int32 scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _plus_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _plus_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _plus_scalar<int32   ,int32>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _plus_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _plus_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _plus_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _plus_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _plus_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _plus_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _plus_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -856,11 +888,11 @@ Mat& Mat::plusScalar(const uchar scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _plus_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _plus_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _plus_scalar<int32   ,uchar>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _plus_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _plus_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _plus_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _plus_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _plus_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _plus_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _plus_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -869,11 +901,11 @@ Mat& Mat::minusScalar(const double scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _minus_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _minus_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _minus_scalar<int32   ,double>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _minus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _minus_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _minus_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _minus_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _minus_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _minus_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _minus_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -882,11 +914,11 @@ Mat& Mat::minusScalar(const float scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _minus_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _minus_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _minus_scalar<int32   ,float>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _minus_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _minus_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _minus_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _minus_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _minus_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _minus_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _minus_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -895,11 +927,11 @@ Mat& Mat::minusScalar(const int32 scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _minus_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _minus_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _minus_scalar<int32   ,int32>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _minus_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _minus_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _minus_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _minus_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _minus_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _minus_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _minus_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -907,11 +939,11 @@ Mat& Mat::minusScalar(const uchar scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _minus_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _minus_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _minus_scalar<int32   ,uchar>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _minus_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _minus_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _minus_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _minus_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _minus_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _minus_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _minus_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -920,11 +952,11 @@ Mat& Mat::multiplyScalar(const double scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _multiply_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _multiply_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _multiply_scalar<int32   ,double>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _multiply_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _multiply_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _multiply_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _multiply_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _multiply_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _multiply_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _multiply_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -933,11 +965,11 @@ Mat& Mat::multiplyScalar(const float scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _multiply_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _multiply_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _multiply_scalar<int32   ,float>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _multiply_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _multiply_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _multiply_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _multiply_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _multiply_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _multiply_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _multiply_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -946,11 +978,11 @@ Mat& Mat::multiplyScalar(const int32 scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _multiply_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _multiply_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _multiply_scalar<int32   ,int32>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _multiply_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _multiply_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _multiply_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _multiply_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _multiply_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _multiply_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _multiply_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -958,11 +990,11 @@ Mat& Mat::multiplyScalar(const uchar scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _multiply_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _multiply_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _multiply_scalar<int32   ,uchar>(getDataPtr<int32   >(), scalar, length); break;
-    case DTYP::UCHAR  : _multiply_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _multiply_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _multiply_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _multiply_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _multiply_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _multiply_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _multiply_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -971,11 +1003,11 @@ Mat& Mat::dividedByScalar(const double scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _divided_by_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _divided_by_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divided_by_scalar<int32 ,double>(getDataPtr<int32   >(), scalar, length); break;
-//  case DTYP::UCHAR  : _divided_by_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _divided_by_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _divided_by_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _divided_by_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _divided_by_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _divided_by_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _divided_by_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -984,11 +1016,11 @@ Mat& Mat::dividedByScalar(const float scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _divided_by_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _divided_by_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divided_by_scalar<int32 ,float>(getDataPtr<int32   >(), scalar, length); break;
-//  case DTYP::UCHAR  : _divided_by_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _divided_by_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _divided_by_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _divided_by_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _divided_by_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _divided_by_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _divided_by_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -997,11 +1029,11 @@ Mat& Mat::dividedByScalar(const int32 scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _divided_by_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _divided_by_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divided_by_scalar<int32 ,int32>(getDataPtr<int32   >(), scalar, length); break;
-//  case DTYP::UCHAR  : _divided_by_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _divided_by_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _divided_by_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _divided_by_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _divided_by_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _divided_by_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _divided_by_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -1009,11 +1041,11 @@ Mat& Mat::dividedByScalar(const uchar scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _divided_by_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _divided_by_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _divided_by_scalar<int32 ,uchar>(getDataPtr<int32   >(), scalar, length); break;
-//  case DTYP::UCHAR  : _divided_by_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _divided_by_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _divided_by_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _divided_by_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _divided_by_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _divided_by_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _divided_by_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -1022,11 +1054,11 @@ Mat& Mat::dividingScalar(const double scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _dividing_scalar<double,double>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _dividing_scalar<float ,double>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _dividing_scalar<int32 ,double>(getDataPtr<int32   >(), scalar, length); break;
-//  case DTYP::UCHAR  : _dividing_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _dividing_scalar<uchar ,double>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _dividing_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _dividing_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _dividing_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _dividing_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _dividing_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -1035,11 +1067,11 @@ Mat& Mat::dividingScalar(const float scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _dividing_scalar<double,float>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _dividing_scalar<float ,float>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _dividing_scalar<int32 ,float>(getDataPtr<int32   >(), scalar, length); break;
-//  case DTYP::UCHAR  : _dividing_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _dividing_scalar<uchar ,float>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _dividing_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _dividing_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _dividing_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _dividing_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _dividing_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -1048,11 +1080,11 @@ Mat& Mat::dividingScalar(const int32 scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _dividing_scalar<double,int32>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _dividing_scalar<float ,int32>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _dividing_scalar<int32 ,int32>(getDataPtr<int32   >(), scalar, length); break;
-//  case DTYP::UCHAR  : _dividing_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _dividing_scalar<uchar ,int32>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _dividing_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _dividing_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _dividing_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _dividing_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _dividing_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
@@ -1060,11 +1092,11 @@ Mat& Mat::dividingScalar(const uchar scalar){
     if(isEmpty()) return *this;
 
     switch(datT){
-    case DTYP::DOUBLE : _dividing_scalar<double,uchar>(getDataPtr<double>(), scalar, length); break;
-    case DTYP::FLOAT  : _dividing_scalar<float ,uchar>(getDataPtr<float >(), scalar, length); break;
-    case DTYP::INT    : _dividing_scalar<int32 ,uchar>(getDataPtr<int32   >(), scalar, length); break;
-//  case DTYP::UCHAR  : _dividing_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length); break;
-    default           : _dividing_scalar<uchar ,uchar>(getDataPtr<uchar >(), scalar, length);
+    case DTYP::DOUBLE : _dividing_scalar(getDataPtr<double>(), scalar, length); break;
+    case DTYP::FLOAT  : _dividing_scalar(getDataPtr<float >(), scalar, length); break;
+    case DTYP::INT    : _dividing_scalar(getDataPtr<int32 >(), scalar, length); break;
+    case DTYP::UCHAR  : _dividing_scalar(getDataPtr<uchar >(), scalar, length); break;
+    case DTYP::CMPLX  : _dividing_scalar(getDataPtr<cmplx >(), scalar, length);
     }
     return *this;
 }
