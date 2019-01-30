@@ -43,17 +43,20 @@ namespace jmat {
         friend inline _complex operator/(double lhs, _complex& rhs);
         inline _complex operator/(const _complex& rhs);
 
-        template<typename T> friend _complex& operator+=(_complex& lhs, T rhs);
-        template<typename T> friend         T operator+=(T lhs, _complex& rhs);
+
+        friend inline double operator+=(double lhs, _complex& rhs);
         inline _complex& operator+=(const _complex& rhs);
         inline _complex& operator+=(const double rhs);
 
+        friend inline double operator-=(double lhs, _complex& rhs);
         inline _complex& operator-=(const _complex& rhs);
         inline _complex& operator-=(const double rhs);
 
+        friend inline double operator*=(double lhs, _complex& rhs);
         inline _complex& operator*=(const _complex& rhs);
         inline _complex& operator*=(const double rhs);
 
+        friend inline double operator/=(double lhs, _complex& rhs);
         inline _complex& operator/=(const _complex& rhs);
         inline _complex& operator/=(const double rhs);
 
@@ -139,22 +142,8 @@ namespace jmat {
         return A;
     }
 
-    template <typename T> _complex& operator+=(_complex& lhs, T rhs){
-        lhs.re += rhs;
-        return lhs;
-    }
-    template <> _complex& operator+= <_complex>(_complex& lhs, _complex rhs){
-        lhs.re += rhs.re;
-        lhs.im += rhs.im;
-        return lhs;
-    }
-    template <typename T> T operator+=(T lhs, _complex& rhs){
+    inline double operator+=(double lhs, _complex& rhs){
         lhs += rhs.re;
-        return lhs;
-    }
-    template <> _complex operator+=(_complex lhs, _complex& rhs){
-        lhs.re += rhs.re;
-        lhs.im += rhs.im;
         return lhs;
     }
     inline _complex& _complex::operator+=(const _complex& rhs){
@@ -167,6 +156,10 @@ namespace jmat {
         return *this;
     }
 
+    inline double operator-=(double lhs, _complex& rhs){
+        lhs -= rhs.re;
+        return lhs;
+    }
     inline _complex& _complex::operator -=(const _complex& rhs){
         re -= rhs.re;
         im -= rhs.im;
@@ -177,6 +170,10 @@ namespace jmat {
         return (*this);
     }
 
+    inline double operator*=(double lhs, _complex& rhs){
+        lhs *= rhs.re;
+        return lhs;
+    }
     inline _complex& _complex::operator *=(const _complex& rhs){
         re *= rhs.re;
         im *= rhs.im;
@@ -187,6 +184,10 @@ namespace jmat {
         return (*this);
     }
 
+    inline double operator/=(double lhs, _complex& rhs){
+        lhs /= rhs.re;
+        return lhs;
+    }
     inline _complex& _complex::operator /=(const _complex& rhs){
         re /= rhs.re;
         im /= rhs.im;
