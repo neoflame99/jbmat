@@ -397,7 +397,7 @@ void Mat::changeDType(const DTYP dt){
     if(dt == DTYP::DOUBLE){
         switch (datT) {
         case DTYP::FLOAT : _type_change<float,double>(); break;
-        case DTYP::INT   : _type_change<int32  ,double>(); break;
+        case DTYP::INT   : _type_change<int32,double>(); break;
         case DTYP::UCHAR : _type_change<uchar,double>(); break;
         default          : break;
         }
@@ -405,7 +405,7 @@ void Mat::changeDType(const DTYP dt){
     }else if( dt== DTYP::FLOAT){
         switch (datT) {
         case DTYP::DOUBLE: _type_change<double,float>(); break;
-        case DTYP::INT   : _type_change<int32   ,float>(); break;
+        case DTYP::INT   : _type_change<int32 ,float>(); break;
         case DTYP::UCHAR : _type_change<uchar ,float>(); break;
         default          : break;
         }
@@ -422,7 +422,7 @@ void Mat::changeDType(const DTYP dt){
         switch (datT) {
         case DTYP::DOUBLE: _type_change<double,uchar>(); break;
         case DTYP::FLOAT : _type_change<float ,uchar>(); break;
-        case DTYP::INT   : _type_change<int32   ,uchar>(); break;
+        case DTYP::INT   : _type_change<int32 ,uchar>(); break;
         default          : break;
         }
         datT = dt;
@@ -489,8 +489,9 @@ void Mat::printMat(const std::string objname) {
     switch(datT){
     case DTYP::DOUBLE : _print((double *)dat_ptr); break;
     case DTYP::FLOAT  : _print((float  *)dat_ptr); break;
-    case DTYP::INT    : _print((int32    *)dat_ptr); break;
+    case DTYP::INT    : _print((int32  *)dat_ptr); break;
     case DTYP::UCHAR  : _print((uchar  *)dat_ptr); break;
+    case DTYP::CMPLX  : _print((cmplx  *)dat_ptr); break;
     default           : fprintf(stdout, "datT is not matching with any type\n");
     }
 }
@@ -519,19 +520,23 @@ Mat Mat::ones(uint32 r, uint32 c, uint32 ch, DTYP dt){
     Mat A(dt, r, c, ch);
 
     if(dt==DTYP::DOUBLE){
-        double* pt_dat = (double *)A.getMat().get();
+        double* pt_dat = A.getDataPtr<double>();
         for(uint32 i=0; i < r*c*ch; i++)
             pt_dat[i] = 1.0;
     }else if(dt==DTYP::FLOAT){
-        float* pt_dat = (float *)A.getMat().get();
+        float* pt_dat = A.getDataPtr<float >();
         for(uint32 i=0; i < r*c*ch; i++)
             pt_dat[i] = 1.0f;
     }else if(dt==DTYP::INT){
-        int32* pt_dat = (int32 *)A.getMat().get();
+        int32* pt_dat = A.getDataPtr<int32 >();
         for(uint32 i=0; i < r*c*ch; i++)
             pt_dat[i] = 1;
-    }else{
-        uchar* pt_dat = (uchar *)A.getMat().get();
+    }else if(dt==DTYP::UCHAR){
+        uchar* pt_dat = A.getDataPtr<uchar >();
+        for(uint32 i=0; i < r*c*ch; i++)
+            pt_dat[i] = 1;
+    }else if(dt==DTYP::CMPLX){
+        cmplx* pt_dat = A.getDataPtr<cmplx >();
         for(uint32 i=0; i < r*c*ch; i++)
             pt_dat[i] = 1.0;
     }

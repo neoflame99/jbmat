@@ -219,7 +219,7 @@ template <typename _Tslf, typename _Totr> void Mat::_dividing_scalar(_Tslf* self
         self[k] = scalar / self[k];
 }
 
-template <typename _Tsrc, typename _Ttar> void Mat::_type_change(){
+template <typename _Tsrc, typename _Ttar> inline void Mat::_type_change(){
     _Tsrc* src_pt = (_Tsrc *)mA.get();
     _Ttar* tar_pt;
     try{
@@ -240,7 +240,7 @@ template <typename _Tsrc, typename _Ttar> void Mat::_type_change(){
     byteLen  = length * byteStep;
 }
 
-template <typename _T> void Mat::_print(_T* mdat){
+template <typename _T> inline void Mat::_print(_T* mdat){
     const int32 bufsz = 2049;
     char buf[bufsz]="\0";
     char tmp[bufsz];
@@ -251,6 +251,7 @@ template <typename _T> void Mat::_print(_T* mdat){
 
     uint32 k;
     uint32 ch_offset;
+
 
     if(datT==DTYP::DOUBLE || datT==DTYP::FLOAT){
         double val;
@@ -288,7 +289,41 @@ template <typename _T> void Mat::_print(_T* mdat){
         }
     }
 }
+template <> inline void Mat::_print<cmplx>(cmplx* mdat){
+    const int32 bufsz = 2049;
+    char buf[bufsz]="\0";
+    char tmp[bufsz];
+    uint32 i,j;
 
+    const double neg_max_double = -DBL_EPSILON ;
+    const double pos_min_double =  DBL_EPSILON ;
+
+    uint32 k;
+    uint32 ch_offset;
+
+
+    if(datT==DTYP::CMPLX){
+        cmplx val;
+        for( k = 0 ; k < Nch; k++){
+            fprintf(stdout,"channel: %d \n",k);
+            ch_offset = k*lenRowCol;
+            for( i = 0; i < lenRowCol; i += col){ // rows
+                snprintf(buf,bufsz,"[");
+                for( j=0; j < col; j++){          // columns
+                    val = mdat[i+j+ch_offset];
+                    if( val.re >= neg_max_double && val.re <= pos_min_double)
+                        val.re = 0.0;
+                    if( val.im >= neg_max_double && val.im <= pos_min_double)
+                        val.im = 0.0;
+                    snprintf(tmp,bufsz," %10.4f + i%10.4f",val.re, val.im);
+                    strncat(buf,tmp,bufsz);
+                }
+                strncat(buf,"]",1);
+                fprintf(stdout,"%s\n",buf);
+            }
+        }
+    }
+}
 template <typename _T> Mat Mat::max() {
     _T* datPtr = this->getDataPtr<_T>();
 

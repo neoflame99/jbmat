@@ -60,6 +60,7 @@ namespace jmat {
         inline _complex& operator/=(const _complex& rhs);
         inline _complex& operator/=(const double rhs);
 
+
         inline _complex& operator=(const _complex& rhs) {  re = rhs.re; im = rhs.im; return *this; }
         inline _complex& operator=(const double rhs) { re=rhs; im=0; return *this;}
         inline _complex& operator=(const _complex&& rhs) { *this=rhs; return *this;} // move assignment
@@ -204,5 +205,6 @@ namespace jmat {
     inline bool operator==(const double lhs, const _complex& rhs){
         return (rhs.re == lhs && rhs.im == 0.0) ? true : false;
     }
+
 }
 #endif // TYPES_H
