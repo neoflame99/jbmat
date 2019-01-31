@@ -140,7 +140,7 @@ public : // static methods
     static int32 instant_count;
 
 public : // public template methods
-    template <typename _T> _T& at(uint32 i) const;
+    template <typename _T> _T& at(uint32 i=0) const;
     template <typename _T> _T& at(uint32 r, uint32 c, uint32 nch=0) const;
     template <typename _T> _T* getDataPtr() const;
     template <typename _T> Mat max() ;
