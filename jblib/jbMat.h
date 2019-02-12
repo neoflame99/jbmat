@@ -178,7 +178,11 @@ template <typename _T> inline _T& Mat::at(uint32 r, uint32 c, uint32 ch) const {
 }
 
 template <typename _T> inline _T* Mat::getDataPtr() const {
-    return (_T *)dat_ptr;
+    //return static_cast<_T*>(dat_ptr);
+    return (_T*)dat_ptr;
+}
+template <> inline cmplx* Mat::getDataPtr() const{
+    return reinterpret_cast<cmplx*>(dat_ptr);
 }
 
 template <typename _Tslf, typename _Totr> void Mat::_plus_mat(_Tslf* self, _Totr* other, uint32 len){
