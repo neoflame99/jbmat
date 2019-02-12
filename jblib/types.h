@@ -20,6 +20,7 @@ namespace jmat {
         double re;
         double im;
         // constructor
+        _complex(double r):re(r),im(0){} // type conversion constructor
         _complex(double r, double i):re(r),im(i){}
         _complex():re(0),im(0){}
         _complex(const _complex& ot):re(ot.re),im(ot.im){} // copy constructor

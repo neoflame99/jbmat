@@ -408,7 +408,7 @@ template <> inline Mat _inverse<cmplx>(const Mat& srcmat){
             pvr   = pv * ltri_col;
             ltrichr_off = ci + pvr;
             pivot = ltri_pt[ltrichr_off + pv];
-            if(pivot==0.0) continue;
+            if(pivot.re==0.0 ) continue;
             for(j=0 ; j < ltri_col ; j++)
                 ltri_pt[ltrichr_off + j] /= pivot;
         }
