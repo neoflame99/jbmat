@@ -2,6 +2,7 @@
 #define TYPES_H
 #include <memory>
 #include <cstdint>
+#include <float.h>
 
 namespace jmat {    
     typedef unsigned char  uchar;
@@ -68,7 +69,7 @@ namespace jmat {
 
         friend bool operator==(const _complex& lhs,const double rhs);
         friend bool operator==(const double lhs, const _complex& rhs);
-        inline bool operator==(const _complex& rhs) { return (re==rhs.re && im==rhs.im)? true : false; }
+        inline bool operator==(const _complex& rhs) { return (re<=rhs.re+DBL_EPSILON && re >=rhs.re-DBL_EPSILON && im<=rhs.im+DBL_EPSILON && im >=rhs.im-DBL_EPSILON)? true : false; }
 
         inline void set_val(double r=0, double i=0) { re= r; im = i; }
         inline void zero() {set_val(0,0);}
@@ -201,10 +202,10 @@ namespace jmat {
     }
 
     inline bool operator==(const _complex& lhs, const double rhs){
-        return (lhs.re == rhs && lhs.im == 0.0) ? true : false;
+        return (lhs.re <= rhs+DBL_EPSILON && lhs.re >= rhs-DBL_EPSILON && lhs.im == 0.0) ? true : false;
     }
     inline bool operator==(const double lhs, const _complex& rhs){
-        return (rhs.re == lhs && rhs.im == 0.0) ? true : false;
+        return (rhs.re <= lhs+DBL_EPSILON && rhs.re >= lhs-DBL_EPSILON && rhs.im == 0.0) ? true : false;
     }
 
 }
