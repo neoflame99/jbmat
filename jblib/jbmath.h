@@ -48,9 +48,9 @@ bool _mul(const Mat& rMA,const Mat& rMB, Mat& rMO){
     assert(Or==Ar);
     assert(Oc==Bc);
     assert(Ach==Och);
-    assert(MA==nullptr);
-    assert(MB==nullptr);
-    assert(MO==nullptr);
+    assert(MA!=nullptr);
+    assert(MB!=nullptr);
+    assert(MO!=nullptr);
 /*
     if( Ac != Br || Ach != Bch ){
         fprintf(stderr, "sizes of ma and mb into _mul are not match!\n");
@@ -109,45 +109,56 @@ bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO, uint32 dim){
     _Tb* MB  = rMB.getDataPtr<_Tb>();
     _To* MO  = rMO.getDataPtr<_To>();
 
-    if( Ac != Br || Ach != Bch ){
-        fprintf(stderr, "sizes of ma and mb into _mul are not match!\n");
-        //return false;
-    }else if( Or != Ar || Oc != Bc || Och != Ach){
-        fprintf(stderr, "sizes of mo is not enough!\n");
-        //return false;
-    }else if( MA == nullptr || MB == nullptr || MO == nullptr){
-        fprintf(stderr, "one or more of ma, mb or mo into _mul are NULL!\n");
-        //return false;
-    }
-
     uint32 i,j;
-    uint32 k, lr, lc, rc, rra, rrb;
-    _Ta av;
-    _Tb bv;
-    _To cv;
-
-    uint32 mo_chidx, ma_chidx, mb_chidx;
     uint32 Arc = Ar * Ac;
     uint32 Brc = Br * Bc;
-    uint32 Orc = Ar * Bc;
     uint32 m;
-    mo_chidx=0; ma_chidx=0; mb_chidx=0;
-    for( m=0; m < Ach ; m++ ){
-        for( i = 0 , lr =0, rra=0 ; i < Ar ; i++, lr += Bc, rra+= Ac){
-            for( j = 0, lc=0; j< Bc ; j++, lc++ ){
-                MO[lr+lc+mo_chidx] = 0;
-                cv=0;
-                for( k=0, rrb=0, rc =0; k < Ac; k++, rrb += Bc, rc++){
-                    av = MA[rra+rc+ma_chidx];
-                    bv = MB[rrb+lc+mb_chidx];
-                    cv = av*bv;
-                    MO[lr+lc+mo_chidx] += cv;
-                    //MO[lr+lc+m] += MA[rra+rc+m] * MB[rrb+lc+m];
-                }
+    _To sum;
+    assert(Ach == Bch);
+    assert(Ach == Och);
+    if ( (Ar==1 || Ac==1) && (Br==1 || Bc==1)){
+        /* MA and MB are row or column vectors, MO should be scalar or channel array*/
+        assert(Arc == Brc);
+        assert(Or  == 1  );
+        assert(Oc  == 1  );
+        for (m = 0; m < Ach; m++){
+            sum = 0;
+            for(i = 0; i < Arc ; i++)
+                sum += MA[i] * MB[i];
+
+            MO[m] = sum;
+        }
+    }else if(dim==0){
+        /* MA and MB are array, row-wise dot product such that MO is to be a column vector */
+        assert(Ar == Br);
+        assert(Ac == Bc);
+        assert(Oc == 1 );
+        assert(Or == Ar);
+        for(m = 0 ; m < Ach; m++){
+            for(i=0; i < Ar; i++){
+                sum = 0;
+                for(j=0; j < Ac; j++)
+                    sum += MA(i,j,m) * MB(i,j,m);
+                MO(i,0,m) = sum;
             }
         }
-        mo_chidx += Orc; ma_chidx += Arc; mb_chidx += Brc;
+    }else {
+        /* MA and MB are array, column-wise dot product such that MO is to be a row vector */
+        assert(Ar == Br);
+        assert(Ac == Bc);
+        assert(Oc == Ac);
+        assert(Or == 1 );
+        for(m = 0 ; m < Ach; m++){
+            for(i=0; i < Ac; i++){
+                sum = 0;
+                for(j=0; j < Ar; j++){
+                    sum += MA(j,i,m) * MB(j,i,m);
+                }
+                MO(0,i,m) = sum;
+            }
+        }
     }
+
     return true;
 }
 template <typename _T> void _triu( Mat& utri_mat){
