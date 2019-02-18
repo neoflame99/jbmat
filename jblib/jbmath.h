@@ -10,6 +10,7 @@
 namespace jmat {
 
     Mat mul(const Mat& mA,const Mat& mB);
+    Mat dot(const Mat& mA,const Mat& mB, uint32 dim=0);
     Mat triu(const Mat& mA);
     Mat tril(const Mat& mA);
     Mat augment(const Mat& mA);
@@ -105,10 +106,6 @@ bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO, uint32 dim){
     uint32 Oc  = rMO.getCol();
     uint32 Och = rMO.getChannel();
 
-    _Ta* MA  = rMA.getDataPtr<_Ta>();
-    _Tb* MB  = rMB.getDataPtr<_Tb>();
-    _To* MO  = rMO.getDataPtr<_To>();
-
     uint32 i,j;
     uint32 Arc = Ar * Ac;
     uint32 Brc = Br * Bc;
@@ -124,9 +121,9 @@ bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO, uint32 dim){
         for (m = 0; m < Ach; m++){
             sum = 0;
             for(i = 0; i < Arc ; i++)
-                sum += MA[i] * MB[i];
+                sum += rMA.at<_Ta>(i) * rMB.at<_Tb>(i);
 
-            MO[m] = sum;
+            rMO.at<_To>(m) = sum;
         }
     }else if(dim==0){
         /* MA and MB are array, row-wise dot product such that MO is to be a column vector */
@@ -138,8 +135,9 @@ bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO, uint32 dim){
             for(i=0; i < Ar; i++){
                 sum = 0;
                 for(j=0; j < Ac; j++)
-                    sum += MA(i,j,m) * MB(i,j,m);
-                MO(i,0,m) = sum;
+                    sum += rMA.at<_Ta>(i,j,m) * rMB.at<_Tb>(i,j,m);
+
+                rMO.at<_To>(i,0,m) = sum;
             }
         }
     }else {
@@ -152,9 +150,9 @@ bool _dot_prod(const Mat& rMA,const Mat& rMB, Mat& rMO, uint32 dim){
             for(i=0; i < Ac; i++){
                 sum = 0;
                 for(j=0; j < Ar; j++){
-                    sum += MA(j,i,m) * MB(j,i,m);
+                    sum += rMA.at<_Ta>(j,i,m) * rMB.at<_Tb>(j,i,m);
                 }
-                MO(0,i,m) = sum;
+                rMO.at<_To>(0,i,m) = sum;
             }
         }
     }
