@@ -64,8 +64,8 @@ int32 main(int32 argc, char *argv[])
     Mat maf = inverse(mae);
     maf.printMat("inversed mat");
 
-    Mat mag(DTYP::DOUBLE, 3,4,2);
-    Mat mah(DTYP::DOUBLE, 4,3,2);
+    Mat mag(DTYP::DOUBLE, 3,4,2,"mag");
+    Mat mah(DTYP::DOUBLE, 4,3,2,"mah");
     Mat man(DTYP::DOUBLE, 3,4,2,"man");
     double *mag_m = mag.getDataPtr<double>();
     double *mah_m = mah.getDataPtr<double>();
@@ -74,8 +74,8 @@ int32 main(int32 argc, char *argv[])
         mah_m[c] = c + c%4;
         man.at<double>(c) = rand()%1000;
     }
-    Mat mai = dot(mag,mah);
-    Mat maj = dot(mah,mag);
+    Mat mai = mul(mag,mah);
+    Mat maj = mul(mah,mag);
     mai.setName("mai");
     mag.printMat();
     mah.printMat();
@@ -163,7 +163,24 @@ int32 main(int32 argc, char *argv[])
     Mat mj = imgproc::rgb2gray(mg);
     mj.printMat();
 
+    /*dot product */
 
+    Mat mdps1({1,2,3});
+    Mat mdps2({4,5,6});
+    //mdps2.transpose();
+    Mat mdp1 = dot(mdps1, mdps2);
+    mdp1.printMat("vector dot product");
+
+    Mat mdps3({1,2,3,4,5,6});
+    Mat mdps4({7,8,9,10,11,12});
+    mdps3.reshape(3,2,1);
+    mdps4.reshape(3,2,1);
+    Mat mdp2 = dot(mdps3, mdps4, 0);
+    Mat mdp3 = dot(mdps3, mdps4, 1);
+    mdps3.printMat("mdps3");
+    mdps4.printMat("mdps4");
+    mdp2.printMat("dim=0 dot product");
+    mdp3.printMat("dim=1 dot product");
 /*
     Mat mk(DTYP::DOUBLE,3,4,2,"mk");
     Mat ml(DTYP::DOUBLE,4,3,2,"ml");

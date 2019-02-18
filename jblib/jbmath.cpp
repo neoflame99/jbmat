@@ -144,84 +144,76 @@ Mat dot(const Mat& mA,const Mat& mB,uint32 dim){
         oCol = aCol;
     }
 
-    Mat mO;
+
     DTYP maDtype = mA.getDatType();
     DTYP mbDtype = mB.getDatType();
+    DTYP moDtype = (maDtype > mbDtype) ? maDtype : mbDtype;
+    Mat  mO(moDtype, oRow, oCol, ch);
     bool result_prod = false;
 
     if(maDtype == DTYP::CMPLX){
         switch(mbDtype){
         case DTYP::CMPLX :
-            mO = Mat(DTYP::CMPLX, oRow, oCol, ch);
             result_prod = _dot_prod<cmplx ,cmplx ,cmplx>(mA, mB, mO, dim); break;
         case DTYP::DOUBLE:
-            mO = Mat(DTYP::CMPLX, oRow, oCol, ch);
             result_prod = _dot_prod<cmplx ,double,cmplx>(mA, mB, mO, dim); break;
         case DTYP::FLOAT :
-            mO = Mat(DTYP::CMPLX, oRow, oCol, ch);
             result_prod = _dot_prod<cmplx ,float ,cmplx>(mA, mB, mO, dim); break;
         case DTYP::INT   :
-            mO = Mat(DTYP::CMPLX, oRow, oCol, ch);
             result_prod = _dot_prod<cmplx ,int32 ,cmplx>(mA, mB, mO, dim); break;
         case DTYP::UCHAR :
-            mO = Mat(DTYP::CMPLX, oRow, oCol, ch);
             result_prod = _dot_prod<cmplx ,uchar ,cmplx>(mA, mB, mO, dim); break;
         }
     }else if(maDtype == DTYP::DOUBLE){
         switch(mbDtype){
         case DTYP::CMPLX :
-            mO = Mat(DTYP::CMPLX, oRow, oCol, ch);
             result_prod = _dot_prod<double, cmplx ,cmplx>(mA, mB, mO, dim); break;
         case DTYP::DOUBLE:
-            mO = Mat(DTYP::DOUBLE, oRow, oCol, ch);
             result_prod = _dot_prod<double,double,double>(mA, mB, mO, dim); break;
         case DTYP::FLOAT :
-            mO = Mat(DTYP::DOUBLE, oRow, oCol, ch);
             result_prod = _dot_prod<double,float ,double>(mA, mB, mO, dim); break;
         case DTYP::INT   :
-            mO = Mat(DTYP::DOUBLE, oRow, oCol, ch);
             result_prod = _dot_prod<double,int32 ,double>(mA, mB, mO, dim); break;
         case DTYP::UCHAR :
-            mO = Mat(DTYP::DOUBLE, oRow, oCol, ch);
             result_prod = _dot_prod<double,uchar ,double>(mA, mB, mO, dim); break;
         }
     }else if(maDtype == DTYP::FLOAT){
         switch(mbDtype){
-        case DTYP::CMPLX : mO = Mat(DTYP::CMPLX, oRow, oCol, ch);
+        case DTYP::CMPLX :
             result_prod = _dot_prod<float , cmplx ,cmplx>(mA, mB, mO, dim); break;
-        case DTYP::DOUBLE: mO = Mat(DTYP::DOUBLE, oRow, oCol, ch);
+        case DTYP::DOUBLE:
             result_prod = _dot_prod<float ,double,double>(mA, mB, mO, dim); break;
-        case DTYP::FLOAT : mO = Mat(DTYP::FLOAT , oRow, oCol, ch);
+        case DTYP::FLOAT :
             result_prod = _dot_prod<float ,float ,float >(mA, mB, mO, dim); break;
-        case DTYP::INT   : mO = Mat(DTYP::FLOAT , oRow, oCol, ch);
+        case DTYP::INT   :
             result_prod = _dot_prod<float ,int32 ,float >(mA, mB, mO, dim); break;
-        case DTYP::UCHAR : mO = Mat(DTYP::FLOAT , oRow, oCol, ch);
+        case DTYP::UCHAR :
             result_prod = _dot_prod<float ,uchar ,float >(mA, mB, mO, dim); break;
         }
     }else if(maDtype == DTYP::INT ){
         switch(mbDtype){
-        case DTYP::CMPLX : mO = Mat(DTYP::CMPLX, oRow, oCol, ch);
+        case DTYP::CMPLX :
             result_prod = _dot_prod<int32 ,cmplx ,cmplx >(mA, mB, mO, dim); break;
-        case DTYP::DOUBLE: mO = Mat(DTYP::DOUBLE, oRow, oCol, ch);
+        case DTYP::DOUBLE:
             result_prod = _dot_prod<int32 ,double,double>(mA, mB, mO, dim); break;
-        case DTYP::FLOAT : mO = Mat(DTYP::FLOAT , oRow, oCol, ch);
+        case DTYP::FLOAT :
             result_prod = _dot_prod<int32 ,float ,float >(mA, mB, mO, dim); break;
-        case DTYP::INT   : mO = Mat(DTYP::INT   , oRow, oCol, ch);
+        case DTYP::INT   :
             result_prod = _dot_prod<int32 ,int32 ,int32 >(mA, mB, mO, dim); break;
-        case DTYP::UCHAR : mO = Mat(DTYP::INT   , oRow, oCol, ch);
+        case DTYP::UCHAR :
             result_prod = _dot_prod<int32 ,uchar ,int32 >(mA, mB, mO, dim); break;
         }
     }else if(maDtype == DTYP::UCHAR ){
         switch(mbDtype){
-        case DTYP::CMPLX : mO = Mat(DTYP::CMPLX, oRow, oCol, ch);
+        case DTYP::CMPLX :
             result_prod = _dot_prod<uchar ,cmplx ,cmplx >(mA, mB, mO, dim); break;
-        case DTYP::DOUBLE: mO = Mat(DTYP::DOUBLE, oRow, oCol, ch);
+        case DTYP::DOUBLE:
             result_prod = _dot_prod<uchar ,double,double>(mA, mB, mO, dim); break;
-        case DTYP::FLOAT : mO = Mat(DTYP::FLOAT , oRow, oCol, ch);
+        case DTYP::FLOAT :
             result_prod = _dot_prod<uchar ,float ,float >(mA, mB, mO, dim); break;
-        case DTYP::INT   : mO = Mat(DTYP::INT   , oRow, oCol, ch);
+        case DTYP::INT   :
             result_prod = _dot_prod<uchar ,int32 ,int32 >(mA, mB, mO, dim); break;
-        case DTYP::UCHAR : mO = Mat(DTYP::UCHAR , oRow, oCol, ch);
+        case DTYP::UCHAR :
             result_prod = _dot_prod<uchar ,uchar ,uchar >(mA, mB, mO, dim); break;
         }
     }
