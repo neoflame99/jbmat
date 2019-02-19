@@ -181,7 +181,15 @@ int32 main(int32 argc, char *argv[])
     mdps4.printMat("mdps4");
     mdp2.printMat("dim=0 dot product");
     mdp3.printMat("dim=1 dot product");
-/*
+
+
+    Mat tt;
+    {
+        tt= Mat(DTYP::INT,1,1,1);
+        tt.printMat();
+    }
+
+    /*
     Mat mk(DTYP::DOUBLE,3,4,2,"mk");
     Mat ml(DTYP::DOUBLE,4,3,2,"ml");
     Mat mn(DTYP::DOUBLE,4,4,1,"mn");

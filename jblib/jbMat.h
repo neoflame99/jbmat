@@ -74,7 +74,7 @@ public:
     friend Mat operator*(const double scalar, const Mat& A);
     friend Mat operator/(const double scalar, const Mat& A);
 
-    Mat& operator= (const Mat& other );
+    Mat& operator= (Mat&& other );
     Mat& operator+=(const Mat& other );
     Mat& operator+=(const double scalar);
     Mat& operator-=(const Mat& other );

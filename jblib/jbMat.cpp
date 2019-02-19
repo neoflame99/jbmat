@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "jbMat.h"
 #include <iostream>
+#include <utility>
 
 namespace jmat {
 
@@ -188,19 +189,21 @@ Mat& Mat::operator=( Mat other){
 }
 */
 
-// call by reference
-Mat& Mat::operator=(const Mat& other){
+// rvalue reference
+Mat& Mat::operator=(Mat&& other){
 
     fprintf(stdout,"Assign operator\n");
-    row = other.getRow();
-    col = other.getCol();
-    Nch = other.getChannel();
-    length = other.getLength();
-    lenRowCol = row*col;
-    byteStep  = getByteStep();
-    byteLen   = length*byteStep;
-    datT = getDatType();
-    mA   = other.getMat();
+
+    std::swap(row,other.row);
+    std::swap(col,other.col);
+    std::swap(Nch,other.Nch);
+    std::swap(length,other.length);
+    std::swap(lenRowCol,other.lenRowCol);
+    std::swap(byteStep,other.byteStep);
+    std::swap(byteLen,other.byteLen);
+    std::swap(datT,other.datT);
+    std::swap(mA, other.mA);
+    //mA   = other.getMat();
     sync_data_ptr();
 
     return *this;
