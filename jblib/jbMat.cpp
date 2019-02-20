@@ -192,7 +192,7 @@ Mat& Mat::operator=( Mat other){
 // rvalue reference
 Mat& Mat::operator=(Mat&& other){
 
-    fprintf(stdout,"Assign operator\n");
+    fprintf(stdout,"rvalue referance Assign operator\n");
 
     std::swap(row,other.row);
     std::swap(col,other.col);
@@ -203,7 +203,6 @@ Mat& Mat::operator=(Mat&& other){
     std::swap(byteLen,other.byteLen);
     std::swap(datT,other.datT);
     std::swap(mA, other.mA);
-    //mA   = other.getMat();
     sync_data_ptr();
 
     return *this;
