@@ -22,8 +22,8 @@ namespace qimmat {
         uchar* qim_dat = src.bits();
         _T*    mat_dat = tar.getDataPtr<_T>();
 
-        uint32 row = src.height();
-        uint32 col = src.width();
+        uint32 row = static_cast<uint32>(src.height());
+        uint32 col = static_cast<uint32>(src.width());
         uint32 lenRowCol  = row*col;
         uint32 lenRowCol2 = lenRowCol << 1;
 
@@ -100,6 +100,41 @@ namespace qimmat {
                 //if(a > 255) a = 255; else if( a < 0) a = 0;
                 //qim_dat[y] = static_cast<unsigned char>(a);
                 qim_dat[y] = sat_cast<uchar>(mat_dat[y]);
+            }
+        }
+    }
+
+    template <> inline void _datmat2qim<cmplx>(QImage& tar, const Mat& src){
+        if(src.isEmpty()) return;
+
+        uint32 col = src.getCol();
+        uint32 row = src.getRow();
+
+        QImage::Format fmt = tar.format();
+
+        uchar* qim_dat = tar.bits();
+        cmplx* mat_dat = src.getDataPtr<cmplx>();
+        //cmplx a,b,c;
+        uint32 y, k;
+        uint32 lenRowCol  = row*col;
+        uint32 lenRowCol2 = lenRowCol << 1;
+
+        if(fmt == QImage::Format_RGB32){
+            for( y=0, k=0 ; y < lenRowCol; y++, k+=4){
+                qim_dat[k  ] = sat_cast<uchar>(mat_dat[y+lenRowCol2].re);
+                qim_dat[k+1] = sat_cast<uchar>(mat_dat[y+lenRowCol ].re);
+                qim_dat[k+2] = sat_cast<uchar>(mat_dat[y           ].re);
+                qim_dat[k+3] = 255;
+            }
+        }else if(fmt==QImage::Format_RGB888){
+            for( y=0, k=0 ; y < lenRowCol; y++, k+=3 ){
+                qim_dat[k  ] = sat_cast<uchar>(mat_dat[y+lenRowCol2].re);
+                qim_dat[k+1] = sat_cast<uchar>(mat_dat[y+lenRowCol ].re);
+                qim_dat[k+2] = sat_cast<uchar>(mat_dat[y           ].re);
+            }
+        }else if(fmt==QImage::Format_Grayscale8){
+            for( y=0 ; y < lenRowCol ; y++){
+                qim_dat[y] = sat_cast<uchar>(mat_dat[y].re);
             }
         }
     }

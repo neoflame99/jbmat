@@ -5,7 +5,7 @@ namespace qimmat {
 
     Mat qim2mat( QImage& src, DTYP matDtype){
         QImage::Format fmt = src.format();
-        int32 ch = 0;
+        uint32 ch = 0;
         if(fmt == QImage::Format_Grayscale8 ){
             ch = 1;
             fprintf(stdout,"image format: grayscale\n");
@@ -19,8 +19,8 @@ namespace qimmat {
             fprintf(stdout,"qim2jbmat is not supporting format\n");
             return Mat();
         }
-        uint32 row = src.height();
-        uint32 col = src.width();
+        uint32 row = static_cast<uint32>(src.height());
+        uint32 col = static_cast<uint32>(src.width());
 
         Mat mat(matDtype, row, col, ch);
 
@@ -29,6 +29,7 @@ namespace qimmat {
         case DTYP::FLOAT  : _datqim2mat<float >(mat, src); break;
         case DTYP::INT    : _datqim2mat<int32 >(mat, src); break;
         case DTYP::UCHAR  : _datqim2mat<uchar >(mat, src); break;
+        case DTYP::CMPLX  : _datqim2mat<cmplx >(mat, src);
         }
 
         return mat;
@@ -45,8 +46,8 @@ namespace qimmat {
         return QImage();
     }
 
-    int32 col = src.getCol();
-    int32 row = src.getRow();
+    int32 col = static_cast<int32>(src.getCol());
+    int32 row = static_cast<int32>(src.getRow());
     QImage qim(col, row, fmt);
     qim.fill(0);
 
@@ -55,6 +56,7 @@ namespace qimmat {
     case DTYP::FLOAT  : _datmat2qim<float >(qim, src); break;
     case DTYP::INT    : _datmat2qim<int32 >(qim, src); break;
     case DTYP::UCHAR  : _datmat2qim<uchar >(qim, src); break;
+    case DTYP::CMPLX  : _datmat2qim<cmplx >(qim, src);
     }
     return qim;
 }
