@@ -132,6 +132,15 @@ int32 main(int32 argc, char *argv[])
     //QImage cvim = QimMat::jbmat2qim(matIm);
     cvim.save(fname2);
 
+    /* hdrfile reading and writing to bmp */
+
+    QString hdrfile_path = QString("/Users/neoflame99/Workspace/Qt5/readhdrfile/readhdrfile/memorial.hdr");
+    Mat hdrimg = qimmat::read_hdr(hdrfile_path)*128;
+
+    QImage hdr_bmp = qimmat::mat2qim(hdrimg);
+    hdr_bmp.save("../jbmat_bench/hdr_bmp.bmp");
+    /* ----- */
+
     Mat mg(DTYP::DOUBLE,1,7,3) ;
     mg.at<double>(0,0,0) = 1;
     mg.at<double>(0,0,1) = 1;

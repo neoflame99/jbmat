@@ -61,7 +61,7 @@ namespace qimmat {
         return qim;
     }
 
-    Mat read_hdr(QFile& file, bool normalizing ){
+    Mat read_hdr(QString& filename, bool normalizing ){
         int32   ysize       = 0;
         int32   xsize       = 0;
         int32   rgbe_format = 0;
@@ -75,6 +75,7 @@ namespace qimmat {
         bool    isOk;
         QStringList strlist;
 
+        QFile file(filename);
         if( !file.open(QIODevice::ReadOnly | QIODevice::Text) ){
             fprintf(stderr, "Not open file!");
             return Mat();
@@ -236,9 +237,11 @@ namespace qimmat {
         Mat hdrMat(DTYP::DOUBLE, (uint32)ysize, (uint32)xsize, 3);
         double* dat64f = hdrMat.getDataPtr<double>();
 
-        int32 xc, x;
-        double rt, gt, bt, et;
-        double max = -1;
+        int32   xc, x;
+        double  rt, gt, bt, et;
+        double  max = -1;
+        int32   ch1_offset = hdrMat.getRowColSize();
+        int32   ch2_offset = ch1_offset << 1;
         ypos = 0;
         for( y=0; y < ysize; y++){
             ypos  = y * xsize;
@@ -259,10 +262,10 @@ namespace qimmat {
                     bt = (bt+0.5) * pow(2,et-128-8) ;
                 }
                 xc = ( ypos + x );
-                xc = ( xc << 1) + xc ; // xc = (ypos+x)*3;
-                dat64f[xc  ] = rt;
-                dat64f[xc+1] = gt;
-                dat64f[xc+2] = bt;
+                //xc = ( xc << 1) + xc ; // xc = (ypos+x)*3;
+                dat64f[xc           ] = rt;
+                dat64f[xc+ch1_offset] = gt;
+                dat64f[xc+ch2_offset] = bt;
 
                 max = (max < rt) ? rt : max;
                 max = (max < gt) ? gt : max;

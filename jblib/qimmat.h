@@ -14,7 +14,7 @@ namespace qimmat {
     Mat  qim2mat( QImage& src, const DTYP matDtype=DTYP::DOUBLE);
     QImage mat2qim(const Mat& src);
 
-    Mat read_hdr(QFile& filebool, bool normalizing = false);
+    Mat read_hdr(QString& filename, bool normalizing = false);
 
     template <typename _T> void _datqim2mat(Mat& tar, QImage& src);
     template <typename _T> void _datmat2qim(QImage& tar, const Mat& src);
