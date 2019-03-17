@@ -35,6 +35,11 @@ namespace imgproc {
     Mat clip_HistoCmf(const Mat& src, const int32 clipVal,const int32 bins, const int32 step);
     Mat clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step);
 
+    double inline nakaSigmoid (const double X, const double X0, const double Xmax ){
+        return (Xmax + X0 ) * X / (X + X0 ); // maximum return value is 0
+    }
+
+    Mat guassMaskGen (const double sigma, const double factor = 6);
 
     template <typename _T> inline Mat _rgb2ycc(const Mat& rgbIm, const int32 sel_eq );
     template <typename _T> inline Mat _ycc2rgb(const Mat& yccIm, const int32 sel_eq );

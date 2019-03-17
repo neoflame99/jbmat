@@ -147,6 +147,7 @@ public : // public template methods
     template <typename _T> Mat min() ;
     template <typename _T> Mat mean();
     template <typename _T> Mat std() ;
+    template <typename _T> Mat sum() ;
 
 private: // private template methods
     template <typename _T> void _print(_T* mdat);
@@ -514,6 +515,45 @@ template <> inline Mat Mat::std<cmplx>() {
     return A;
 }
 
+template <typename _T> Mat Mat::sum() {
+    _T* datPtr = this->getDataPtr<_T>();
+
+    uint32 ch    = getChannel();
+    uint32 rclen = getRowColSize();
+
+    Mat A(DTYP::DOUBLE,1,ch,1);
+    double sum;
+    uint32 k, m, n;
+    n = 0;
+    for(k=0 ; k < ch; k++){
+        sum = 0;
+        for(m = 0 ; m < rclen; m++){
+            sum += double(datPtr[n++]);
+        }
+        A.at<double>(k) = sum;
+    }
+    return A;
+}
+template <> inline Mat Mat::sum<cmplx>() {
+    cmplx* datPtr = this->getDataPtr<cmplx>();
+
+    uint32 ch    = getChannel();
+    uint32 rclen = getRowColSize();
+
+    Mat A(DTYP::CMPLX,1,ch,1);
+    cmplx sum;
+    cmplx tmp;
+    uint32 k, m, n;
+    n = 0;
+    for(k=0 ; k < ch; k++){
+        sum.zero();
+        for(m = 0 ; m < rclen; m++){
+            sum += cmplx(datPtr[n++]);
+        }
+        A.at<cmplx>(k) = sum;
+    }
+    return A;
+}
 } // namespace jmat
 
 #endif // JBMAT_H

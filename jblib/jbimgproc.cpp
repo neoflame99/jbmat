@@ -199,5 +199,22 @@ Mat clip_HistoEqual(const Mat& src,const Mat& histCmf, const int32 step){
 }
 
 
+Mat guassMaskGen (const double sigma, const double factor ){
+    // mask size sigma*factor*2+1
+    uint32 hp = static_cast<uint32>( sigma*factor+1);
+    uint32 sz = static_cast<uint32>( (hp<<1) +1 );
+
+    Mat mask = Mat::zeros(sz, sz, 1, DTYP::DOUBLE);
+    uint32 y, yp, x, xp;
+    for (y=0, yp=-hp ; y < sz ; ++y, ++yp){
+        for(x=0, xp=-hp ; x < sz; ++x, ++xp){
+            mask.at<double>(y, x, 0) = exp(-((xp*xp + yp*yp)/(2*sigma*sigma)));
+        }
+    }
+    double sum = mask.sum<double>().at<double>(0);
+    mask /= sum;
+    return mask;
+}
+
 } // end of imgproc namespace
 } // end of jmat namespace
