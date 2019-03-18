@@ -198,6 +198,15 @@ int32 main(int32 argc, char *argv[])
         tt.printMat();
     }
 
+    /*--- gauss mask / box mask gen ---*/
+
+    Mat gau = imgproc::gaussMaskGen(1,4);
+    Mat box = imgproc::boxMaskGen(5);
+
+    gau.printMat("gaussian Mat");
+    box.printMat("box Mat");
+
+    /*------------------*/
     /*
     Mat mk(DTYP::DOUBLE,3,4,2,"mk");
     Mat ml(DTYP::DOUBLE,4,3,2,"ml");

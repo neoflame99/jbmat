@@ -5,26 +5,26 @@
 namespace jmat {
 namespace imgproc {
 
-    const double bt601_r2y[3][3]={{ 0.299    ,  0.587    ,  0.114 },
-                                  {-0.168736 , -0.331264 ,  0.5   },
-                                  { 0.5      , -0.418688 , -0.081312} };
-    const double bt709_r2y[3][3]={{ 0.2126  ,  0.7152  , 0.0722  },
-                                  {-0.11457 , -0.38543 , 0.5     },
-                                  { 0.5     , -0.45415 ,-0.04585 }};
+    static const double bt601_r2y[3][3]={{ 0.299    ,  0.587    ,  0.114 },
+                                         {-0.168736 , -0.331264 ,  0.5   },
+                                         { 0.5      , -0.418688 , -0.081312} };
+    static const double bt709_r2y[3][3]={{ 0.2126  ,  0.7152  , 0.0722  },
+                                         {-0.11457 , -0.38543 , 0.5     },
+                                         { 0.5     , -0.45415 ,-0.04585 }};
 
-    const double bt601_y2r[3][3]={{ 1.0000 ,  -0.0000 ,   1.4020 },
-                                  { 1.0000 ,  -0.3441 ,  -0.7141 },
-                                  { 1.0000 ,   1.7720 ,   0.0000 }};
+    static const double bt601_y2r[3][3]={{ 1.0000 ,  -0.0000 ,   1.4020 },
+                                         { 1.0000 ,  -0.3441 ,  -0.7141 },
+                                         { 1.0000 ,   1.7720 ,   0.0000 }};
 
-    const double bt709_y2r[3][3]={{ 1.0000 ,   0.0000 ,   1.5748 },
-                                  { 1.0000 ,  -0.1873 ,  -0.4681 },
-                                  { 1.0000 ,   1.8556 ,  -0.0000 }};
-    const double rgb2xyz_bt709[3][3] = { {0.4124564, 0.3575761, 0.1804375},
-                                   {0.2126729, 0.7151522, 0.0721750},
-                                   {0.0193339, 0.1191920, 0.9503041} };
-    const double xyz2rgb_bt709[3][3] = { { 3.2404542, -1.5371385, -0.4985314},
-                                   {-0.9692660,  1.8760108,  0.0415560},
-                                   { 0.0556434, -0.2040259,  1.0572252} };
+    static const double bt709_y2r[3][3]={{ 1.0000 ,   0.0000 ,   1.5748 },
+                                         { 1.0000 ,  -0.1873 ,  -0.4681 },
+                                         { 1.0000 ,   1.8556 ,  -0.0000 }};
+    static const double rgb2xyz_bt709[3][3] = { {0.4124564, 0.3575761, 0.1804375},
+                                                {0.2126729, 0.7151522, 0.0721750},
+                                                {0.0193339, 0.1191920, 0.9503041} };
+    static const double xyz2rgb_bt709[3][3] = { { 3.2404542, -1.5371385, -0.4985314},
+                                                {-0.9692660,  1.8760108,  0.0415560},
+                                                { 0.0556434, -0.2040259,  1.0572252} };
 
     Mat rgb2ycc(const Mat& rgbIm, const int32 sel_eq = 0);
     Mat ycc2rgb(const Mat& yccIm, const int32 sel_eq = 0);
@@ -39,7 +39,8 @@ namespace imgproc {
         return (Xmax + X0 ) * X / (X + X0 ); // maximum return value is 0
     }
 
-    Mat guassMaskGen (const double sigma, const double factor = 6);
+    Mat gaussMaskGen (const double sigma, const double factor = 6);
+    Mat boxMaskGen (const uint32 sz);
 
     template <typename _T> inline Mat _rgb2ycc(const Mat& rgbIm, const int32 sel_eq );
     template <typename _T> inline Mat _ycc2rgb(const Mat& yccIm, const int32 sel_eq );

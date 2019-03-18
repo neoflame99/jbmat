@@ -21,8 +21,11 @@ Mat rgb2ycc(const Mat& rgbIm, const int32 sel_eq){
     case DTYP::DOUBLE : return _rgb2ycc<double>(rgbIm, sel_eq);
     case DTYP::FLOAT  : return _rgb2ycc<float >(rgbIm, sel_eq);
     case DTYP::INT    : return _rgb2ycc<int32 >(rgbIm, sel_eq);
-    //case DTYP::UCHAR  : return _rgb2ycc<uchar >(rgbIm, sel_eq);
-    default           : return _rgb2ycc<uchar >(rgbIm, sel_eq);
+    case DTYP::UCHAR  : return _rgb2ycc<uchar >(rgbIm, sel_eq);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in rgb2ycc func.\n");
+        return Mat();
+        }
     }
 }
 
@@ -46,8 +49,11 @@ Mat ycc2rgb(const Mat& rgbIm, const int32 sel_eq){
     case DTYP::DOUBLE : return _ycc2rgb<double>(rgbIm, sel_eq);
     case DTYP::FLOAT  : return _ycc2rgb<float >(rgbIm, sel_eq);
     case DTYP::INT    : return _ycc2rgb<int32 >(rgbIm, sel_eq);
-    //case DTYP::UCHAR  : return _ycc2rgb<uchar >(rgbIm, sel_eq);
-    default           : return _ycc2rgb<uchar >(rgbIm, sel_eq);
+    case DTYP::UCHAR  : return _ycc2rgb<uchar >(rgbIm, sel_eq);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in ycc2rgb func.\n");
+        return Mat();
+        }
     }
 }
 
@@ -67,14 +73,17 @@ Mat rgb2gray(const Mat& rgbIm, const int32 HowToGray){
     case DTYP::DOUBLE : return _rgb2gray<double>(rgbIm, HowToGray);
     case DTYP::FLOAT  : return _rgb2gray<float >(rgbIm, HowToGray);
     case DTYP::INT    : return _rgb2gray<int32 >(rgbIm, HowToGray);
-    //case DTYP::UCHAR  : return _rgb2gray<uchar >(rgbIm, HowToGray);
-    default           : return _rgb2gray<uchar >(rgbIm, HowToGray);
+    case DTYP::UCHAR  : return _rgb2gray<uchar >(rgbIm, HowToGray);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in rgb2gray func.\n");
+        return Mat();
+        }
     }
 }
 
 
 Mat histoPmf(const Mat& src, const int32 bins, const int32 step){
-    int32 ch  = src.getChannel();
+    uint32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
         fprintf(stderr,"histoPmf : src argument is empty matrix\n");
@@ -93,13 +102,16 @@ Mat histoPmf(const Mat& src, const int32 bins, const int32 step){
     case DTYP::DOUBLE : return _histoPmf<double>(src, bins, step);
     case DTYP::FLOAT  : return _histoPmf<float >(src, bins, step);
     case DTYP::INT    : return _histoPmf<int32 >(src, bins, step);
-    //case DTYP::UCHAR  : return _histoPmf<uchar >(src, bins, step);
-    default           : return _histoPmf<uchar >(src, bins, step);
+    case DTYP::UCHAR  : return _histoPmf<uchar >(src, bins, step);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in histoPmf func.\n");
+        return Mat();
+        }
     }
 }
 
 Mat histoCmf(const Mat& src, const int32 bins, const int32 step){
-    int32 ch  = src.getChannel();
+    uint32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
         fprintf(stderr,"histoCmf : src argument is empty matrix\n");
@@ -119,14 +131,17 @@ Mat histoCmf(const Mat& src, const int32 bins, const int32 step){
     case DTYP::DOUBLE : return _histoCmf<double>(src, bins, step);
     case DTYP::FLOAT  : return _histoCmf<float >(src, bins, step);
     case DTYP::INT    : return _histoCmf<int32 >(src, bins, step);
-    //case DTYP::UCHAR  : return _histoCmf<uchar >(src, bins, step);
-    default           : return _histoCmf<uchar >(src, bins, step);
+    case DTYP::UCHAR  : return _histoCmf<uchar >(src, bins, step);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in histoCmf func.\n");
+        return Mat();
+        }
     }
 }
 
 
 Mat clip_HistoPmf(const Mat& src,const int32 clipVal,const int32 bins, const int32 step){
-    int32 ch  = src.getChannel();
+    uint32 ch  = src.getChannel();
     if( src.isEmpty() ){
         fprintf(stderr,"clip_histoPmf : src argument is empty matrix\n");
         return Mat();
@@ -145,13 +160,16 @@ Mat clip_HistoPmf(const Mat& src,const int32 clipVal,const int32 bins, const int
     case DTYP::DOUBLE : return _clip_HistoPmf<double>(src, clipVal, bins, step);
     case DTYP::FLOAT  : return _clip_HistoPmf<float >(src, clipVal, bins, step);
     case DTYP::INT    : return _clip_HistoPmf<int32 >(src, clipVal, bins, step);
-    //case DTYP::UCHAR  : return _clip_HistoPmf<uchar >(src, clipVal, bins, step);
-    default           : return _clip_HistoPmf<uchar >(src, clipVal, bins, step);
+    case DTYP::UCHAR  : return _clip_HistoPmf<uchar >(src, clipVal, bins, step);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in clip_HistoPmf func.\n");
+        return Mat();
+        }
     }
 }
 
 Mat clip_HistoCmf(const Mat& src,const int32 clipVal,const int32 bins, const int32 step){
-    int32 ch  = src.getChannel();
+    uint32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
         fprintf(stderr,"clip_histoCmf : src argument is empty matrix\n");
@@ -171,13 +189,16 @@ Mat clip_HistoCmf(const Mat& src,const int32 clipVal,const int32 bins, const int
     case DTYP::DOUBLE : return _clip_HistoCmf<double>(src, clipVal, bins, step);
     case DTYP::FLOAT  : return _clip_HistoCmf<float >(src, clipVal, bins, step);
     case DTYP::INT    : return _clip_HistoCmf<int32 >(src, clipVal, bins, step);
-    //case DTYP::UCHAR  : return _clip_HistoCmf<uchar >(src, clipVal, bins, step);
-    default           : return _clip_HistoCmf<uchar >(src, clipVal, bins, step);
+    case DTYP::UCHAR  : return _clip_HistoCmf<uchar >(src, clipVal, bins, step);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in clip_HistoCmf func.\n");
+        return Mat();
+        }
     }
 }
 
 Mat clip_HistoEqual(const Mat& src,const Mat& histCmf, const int32 step){
-    int32 ch  = src.getChannel();
+    uint32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
         fprintf(stdout,"histoEqual : src argument is empty matrix\n");
@@ -193,26 +214,36 @@ Mat clip_HistoEqual(const Mat& src,const Mat& histCmf, const int32 step){
     case DTYP::DOUBLE : return _clip_HistoEqual<double>(src, histCmf, step);
     case DTYP::FLOAT  : return _clip_HistoEqual<float >(src, histCmf, step);
     case DTYP::INT    : return _clip_HistoEqual<int32 >(src, histCmf, step);
-    //case DTYP::UCHAR: return _clip_HistoEqual<uchar >(src, histCmf, step);
-    default           : return _clip_HistoEqual<uchar >(src, histCmf, step);
+    case DTYP::UCHAR  : return _clip_HistoEqual<uchar >(src, histCmf, step);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in clip_HistoEqual func.\n");
+        return Mat();
+        }
     }
 }
 
 
-Mat guassMaskGen (const double sigma, const double factor ){
+Mat gaussMaskGen (const double sigma, const double factor ){
     // mask size sigma*factor*2+1
-    uint32 hp = static_cast<uint32>( sigma*factor+1);
+    uint32 hp = static_cast<uint32>( sigma*factor);
     uint32 sz = static_cast<uint32>( (hp<<1) +1 );
 
     Mat mask = Mat::zeros(sz, sz, 1, DTYP::DOUBLE);
-    uint32 y, yp, x, xp;
-    for (y=0, yp=-hp ; y < sz ; ++y, ++yp){
-        for(x=0, xp=-hp ; x < sz; ++x, ++xp){
+    uint32 y, x;
+    int32 yp, xp;
+    for (y=0, yp=-static_cast<int32>(hp) ; y < sz ; ++y, ++yp){
+        for(x=0, xp=-static_cast<int32>(hp) ; x < sz; ++x, ++xp){
             mask.at<double>(y, x, 0) = exp(-((xp*xp + yp*yp)/(2*sigma*sigma)));
         }
     }
     double sum = mask.sum<double>().at<double>(0);
     mask /= sum;
+    return mask;
+}
+
+Mat boxMaskGen( const uint32 sz){
+    Mat mask = Mat::ones(sz,sz,1,DTYP::DOUBLE);
+    mask /= (sz*sz);
     return mask;
 }
 
