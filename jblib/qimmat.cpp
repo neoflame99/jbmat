@@ -1,5 +1,6 @@
 #include "qimmat.h"
 #include <stdio.h>
+#include "jbimgproc.h"
 
 namespace qimmat {
 
@@ -63,12 +64,11 @@ namespace qimmat {
 
     Mat read_hdr(QString& filename, bool normalizing ){
         int32   ysize       = 0;
-        int32   xsize       = 0;
-        int32   rgbe_format = 0;
+        int32   xsize       = 0;        
         bool    isHdrfile   = false;
         uchar   *rgbe       = nullptr;
         double  exposure    = 1.0;
-        int32   colorformat = 0;     // 0 : rgb, 1: xyz, 2: Yxy ...
+        int32   colorformat = 0;     // 0 : rgb, 1: xyz
 
         int32   ypos, xpos;
         int32   t;
@@ -87,13 +87,10 @@ namespace qimmat {
             }
             else if(line.contains(QString("format"),Qt::CaseInsensitive) ){
                 t = line.indexOf(QString("="));
-                if ( line.mid(t+1).compare(QString("32-bit_rle_rgbe"),Qt::CaseInsensitive) ==0){
-                    rgbe_format = 0;
+                if ( line.mid(t+1).compare(QString("32-bit_rle_rgbe"),Qt::CaseInsensitive) ==0)
                     colorformat = 0;
-                }else if( line.mid(t+1).compare(QString("32-bit_rle_xyze"),Qt::CaseInsensitive)==0){
-                    rgbe_format = 1;
+                else if( line.mid(t+1).compare(QString("32-bit_rle_xyze"),Qt::CaseInsensitive)==0)
                     colorformat = 1;
-                }
             }
             else if(line.contains(QString("exposure"),Qt::CaseInsensitive) ){
                 t = line.indexOf(QString("="));
@@ -262,7 +259,6 @@ namespace qimmat {
                     bt = (bt+0.5) * pow(2,et-128-8) ;
                 }
                 xc = ( ypos + x );
-                //xc = ( xc << 1) + xc ; // xc = (ypos+x)*3;
                 dat64f[xc           ] = rt;
                 dat64f[xc+ch1_offset] = gt;
                 dat64f[xc+ch2_offset] = bt;
@@ -279,8 +275,7 @@ namespace qimmat {
                 dat64f[j] /= max;
         }
 
-
-        return hdrMat;
+        return ( colorformat == 1) ? imgproc::xyz2rgb(hdrMat) : hdrMat;
     }
 
 } // qimmat namespace

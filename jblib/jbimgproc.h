@@ -1,47 +1,19 @@
 #ifndef JBIMGPROC_H
 #define JBIMGPROC_H
 #include "jbMat.h"
+#include "jbmath.h"
 
 namespace jmat {
 namespace imgproc {
 
-    static const double bt601_r2y[3][3]={{ 0.299    ,  0.587    ,  0.114 },
-                                         {-0.168736 , -0.331264 ,  0.5   },
-                                         { 0.5      , -0.418688 , -0.081312} };
-    static const double bt709_r2y[3][3]={{ 0.2126  ,  0.7152  , 0.0722  },
-                                         {-0.11457 , -0.38543 , 0.5     },
-                                         { 0.5     , -0.45415 ,-0.04585 }};
-
-    static const double bt601_y2r[3][3]={{ 1.0000 ,  -0.0000 ,   1.4020 },
-                                         { 1.0000 ,  -0.3441 ,  -0.7141 },
-                                         { 1.0000 ,   1.7720 ,   0.0000 }};
-
-    static const double bt709_y2r[3][3]={{ 1.0000 ,   0.0000 ,   1.5748 },
-                                         { 1.0000 ,  -0.1873 ,  -0.4681 },
-                                         { 1.0000 ,   1.8556 ,  -0.0000 }};
-    static const double rgb2xyz_bt709[3][3] = { {0.4124564, 0.3575761, 0.1804375},
-                                                {0.2126729, 0.7151522, 0.0721750},
-                                                {0.0193339, 0.1191920, 0.9503041} };
-    static const double xyz2rgb_bt709[3][3] = { { 3.2404542, -1.5371385, -0.4985314},
-                                                {-0.9692660,  1.8760108,  0.0415560},
-                                                { 0.0556434, -0.2040259,  1.0572252} };
-
+    // color space conversion functions
     Mat rgb2ycc(const Mat& rgbIm, const int32 sel_eq = 0);
     Mat ycc2rgb(const Mat& yccIm, const int32 sel_eq = 0);
     Mat rgb2gray(const Mat& rgbIm, const int32 HowToGray = 0);
-    Mat histoPmf(const Mat& src,const int32 bins, const int32 step);
-    Mat histoCmf(const Mat& src,const int32 bins, const int32 step);
-    Mat clip_HistoPmf(const Mat& src, const int32 clipVal,const int32 bins, const int32 step);
-    Mat clip_HistoCmf(const Mat& src, const int32 clipVal,const int32 bins, const int32 step);
-    Mat clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step);
-
-    double inline nakaSigmoid (const double X, const double X0, const double Xmax ){
-        return (Xmax + X0 ) * X / (X + X0 ); // maximum return value is 0
-    }
-
-    Mat gaussMaskGen (const double sigma, const double factor = 6);
-    Mat boxMaskGen (const uint32 sz);
-
+    Mat rgb2xyz(const Mat& rgbIm);
+    Mat xyz2rgb(const Mat& xyzIm);
+    Mat rgb2Yxy(const Mat& rgbIm);
+    Mat Yxy2rgb(const Mat& YxyIm);
     template <typename _T> inline Mat _rgb2ycc(const Mat& rgbIm, const int32 sel_eq );
     template <typename _T> inline Mat _ycc2rgb(const Mat& yccIm, const int32 sel_eq );
     template <typename _T> inline Mat _rgb2gray(const Mat& rgbIm, const int32 HowToGray);
@@ -50,13 +22,34 @@ namespace imgproc {
     template <typename _T> inline Mat _conv_rgb2Yxy(const Mat& rgbIm);
     template <typename _T> inline Mat _conv_Yxy2rgb(const Mat& YxyIm);
 
+    // histogram functions
+    Mat histoPmf(const Mat& src,const int32 bins, const int32 step);
+    Mat histoCmf(const Mat& src,const int32 bins, const int32 step);
+    Mat clip_HistoPmf(const Mat& src, const int32 clipVal,const int32 bins, const int32 step);
+    Mat clip_HistoCmf(const Mat& src, const int32 clipVal,const int32 bins, const int32 step);
+    Mat clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step);
     template <typename _T> inline Mat _histoPmf(const Mat& src, const int32 bins , const int32 step);
     template <typename _T> inline Mat _histoCmf(const Mat& src, const int32 bins, const int32 step);
     template <typename _T> inline Mat _clip_HistoPmf(const Mat& src,const int32 clipVal, const int32 bins, const int32 step);
     template <typename _T> inline Mat _clip_HistoCmf(const Mat& src,const int32 clipVal, const int32 bins, const int32 step);
     template <typename _T> inline Mat _clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step);
 
+    // tone mapping functions
+    double inline nakaSigmoid (const double X, const double X0, const double Xmax ){
+        return (Xmax + X0 ) * X / (X + X0 ); // maximum return value is 0
+    }
+    Mat gaussMaskGen (const double sigma, const double factor = 6);
+    Mat boxMaskGen (const uint32 sz);
 
+    Mat inline localMeanMat ( const Mat& src, const Mat& mask){
+        return  conv2d(src,mask,"symm","same");
+    }
+
+
+}
+
+
+namespace  imgproc{
 
     template <typename _T> Mat _rgb2ycc(const Mat& rgbIm, const int32 sel_eq ){
     /*
@@ -256,11 +249,11 @@ namespace imgproc {
         _T* dat64f = A.getDataPtr<_T>();
 
         _T X, Y, Z, W, x, y;
-        _T r,g,b;
+        //_T r,g,b;
         for(uint32 i=0; i < rcsize; i++){
-            r = dat64f[i    ];
-            g = dat64f[i+ch2];
-            b = dat64f[i+ch3];
+            //r = dat64f[i    ];
+            //g = dat64f[i+ch2];
+            //b = dat64f[i+ch3];
             X = rgb2xyz_bt709[0][0] * dat64f[i] + rgb2xyz_bt709[0][1] *dat64f[i+ch2] + rgb2xyz_bt709[0][2] *dat64f[i+ch3];
             Y = rgb2xyz_bt709[1][0] * dat64f[i] + rgb2xyz_bt709[1][1] *dat64f[i+ch2] + rgb2xyz_bt709[1][2] *dat64f[i+ch3];
             Z = rgb2xyz_bt709[2][0] * dat64f[i] + rgb2xyz_bt709[2][1] *dat64f[i+ch2] + rgb2xyz_bt709[2][2] *dat64f[i+ch3];

@@ -1,6 +1,8 @@
 #include "jbimgproc.h"
 
+
 namespace jmat {
+
 namespace imgproc {
 
 Mat rgb2ycc(const Mat& rgbIm, const int32 sel_eq){
@@ -76,6 +78,58 @@ Mat rgb2gray(const Mat& rgbIm, const int32 HowToGray){
     case DTYP::UCHAR  : return _rgb2gray<uchar >(rgbIm, HowToGray);
     default           : {
         fprintf(stderr, " Unsupported DTYP in rgb2gray func.\n");
+        return Mat();
+        }
+    }
+}
+
+Mat rgb2xyz(const Mat& rgbIm){
+    switch(rgbIm.getDatType()){
+    case DTYP::DOUBLE : return _conv_rgb2xyz<double>(rgbIm );
+    case DTYP::FLOAT  : return _conv_rgb2xyz<float >(rgbIm );
+    case DTYP::INT    : return _conv_rgb2xyz<int32 >(rgbIm );
+    case DTYP::UCHAR  : return _conv_rgb2xyz<uchar >(rgbIm );
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in rgb2xyz func.\n");
+        return Mat();
+        }
+    }
+}
+
+Mat xyz2rgb(const Mat& xyzIm){
+    switch(xyzIm.getDatType()){
+    case DTYP::DOUBLE : return _conv_xyz2rgb<double>(xyzIm );
+    case DTYP::FLOAT  : return _conv_xyz2rgb<float >(xyzIm );
+    case DTYP::INT    : return _conv_xyz2rgb<int32 >(xyzIm );
+    case DTYP::UCHAR  : return _conv_xyz2rgb<uchar >(xyzIm );
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in xyz2rgb func.\n");
+        return Mat();
+        }
+    }
+}
+
+Mat rgb2Yxy(const Mat& rgbIm){
+    switch(rgbIm.getDatType()){
+    case DTYP::DOUBLE : return _conv_rgb2Yxy<double>(rgbIm );
+    case DTYP::FLOAT  : return _conv_rgb2Yxy<float >(rgbIm );
+    case DTYP::INT    : return _conv_rgb2Yxy<int32 >(rgbIm );
+    case DTYP::UCHAR  : return _conv_rgb2Yxy<uchar >(rgbIm );
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in rgb2Yxy func.\n");
+        return Mat();
+        }
+    }
+}
+
+Mat Yxy2rgb(const Mat& YxyIm){
+    switch(YxyIm.getDatType()){
+    case DTYP::DOUBLE : return _conv_Yxy2rgb<double>(YxyIm );
+    case DTYP::FLOAT  : return _conv_Yxy2rgb<float >(YxyIm );
+    case DTYP::INT    : return _conv_Yxy2rgb<int32 >(YxyIm );
+    case DTYP::UCHAR  : return _conv_Yxy2rgb<uchar >(YxyIm );
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in Yxy2rgb func.\n");
         return Mat();
         }
     }
@@ -246,6 +300,11 @@ Mat boxMaskGen( const uint32 sz){
     mask /= (sz*sz);
     return mask;
 }
+
+
+
+
+
 
 } // end of imgproc namespace
 } // end of jmat namespace
