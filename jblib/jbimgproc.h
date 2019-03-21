@@ -44,8 +44,9 @@ namespace imgproc {
     Mat inline localMeanMat ( const Mat& src, const Mat& mask){
         return  conv2d(src,mask,"symm","same");
     }
+    Mat nakaSigTonemap( Mat& src, Mat& localmask);
 
-
+    template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmask, const Mat& globalmean, const double Imax);
 }
 
 
@@ -416,7 +417,23 @@ namespace  imgproc{
         return A;
     }
 
+template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmask, const Mat& globalmean, const double Imax){
+    Mat lmn = localMeanMat(Im, localmask);
+    Mat Imt = Im.copy();
 
+    _T *ImDat_pt  = Im.getDataPtr<_T>();
+    _T *lmnDat_pt = lmn.getDataPtr<_T>();
+    _T *ImtDat_pt = Imt.getDataPtr<_T>();
+    _T *gmnDat_pt = globalmean.getDataPtr<_T>();
+    uint32 rc = Im.getRowColSize();
+    uint32 ch = Im.getChannel();
+    uint32 i, ich;
+    for ( ich =0 ; ich < ch ; ++ich){
+        for( i =0 ; i < rc; ++i )
+            ImtDat_pt[i] = nakaSigmoid( ImDat_pt[i], lmnDat_pt[i] + gmnDat_pt[ich], Imax);
+    }
+    return Imt;
+}
 
 } // end of imgproc namespace
 } // end of jmat namespace

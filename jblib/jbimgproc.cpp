@@ -290,7 +290,7 @@ Mat gaussMaskGen (const double sigma, const double factor ){
             mask.at<double>(y, x, 0) = exp(-((xp*xp + yp*yp)/(2*sigma*sigma)));
         }
     }
-    double sum = mask.sum<double>().at<double>(0);
+    double sum = mask._sum<double>().at<double>(0);
     mask /= sum;
     return mask;
 }
@@ -301,8 +301,38 @@ Mat boxMaskGen( const uint32 sz){
     return mask;
 }
 
+Mat nakaSigTonemap( Mat& src, Mat& localmask){
+    DTYP srcDtype  = src.getDatType();
+    DTYP maskDtype = localmask.getDatType();
 
+    if(srcDtype != maskDtype){
+        fprintf(stderr,"the data types between src and localmask aren't the same!\n ");
+        return Mat();
+    }
+    double max;
 
+    Mat maxMat   = src.max();
+    Mat gmeanMat = src.mean();
+    Mat A;
+    switch( srcDtype ){
+    case DTYP::DOUBLE :
+        max = maxMat._max<double>().at<double>(0);
+        A   = _nakaSigTm<double>( src, localmask, gmeanMat, max );
+        break;
+    case DTYP::FLOAT  :
+        max = static_cast<double>(maxMat._max<float >().at<float >(0));
+        A   = _nakaSigTm<float >( src, localmask, gmeanMat, max);
+        break;
+    case DTYP::INT    :
+        max = maxMat._max<int32 >().at<int32 >(0);
+        A   = _nakaSigTm<int32  >( src, localmask, gmeanMat, max);
+        break;
+    default:
+        fprintf(stderr,"Unsupproted data type in nkakSigtonemap\n ");
+    }
+
+    return A;
+}
 
 
 

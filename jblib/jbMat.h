@@ -143,11 +143,16 @@ public : // public template methods
     template <typename _T> _T& at(uint32 i=0) const;
     template <typename _T> _T& at(uint32 r, uint32 c, uint32 nch=0) const;
     template <typename _T> _T* getDataPtr() const;
-    template <typename _T> Mat max() ;
-    template <typename _T> Mat min() ;
-    template <typename _T> Mat mean();
-    template <typename _T> Mat std() ;
-    template <typename _T> Mat sum() ;
+    template <typename _T> Mat _max() ;
+    template <typename _T> Mat _min() ;
+    template <typename _T> Mat _mean();
+    template <typename _T> Mat _std() ;
+    template <typename _T> Mat _sum() ;
+    Mat max();
+    Mat min() ;
+    Mat mean();
+    Mat std() ;
+    Mat sum() ;
 
 private: // private template methods
     template <typename _T> void _print(_T* mdat);
@@ -329,7 +334,7 @@ template <> inline void Mat::_print<cmplx>(cmplx* mdat){
         }
     }
 }
-template <typename _T> Mat Mat::max() {
+template <typename _T> Mat Mat::_max() {
     _T* datPtr = this->getDataPtr<_T>();
 
     uint32 ch  = getChannel();
@@ -349,7 +354,7 @@ template <typename _T> Mat Mat::max() {
     }
     return A;
 }
-template <> inline Mat Mat::max<cmplx>() {
+template <> inline Mat Mat::_max<cmplx>() {
     cmplx* datPtr = this->getDataPtr<cmplx>();
 
     uint32 ch    = getChannel();
@@ -376,7 +381,7 @@ template <> inline Mat Mat::max<cmplx>() {
     }
     return A;
 }
-template <typename _T> Mat Mat::min() {
+template <typename _T> Mat Mat::_min() {
     _T* datPtr = this->getDataPtr<_T>();
 
     uint32 ch  = getChannel();
@@ -396,7 +401,7 @@ template <typename _T> Mat Mat::min() {
     }
     return A;
 }
-template <> inline Mat Mat::min<cmplx>() {
+template <> inline Mat Mat::_min<cmplx>() {
     cmplx* datPtr = this->getDataPtr<cmplx>();
 
     uint32 ch    = getChannel();
@@ -423,7 +428,7 @@ template <> inline Mat Mat::min<cmplx>() {
     }
     return A;
 }
-template <typename _T> Mat Mat::mean() {
+template <typename _T> Mat Mat::_mean() {
     _T* datPtr = this->getDataPtr<_T>();
 
     uint32 ch    = getChannel();
@@ -442,7 +447,7 @@ template <typename _T> Mat Mat::mean() {
     }
     return A;
 }
-template <> inline Mat Mat::mean<cmplx>() {
+template <> inline Mat Mat::_mean<cmplx>() {
     cmplx* datPtr = this->getDataPtr<cmplx>();
 
     uint32 ch    = getChannel();
@@ -463,13 +468,13 @@ template <> inline Mat Mat::mean<cmplx>() {
     return A;
 }
 
-template <typename _T> Mat Mat::std() {
+template <typename _T> Mat Mat::_std() {
     _T* datPtr = this->getDataPtr<_T>();
 
     uint32 ch    = getChannel();
     uint32 rclen = getRowColSize();
 
-    Mat avg = mean<_T>();
+    Mat avg = _mean<_T>();
     Mat A(DTYP::DOUBLE,1,ch,1);
     double sqsum;
     double diff;
@@ -488,13 +493,13 @@ template <typename _T> Mat Mat::std() {
     }
     return A;
 }
-template <> inline Mat Mat::std<cmplx>() {
+template <> inline Mat Mat::_std<cmplx>() {
     cmplx* datPtr = this->getDataPtr<cmplx>();
 
     uint32 ch    = getChannel();
     uint32 rclen = getRowColSize();
 
-    Mat avg = mean<cmplx>();
+    Mat avg = _mean<cmplx>();
     Mat A(DTYP::CMPLX,1,ch,1);
     cmplx sqsum;
     cmplx diff;
@@ -515,7 +520,7 @@ template <> inline Mat Mat::std<cmplx>() {
     return A;
 }
 
-template <typename _T> Mat Mat::sum() {
+template <typename _T> Mat Mat::_sum() {
     _T* datPtr = this->getDataPtr<_T>();
 
     uint32 ch    = getChannel();
@@ -534,7 +539,7 @@ template <typename _T> Mat Mat::sum() {
     }
     return A;
 }
-template <> inline Mat Mat::sum<cmplx>() {
+template <> inline Mat Mat::_sum<cmplx>() {
     cmplx* datPtr = this->getDataPtr<cmplx>();
 
     uint32 ch    = getChannel();

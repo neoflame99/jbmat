@@ -1108,4 +1108,64 @@ Mat& Mat::dividingScalar(const uchar scalar){
     return *this;
 }
 
+Mat Mat::max(){
+    if(isEmpty()) return Mat();
+
+    switch(datT){
+    case DTYP::DOUBLE : return _max<double>();
+    case DTYP::FLOAT  : return _max<float >();
+    case DTYP::INT    : return _max<int32 >();
+    case DTYP::UCHAR  : return _max<uchar >();
+    default           : return _max<cmplx >(); //case DTYP::CMPLX  : return _max<cmplx >();
+    }
+}
+
+Mat Mat::min(){
+    if(isEmpty()) return Mat();
+
+    switch(datT){
+    case DTYP::DOUBLE : return _min<double>();
+    case DTYP::FLOAT  : return _min<float >();
+    case DTYP::INT    : return _min<int32 >();
+    case DTYP::UCHAR  : return _min<uchar >();
+    default           : return _min<cmplx >(); //case DTYP::CMPLX  : return _min<cmplx >();
+    }
+}
+
+Mat Mat::mean(){
+    if(isEmpty()) return Mat();
+
+    switch(datT){
+    case DTYP::DOUBLE : return _mean<double>();
+    case DTYP::FLOAT  : return _mean<float >();
+    case DTYP::INT    : return _mean<int32 >();
+    case DTYP::UCHAR  : return _mean<uchar >();
+    default           : return _mean<cmplx >(); //case DTYP::CMPLX  : return _mean<cmplx >();
+    }
+}
+
+Mat Mat::std(){
+    if(isEmpty()) return Mat();
+
+    switch(datT){
+    case DTYP::DOUBLE : return _std<double>();
+    case DTYP::FLOAT  : return _std<float >();
+    case DTYP::INT    : return _std<int32 >();
+    case DTYP::UCHAR  : return _std<uchar >();
+    default           : return _std<cmplx >(); //case DTYP::CMPLX  : return _std<cmplx >();
+    }
+}
+
+Mat Mat::sum(){
+    if(isEmpty()) return Mat();
+
+    switch(datT){
+    case DTYP::DOUBLE : return _sum<double>();
+    case DTYP::FLOAT  : return _sum<float >();
+    case DTYP::INT    : return _sum<int32 >();
+    case DTYP::UCHAR  : return _sum<uchar >();
+    default           : return _sum<cmplx >(); //case DTYP::CMPLX  : return _sum<cmplx >();
+    }
+}
+
 } // end of jmat namespace
