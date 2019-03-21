@@ -35,15 +35,10 @@ namespace imgproc {
     template <typename _T> inline Mat _clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step);
 
     // tone mapping functions
-    double inline nakaSigmoid (const double X, const double X0, const double Xmax ){
-        return (Xmax + X0 ) * X / (X + X0 ); // maximum return value is 0
-    }
-    Mat gaussMaskGen (const double sigma, const double factor = 6);
-    Mat boxMaskGen (const uint32 sz);
-
-    Mat inline localMeanMat ( const Mat& src, const Mat& mask){
-        return  conv2d(src,mask,"symm","same");
-    }
+    double inline nakaSigmoid (const double X, const double X0, const double Xmax );
+    Mat gaussMaskGen (const double sigma, const double factor = 6, const uint32 ch=1);
+    Mat boxMaskGen (const uint32 sz, const uint32 ch=1);
+    Mat inline localMeanMat ( const Mat& src, const Mat& mask);
     Mat nakaSigTonemap( Mat& src, Mat& localmask);
 
     template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmask, const Mat& globalmean, const double Imax);
@@ -433,6 +428,14 @@ template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmask
             ImtDat_pt[i] = nakaSigmoid( ImDat_pt[i], lmnDat_pt[i] + gmnDat_pt[ich], Imax);
     }
     return Imt;
+}
+
+Mat inline localMeanMat ( const Mat& src, const Mat& mask){
+    return  conv2d(src,mask,"symm","same");
+}
+
+double inline nakaSigmoid (const double X, const double X0, const double Xmax ){
+    return (Xmax + X0 ) * X / (X + X0 ); // maximum return value is 0
 }
 
 } // end of imgproc namespace

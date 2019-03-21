@@ -277,26 +277,33 @@ Mat clip_HistoEqual(const Mat& src,const Mat& histCmf, const int32 step){
 }
 
 
-Mat gaussMaskGen (const double sigma, const double factor ){
+Mat gaussMaskGen (const double sigma, const double factor, const uint32 ch ){
     // mask size sigma*factor*2+1
     uint32 hp = static_cast<uint32>( sigma*factor);
     uint32 sz = static_cast<uint32>( (hp<<1) +1 );
 
-    Mat mask = Mat::zeros(sz, sz, 1, DTYP::DOUBLE);
-    uint32 y, x;
+    Mat mask = Mat::zeros(sz, sz, ch, DTYP::DOUBLE);
+    uint32 y, x, cc;
     int32 yp, xp;
-    for (y=0, yp=-static_cast<int32>(hp) ; y < sz ; ++y, ++yp){
-        for(x=0, xp=-static_cast<int32>(hp) ; x < sz; ++x, ++xp){
-            mask.at<double>(y, x, 0) = exp(-((xp*xp + yp*yp)/(2*sigma*sigma)));
+    for( cc =0 ; cc < ch ; ++cc ){
+        for (y=0, yp=-static_cast<int32>(hp) ; y < sz ; ++y, ++yp){
+            for(x=0, xp=-static_cast<int32>(hp) ; x < sz; ++x, ++xp)
+                mask.at<double>(y, x, cc) = exp(-((xp*xp + yp*yp)/(2*sigma*sigma)));
         }
     }
-    double sum = mask._sum<double>().at<double>(0);
-    mask /= sum;
+    Mat sum = mask.sum();
+    for( cc =0 ; cc < ch ; ++cc ){
+        for (y=0, yp=-static_cast<int32>(hp) ; y < sz ; ++y, ++yp){
+            for(x=0, xp=-static_cast<int32>(hp) ; x < sz; ++x, ++xp)
+                mask.at<double>(y, x, cc) /= sum.at<double>(cc);
+        }
+    }
+
     return mask;
 }
 
-Mat boxMaskGen( const uint32 sz){
-    Mat mask = Mat::ones(sz,sz,1,DTYP::DOUBLE);
+Mat boxMaskGen( const uint32 sz, const uint32 ch){
+    Mat mask = Mat::ones(sz,sz,ch,DTYP::DOUBLE);
     mask /= (sz*sz);
     return mask;
 }
