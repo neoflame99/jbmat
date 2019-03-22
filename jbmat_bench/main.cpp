@@ -132,14 +132,7 @@ int32 main(int32 argc, char *argv[])
     //QImage cvim = QimMat::jbmat2qim(matIm);
     cvim.save(fname2);
 
-    /* hdrfile reading and writing to bmp */
 
-    QString hdrfile_path = QString("/Users/neoflame99/Workspace/Qt5/readhdrfile/readhdrfile/memorial.hdr");
-    Mat hdrimg = qimmat::read_hdr(hdrfile_path)*128;
-
-    QImage hdr_bmp = qimmat::mat2qim(hdrimg);
-    hdr_bmp.save("../jbmat_bench/hdr_bmp.bmp");
-    /* ----- */
 
     Mat mg(DTYP::DOUBLE,1,7,3) ;
     mg.at<double>(0,0,0) = 1;
@@ -197,6 +190,14 @@ int32 main(int32 argc, char *argv[])
         tt= Mat(DTYP::INT,1,1,1);
         tt.printMat();
     }
+    /* hdrfile reading and writing to bmp */
+
+    QString hdrfile_path = QString("/Users/neoflame99/Workspace/Qt5/readhdrfile/readhdrfile/memorial.hdr");
+    Mat hdrimg = qimmat::read_hdr(hdrfile_path)*128;
+
+    QImage hdr_bmp = qimmat::mat2qim(hdrimg);
+    hdr_bmp.save("../jbmat_bench/hdr_bmp.bmp");
+    /* ----- */
 
     /*--- gauss mask / box mask gen ---*/
 
@@ -207,6 +208,15 @@ int32 main(int32 argc, char *argv[])
     box.printMat("box Mat");
 
     /*------------------*/
+
+    /*----- tonemapping ------ */
+
+    Mat Yhdrimg = imgproc::rgb2gray(hdrimg/128);
+    Mat Yhdrimg_tm = imgproc::nakaSigTonemap(Yhdrimg,gau);
+    QImage Yhdr_bmp = qimmat::mat2qim(Yhdrimg_tm);
+    Yhdr_bmp.save("../jbmat_bench/yhdr_tm.bmp");
+    /*-------------------------*/
+
     /*
     Mat mk(DTYP::DOUBLE,3,4,2,"mk");
     Mat ml(DTYP::DOUBLE,4,3,2,"ml");
