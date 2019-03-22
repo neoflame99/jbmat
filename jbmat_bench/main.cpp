@@ -81,14 +81,14 @@ int32 main(int32 argc, char *argv[])
     mah.printMat();
     mai.printMat();
     maj.printMat();
-    Mat mak = mai.mean<double>();
-    Mat mal = mai.std<double>();
+    Mat mak = mai._mean<double>();
+    Mat mal = mai._std<double>();
     mak.printMat("mak : mean of mai");
     mal.printMat("mal : std of mai");
 
     man.printMat();
-    man.max<double>().printMat("man max");
-    man.min<double>().printMat("man min");
+    man._max<double>().printMat("man max");
+    man._min<double>().printMat("man min");
 
 
     //-- conv
