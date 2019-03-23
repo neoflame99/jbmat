@@ -190,6 +190,11 @@ int32 main(int32 argc, char *argv[])
         tt= Mat(DTYP::INT,1,1,1);
         tt.printMat();
     }
+    /* ------- Mat repeat ------ */
+    Mat mdps3rp = Mat::repeat(mdps3,2,3,2);
+    mdps3rp.printMat("mdps3 repeat (2,3,2)");
+    Mat mdps3rp2 = Mat::repeat(mdps3,1,1,3);
+    mdps3rp2.printMat("mdps3 repeat 2nd (1,1,3)");
     /* hdrfile reading and writing to bmp */
 
     QString hdrfile_path = QString("/Users/neoflame99/Workspace/Qt5/readhdrfile/readhdrfile/memorial.hdr");
@@ -211,11 +216,18 @@ int32 main(int32 argc, char *argv[])
 
     /*----- tonemapping ------ */
 
-    Mat Yhdrimg = imgproc::rgb2gray(hdrimg/128);
-    Mat Yhdrimg_tm = imgproc::nakaSigTonemap(Yhdrimg,gau);
-    QImage Yhdr_bmp = qimmat::mat2qim(Yhdrimg_tm);
-    Yhdr_bmp.save("../jbmat_bench/yhdr_tm.bmp");
+    hdrimg /=128;
+    Mat Yhdrimg    = imgproc::rgb2gray(hdrimg);
+    Mat Yhdrimg_tm = imgproc::nakaSigTonemap(Yhdrimg,gau,0.2);
+    Mat Yhdrimg_tm3c= Mat::repeat(Yhdrimg_tm, 1, 1,3);
+    Mat Yhdrimg_3c  = Mat::repeat(Yhdrimg, 1, 1, 3);
+
+    Mat hdrimg_tm = imgproc::gamma( hdrimg * Yhdrimg_tm3c / Yhdrimg_3c, 1.0);
+    hdrimg_tm = hdrimg_tm / hdrimg_tm.max().max().at<double>(0)*255.0;
+    QImage hdrtm_bmp = qimmat::mat2qim(hdrimg_tm);
+    hdrtm_bmp.save("../jbmat_bench/hdr_tm_0.2.bmp");
     /*-------------------------*/
+
 
     /*
     Mat mk(DTYP::DOUBLE,3,4,2,"mk");

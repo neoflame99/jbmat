@@ -1168,4 +1168,21 @@ Mat Mat::sum(){
     }
 }
 
+Mat Mat::repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
+    if(src.isEmpty()) return Mat();
+
+    if(src.getChannel() > 1){
+        fprintf(stderr,"src Mat argument of repeat method should have only 1 channel\n");
+        return Mat();
+    }
+
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _repeat<double>(src, rr, rc, rch);
+    case DTYP::FLOAT  : return _repeat<float >(src, rr, rc, rch);
+    case DTYP::INT    : return _repeat<int32 >(src, rr, rc, rch);
+    case DTYP::UCHAR  : return _repeat<uchar >(src, rr, rc, rch);
+    default           : return _repeat<cmplx >(src, rr, rc, rch); // case DTYP::CMPLX
+    }
+}
+
 } // end of jmat namespace

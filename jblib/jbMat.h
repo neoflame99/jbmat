@@ -138,6 +138,7 @@ public : // static methods
     static Mat ones (uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
     static Mat zeros(uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
     static int32 instant_count;
+    static Mat repeat(const Mat& src, const uint32 rp_r, const uint32 rp_c, const uint32 rp_ch);
 
 public : // public template methods
     template <typename _T> _T& at(uint32 i=0) const;
@@ -166,6 +167,7 @@ private: // private template methods
     template <typename _Tslf, typename _Totr> void _multiply_scalar(_Tslf* self, _Totr scalar, uint32 len );
     template <typename _Tslf, typename _Totr> void _dividing_scalar  (_Tslf* self, _Totr scalar, uint32 len );
     template <typename _Tslf, typename _Totr> void _divided_by_scalar(_Tslf* self, _Totr scalar, uint32 len );
+    template <typename _T> static Mat _repeat(const Mat& src, const uint32 r, const uint32 c, const uint32 ch);
 };
 
 
@@ -559,6 +561,61 @@ template <> inline Mat Mat::_sum<cmplx>() {
     }
     return A;
 }
+
+template <typename _T> Mat Mat::_repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
+    // src must have only 1 channel
+    uint32 sr = src.getRow();
+    uint32 sc = src.getCol();
+    uint32 nr = sr * rr;
+    uint32 nc = sc * rc;
+    uint32 nch= rch;
+    DTYP srcDtype = src.getDatType();
+
+    Mat A(srcDtype, nr, nc, nch);
+    _T* aDat_pt   = A.getDataPtr<_T>();
+    _T* srcDat_pt = src.getDataPtr<_T>();
+
+    uint32 x,y,z,i, sx, sy, sy_sc, k;
+    i= 0;
+    for ( z =0 ; z < nch ; ++z){
+        for( y=0, sy=0; y < nr ; ++y, sy = y % sr){
+            sy_sc = sy*sc;
+            for( x=0, sx=0; x < nc ; ++x, sx = x % sc){
+                k = sy_sc + sx;
+                aDat_pt[i++] = srcDat_pt[k];
+            }
+        }
+    }
+    return A;
+}
+
+template <> inline Mat Mat::_repeat<cmplx>(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
+    // src must have only 1 channel
+    uint32 sr = src.getRow();
+    uint32 sc = src.getCol();
+    uint32 nr = sr * rr;
+    uint32 nc = sc * rc;
+    uint32 nch= rch;
+    DTYP srcDtype = src.getDatType();
+
+    Mat A(srcDtype, nr, nc, nch);
+    cmplx* aDat_pt   = A.getDataPtr<cmplx>();
+    cmplx* srcDat_pt = src.getDataPtr<cmplx>();
+
+    uint32 x,y,z,i, sx, sy, sy_sc, k;
+    i= 0;
+    for ( z =0 ; z < nch ; ++z){
+        for( y=0, sy=0; y < nr ; ++y, sy = y % sr){
+            sy_sc = sy*sc;
+            for( x=0, sx=0; x < nc ; ++x, sx = x % sc){
+                k = sy_sc + sx;
+                aDat_pt[i++] = srcDat_pt[k];
+            }
+        }
+    }
+    return A;
+}
+
 } // namespace jmat
 
 #endif // JBMAT_H

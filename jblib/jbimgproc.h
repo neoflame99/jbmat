@@ -34,14 +34,19 @@ namespace imgproc {
     template <typename _T> inline Mat _clip_HistoCmf(const Mat& src,const int32 clipVal, const int32 bins, const int32 step);
     template <typename _T> inline Mat _clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step);
 
+    // gamma function
+    Mat gamma(const Mat& src, const double gmval);
+    template <typename _T> inline Mat _gamma(const Mat& src, const double gmval);
+
     // tone mapping functions
     double inline nakaSigmoid (const double X, const double X0, const double Xmax );
     Mat gaussMaskGen (const double sigma, const double factor = 6, const uint32 ch=1);
     Mat boxMaskGen (const uint32 sz, const uint32 ch=1);
     Mat inline localMeanMat ( const Mat& src, const Mat& mask);
-    Mat nakaSigTonemap( Mat& src, Mat& localmask);
+    Mat nakaSigTonemap( Mat& src, Mat& localmask, const double gmfactor=1.0);
 
     template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmask, const Mat& globalmean, const double Imax);
+
 }
 
 
@@ -436,6 +441,22 @@ Mat inline localMeanMat ( const Mat& src, const Mat& mask){
 
 double inline nakaSigmoid (const double X, const double X0, const double Xmax ){
     return (Xmax + X0 ) * X / (X + X0 ); // maximum return value is 0
+}
+
+template <typename _T> inline Mat _gamma(const Mat& src, const double gmval){
+    Mat A = src.copy();
+    double max0 = A.max().at<double>(0);
+    double max1 = A.max().at<double>(1);
+    double max2 = A.max().at<double>(2);
+    double maxA = A.max().max().at<double>(0);
+    A /= maxA;
+    _T* adat_ptr = A.getDataPtr<_T>();
+    uint32 len = A.getLength();
+    for(uint32 i=0; i < len; ++i){
+        adat_ptr[i] = pow( adat_ptr[i], gmval );
+    }
+    A *= maxA;
+    return A;
 }
 
 } // end of imgproc namespace
