@@ -445,16 +445,16 @@ double inline nakaSigmoid (const double X, const double X0, const double Xmax ){
 
 template <typename _T> inline Mat _gamma(const Mat& src, const double gmval){
     Mat A = src.copy();
-    double max0 = A.max().at<double>(0);
-    double max1 = A.max().at<double>(1);
-    double max2 = A.max().at<double>(2);
     double maxA = A.max().max().at<double>(0);
     A /= maxA;
+
     _T* adat_ptr = A.getDataPtr<_T>();
     uint32 len = A.getLength();
+
     for(uint32 i=0; i < len; ++i){
         adat_ptr[i] = pow( adat_ptr[i], gmval );
     }
+
     A *= maxA;
     return A;
 }

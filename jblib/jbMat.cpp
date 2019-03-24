@@ -229,7 +229,7 @@ Mat& Mat::operator*=(const Mat& other){
 }
 
 Mat& Mat::operator*=(const double scalar){
-    return minusScalar(scalar);
+    return multiplyScalar(scalar);
 }
 
 Mat& Mat::operator/=(const Mat& other){
@@ -634,20 +634,21 @@ Mat Mat::copySubMat(const uint32 startRow, const uint32 endRow, const uint32 sta
     uint32 lenRCByteStep = lenRowCol*byteStep;
     uint32 rowByteStep   = col*byteStep;
     uint32 startColByte  = startCol*byteStep;
-    uint32 endColByte    = endCol*byteStep;
+    uint32 endColByte    = (endCol+1)*byteStep;
     uint32 colstart, colend;
     uint32 rowstart      = startRow*rowByteStep;
-    uint32 rowend        = endRow*rowByteStep;
-    for( ch=0; ch < Nch; ch++){
-        for( r = rowstart; r <= rowend; r+=rowByteStep ){
-            offset   = ch_offset + r ;
+    uint32 rowend        = (endRow+1)*rowByteStep;
+    double a;
+    for( ch=0, ch_offset=0; ch < Nch; ++ch, ch_offset += lenRCByteStep){
+        for( r = rowstart; r < rowend; r+=rowByteStep ){
+            offset   = ch_offset + r;
             colstart = offset + startColByte;
             colend   = offset + endColByte;
-            for( c = colstart; c <= colend ; c++){
+            for( c = colstart; c < colend ; c++){
                 tardat_ptr[k++] = dat_ptr[ c ];
             }
+
         }
-        ch_offset += lenRCByteStep;
     }
     return A;
 }

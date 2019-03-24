@@ -198,8 +198,9 @@ int32 main(int32 argc, char *argv[])
     /* hdrfile reading and writing to bmp */
 
     QString hdrfile_path = QString("/Users/neoflame99/Workspace/Qt5/readhdrfile/readhdrfile/memorial.hdr");
-    Mat hdrimg = qimmat::read_hdr(hdrfile_path)*128;
-
+    Mat hdrimg = qimmat::read_hdr(hdrfile_path);
+    Mat hdrimg_sub = hdrimg.copySubMat(0,1,0,1);
+    hdrimg_sub.printMat("hdrimg_sub");
     QImage hdr_bmp = qimmat::mat2qim(hdrimg);
     hdr_bmp.save("../jbmat_bench/hdr_bmp.bmp");
     /* ----- */
@@ -215,8 +216,7 @@ int32 main(int32 argc, char *argv[])
     /*------------------*/
 
     /*----- tonemapping ------ */
-
-    hdrimg /=128;
+    imgproc::gamma(hdrimg, 1.0);
     Mat Yhdrimg    = imgproc::rgb2gray(hdrimg);
     Mat Yhdrimg_tm = imgproc::nakaSigTonemap(Yhdrimg,gau,0.2);
     Mat Yhdrimg_tm3c= Mat::repeat(Yhdrimg_tm, 1, 1,3);
