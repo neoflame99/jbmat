@@ -604,6 +604,7 @@ template <> inline Mat Mat::_repeat<cmplx>(const Mat& src, const uint32 rr, cons
 
     uint32 x,y,z,i, sx, sy, sy_sc, k;
     i= 0;
+
     for ( z =0 ; z < nch ; ++z){
         for( y=0, sy=0; y < nr ; ++y, sy = y % sr){
             sy_sc = sy*sc;

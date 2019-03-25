@@ -222,7 +222,7 @@ int32 main(int32 argc, char *argv[])
     Mat Yhdrimg_tm3c= Mat::repeat(Yhdrimg_tm, 1, 1,3);
     Mat Yhdrimg_3c  = Mat::repeat(Yhdrimg, 1, 1, 3);
 
-    Mat hdrimg_tm = imgproc::gamma( hdrimg * Yhdrimg_tm3c / Yhdrimg_3c, 1.0);
+    Mat hdrimg_tm = imgproc::gamma( hdrimg * Yhdrimg_tm3c / Yhdrimg_3c, 0.45);
     hdrimg_tm = hdrimg_tm / hdrimg_tm.max().max().at<double>(0)*255.0;
     QImage hdrtm_bmp = qimmat::mat2qim(hdrimg_tm);
     hdrtm_bmp.save("../jbmat_bench/hdr_tm_0.2.bmp");
