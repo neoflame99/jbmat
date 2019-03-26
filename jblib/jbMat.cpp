@@ -617,7 +617,6 @@ void Mat::setChannelN(const Mat& src, const uint32 srcFromCh,const uint32 Channe
     uchar *srcdat_ptr_last  = src.getMat().get() + last ;
     uchar *tardat_ptr_start = mA.get() + cplen*tarToCh;
     std::copy( srcdat_ptr_start, srcdat_ptr_last, tardat_ptr_start );
-
 /*
     uint32 src_idx = srcFromCh*lenRowCol*byteStep;
     uint32 tar_idx = tar_ch*lenRowCol*byteStep;    
@@ -635,36 +634,46 @@ void Mat::setName(std::string name){
 
 Mat Mat::copySubMat(const uint32 startRow, const uint32 endRow, const uint32 startCol, const uint32 endCol) const {
     if( startRow > row || endRow > row || startCol > col || endCol > col){
-        fprintf(stdout,"copySubMat() : one or more arguments are out of bound from *this mat \n");
+        fprintf(stderr,"copySubMat() : one or more arguments are out of bound from *this mat \n");
+        return Mat();
+    }else if( endRow < startRow){
+        fprintf(stderr,"copySubMat() : endRow argument is less than startRow argument into copySubMat \n");
+        return Mat();
+    }else if( endCol < startCol){
+        fprintf(stderr,"copySubMat() : endCol argument is less than startCol argument into copySubMat \n");
         return Mat();
     }
 
-    int32 new_row = endRow-startRow+1;
-    int32 new_col = endCol-startCol+1;
+    uint32 new_row = endRow-startRow+1;
+    uint32 new_col = endCol-startCol+1;
     Mat A( datT, new_row, new_col, Nch);
     uchar *tardat_ptr = A.getMat().get();
 
     uint32 ch_offset = 0 ;
-    uint32 k = 0;
-    uint32 r, c, ch;
+    uint32 r, ch;
     uint32 offset;
     uint32 lenRCByteStep = lenRowCol*byteStep;
     uint32 rowByteStep   = col*byteStep;
     uint32 startColByte  = startCol*byteStep;
     uint32 endColByte    = (endCol+1)*byteStep;
-    uint32 colstart, colend;
+    uint32 colBytes      = endColByte - startColByte;
     uint32 rowstart      = startRow*rowByteStep;
     uint32 rowend        = (endRow+1)*rowByteStep;
-
+    uchar* k             = tardat_ptr;
+    uchar* colstart;
+    uchar* colend;
     for( ch=0, ch_offset=0; ch < Nch; ++ch, ch_offset += lenRCByteStep){
         for( r = rowstart; r < rowend; r+=rowByteStep ){
             offset   = ch_offset + r;
-            colstart = offset + startColByte;
-            colend   = offset + endColByte;
+            colstart = dat_ptr + offset + startColByte;
+            colend   = colstart+ endColByte;
+            /*
             for( c = colstart; c < colend ; c++){
                 tardat_ptr[k++] = dat_ptr[ c ];
-            }
-
+            } */
+            // =>
+            std::copy(colstart,colend, k);
+            k += colBytes;
         }
     }
     return A;

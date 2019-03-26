@@ -40,7 +40,10 @@ int32 main(int32 argc, char *argv[])
     //ma += 10;
     ma.printMat();
     Mat maa = ma.copy();
+    maa.printMat("maa");
     //maa.plusMat(ma);
+    Mat ma_ch1 = ma.copyChannelN(1);
+    ma_ch1.printMat("ma_ch1");
     maa += ma;
     maa.printMat();
     ma.at<double>(0) = 1000;
@@ -64,6 +67,8 @@ int32 main(int32 argc, char *argv[])
     Mat maf = inverse(mae);
     maf.printMat("inversed mat");
 
+    Mat maf_submat = maf.copySubMat(0,3,1,3);
+    maf_submat.printMat("maf submat [0:3, 1:3]");
     Mat mag(DTYP::DOUBLE, 3,4,2,"mag");
     Mat mah(DTYP::DOUBLE, 4,3,2,"mah");
     Mat man(DTYP::DOUBLE, 3,4,2,"man");
