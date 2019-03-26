@@ -84,12 +84,12 @@ Mat::Mat(DTYP dt, uint32 r, uint32 c, uint32 ch, std::string name):mA(nullptr){
 }
 
 Mat::Mat(const Mat& mat){
-    row = mat.getRow();
-    col = mat.getCol();
-    Nch = mat.getChannel();
-    length    = mat.getLength();
-    lenRowCol = row*col;
-    mA        = mat.getMat();
+    row = mat.row;
+    col = mat.col;
+    Nch = mat.Nch;
+    length    = mat.length;
+    lenRowCol = mat.lenRowCol;
+    mA        = mat.mA;
     datT      = mat.datT;
     byteStep  = mat.byteStep;
     byteLen   = mat.byteLen;
@@ -105,7 +105,9 @@ Mat::Mat(const Mat& mat){
     //    pt_thisdat[i] = pt_matdat[i];
     std::copy(pt_matdat,pt_matdat+mat.length,pt_thisdat);
     */
+#ifdef _DEBUG_MODE_
     fprintf(stdout,"copy constructor\n");
+#endif
 }
 
 Mat::Mat( std::initializer_list<double> list ){
@@ -520,26 +522,26 @@ Mat Mat::ones(uint32 r, uint32 c, uint32 ch, DTYP dt){
     }
 
     Mat A(dt, r, c, ch);
-
+    uint32 len = A.getLength();
     if(dt==DTYP::DOUBLE){
         double* pt_dat = A.getDataPtr<double>();
-        for(uint32 i=0; i < r*c*ch; i++)
+        for(uint32 i=0; i < len; i++)
             pt_dat[i] = 1.0;
     }else if(dt==DTYP::FLOAT){
         float* pt_dat = A.getDataPtr<float >();
-        for(uint32 i=0; i < r*c*ch; i++)
+        for(uint32 i=0; i < len; i++)
             pt_dat[i] = 1.0f;
     }else if(dt==DTYP::INT){
         int32* pt_dat = A.getDataPtr<int32 >();
-        for(uint32 i=0; i < r*c*ch; i++)
+        for(uint32 i=0; i < len; i++)
             pt_dat[i] = 1;
     }else if(dt==DTYP::UCHAR){
         uchar* pt_dat = A.getDataPtr<uchar >();
-        for(uint32 i=0; i < r*c*ch; i++)
+        for(uint32 i=0; i < len; i++)
             pt_dat[i] = 1;
     }else if(dt==DTYP::CMPLX){
         cmplx* pt_dat = A.getDataPtr<cmplx >();
-        for(uint32 i=0; i < r*c*ch; i++)
+        for(uint32 i=0; i < len; i++)
             pt_dat[i] = 1.0;
     }
 
@@ -564,26 +566,33 @@ Mat Mat::zeros(uint32 r, uint32 c, uint32 ch, DTYP dt){
 }
 
 Mat Mat::copyChannelN(const uint32 NoCh) const{
-    Mat A(this->datT, row,col,1);
+    uint32 numCh = NoCh;
+    if( isEmpty() ){
+        fprintf(stderr,"Current Mat has no data! So It cannot operate copyChannelN \n");
 
-    int32 numCh = NoCh;
-    if(numCh >= A.getChannel()){
-        fprintf(stdout,"channel number of getNchannel() is out of bound\n The last channel is selected\n");
-        numCh = A.getChannel()-1;
+    }else if(numCh >= Nch ){
+        fprintf(stdout,"channel number of copyChannelN() is out of bound\n The last channel is selected\n");
+        numCh = Nch -1;
     }
 
-    uchar *srcDat_pt = mA.get();
+    Mat A(this->datT, row,col,1);
+
+    uint32 cplen  = lenRowCol*byteStep;
+    uint32 offset = numCh*cplen;
+    uchar *srcDat_pt = mA.get()+offset;
     uchar *tarDat_pt = A.mA.get();
-    uint32 offset = numCh*lenRowCol*byteStep;
+
+    std::copy(srcDat_pt, srcDat_pt+cplen, tarDat_pt);
+    /*
     for(uint32 i=offset; i < lenRowCol*byteStep; i++ )
         tarDat_pt[i] = srcDat_pt[i];
-
+    */
     return A;
 }
 
 void Mat::setChannelN(const Mat& src, const uint32 srcFromCh,const uint32 Channels, const uint32 tarToCh){
     if(src.getChannel() < srcFromCh+Channels ){
-        fprintf(stdout,"setChannelN(): srcFromCh and Channels are not correct! \n");
+        fprintf(stderr,"setChannelN(): srcFromCh and Channels are not correct! \n");
         return ;
     }
 
@@ -592,24 +601,32 @@ void Mat::setChannelN(const Mat& src, const uint32 srcFromCh,const uint32 Channe
         init(src.getRow(),src.getCol(), Channels, src.getDatType() );
         tar_ch = 0;
     }else if( Nch < tarToCh+Channels){
-        fprintf(stdout,"setChannelN(): tarToCh and Channels are not correct! \n");
+        fprintf(stderr,"setChannelN(): tarToCh and Channels are not correct! \n");
         return ;
     }else if( src.getRow() != row && src.getCol() != col){
-        fprintf(stdout,"*this and src are not equal size. *this:(%d, %d, %d) != src(%d, %d, %d)\n",row,col,Nch,src.getRow(),src.getCol(),src.getChannel());
+        fprintf(stderr,"*this and src are not equal size. *this:(%d, %d, %d) != src(%d, %d, %d)\n",row,col,Nch,src.getRow(),src.getCol(),src.getChannel());
         return ;
     }else
         tar_ch = tarToCh;
 
     sync_data_ptr();
-    uchar *srcdat_ptr = src.getMat().get();
+    uint32 cplen = src.getRowColSize() * src.getByteStep();
+    uint32 start = cplen * srcFromCh;
+    uint32 last  = cplen * (srcFromCh+Channels);
+    uchar *srcdat_ptr_start = src.getMat().get() + start;
+    uchar *srcdat_ptr_last  = src.getMat().get() + last ;
+    uchar *tardat_ptr_start = mA.get() + cplen*tarToCh;
+    std::copy( srcdat_ptr_start, srcdat_ptr_last, tardat_ptr_start );
+
+/*
     uint32 src_idx = srcFromCh*lenRowCol*byteStep;
     uint32 tar_idx = tar_ch*lenRowCol*byteStep;    
-
     for(uint32 j=0; j < Channels ; j++){
         for(uint32 i=0; i < lenRowCol*byteStep; i++ ){
             dat_ptr[tar_idx++] = srcdat_ptr[src_idx++];
         }
     }
+*/
 }
 
 void Mat::setName(std::string name){
