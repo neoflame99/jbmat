@@ -34,7 +34,7 @@ macx{
     message("Mac OS")
 }
 
-CONFIG(debug){
+CONFIG(!debug){
     DEFINES += _DEBUG_MODE_
     message("Debug Mode Operation")
 }
