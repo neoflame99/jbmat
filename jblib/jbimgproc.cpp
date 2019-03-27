@@ -308,7 +308,7 @@ Mat boxMaskGen( const uint32 sz, const uint32 ch){
     return mask;
 }
 
-Mat nakaSigTonemap( Mat& src, Mat& localmask){
+Mat nakaSigTonemap( Mat& src, Mat& localmask, const double gmfactor){
     DTYP srcDtype  = src.getDatType();
     DTYP maskDtype = localmask.getDatType();
 
@@ -319,7 +319,7 @@ Mat nakaSigTonemap( Mat& src, Mat& localmask){
     double max;
 
     Mat maxMat   = src.max();
-    Mat gmeanMat = src.mean();
+    Mat gmeanMat = src.mean() * gmfactor;
     Mat A;
     switch( srcDtype ){
     case DTYP::DOUBLE :
@@ -335,13 +335,23 @@ Mat nakaSigTonemap( Mat& src, Mat& localmask){
         A   = _nakaSigTm<int32  >( src, localmask, gmeanMat, max);
         break;
     default:
-        fprintf(stderr,"Unsupproted data type in nkakSigtonemap\n ");
+        fprintf(stderr,"Unsupproted data type in nakaSigtonemap\n ");
     }
 
     return A;
 }
 
+Mat gamma( const Mat& src, const double gmvalue){
+    DTYP srcDtype = src.getDatType();
 
+    switch( srcDtype){
+    case DTYP::DOUBLE : return _gamma<double>(src, gmvalue);
+    case DTYP::FLOAT  : return _gamma<float >(src, gmvalue);
+    case DTYP::INT    : return _gamma<int32 >(src, gmvalue);
+    case DTYP::UCHAR  : return _gamma<uchar >(src, gmvalue);
+    default: fprintf(stderr, "Unsuppretd data type in gamma func.\n"); return Mat();
+    }
+}
 
 } // end of imgproc namespace
 } // end of jmat namespace
