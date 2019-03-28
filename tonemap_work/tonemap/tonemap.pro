@@ -37,7 +37,8 @@ CONFIG( debug, debug | release ){
     DEFINES += _DEBUG_MODE_
     message("Debug Mode Operation!")
 }
-message("CONFIG" $$CONFIG)
+#message("CONFIG" $$CONFIG)
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
