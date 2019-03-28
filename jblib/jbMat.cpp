@@ -194,7 +194,9 @@ Mat& Mat::operator=( Mat other){
 // rvalue reference
 Mat& Mat::operator=(Mat&& other){
 
+#ifdef _DEBUG_MODE_
     fprintf(stdout,"rvalue referance Assign operator\n");
+#endif
 
     std::swap(row,other.row);
     std::swap(col,other.col);
