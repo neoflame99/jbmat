@@ -20,7 +20,8 @@ int main(int argc, char *argv[])
 {
     /* hdrfile reading and writing to bmp */
 #ifdef _MACOS_
-    QString hdrfile_path = QString("/Users/neoflame99/Workspace/Qt5/readhdrfile/readhdrfile/memorial.hdr");
+    //QString hdrfile_path = QString("/Users/neoflame99/HDRI/memorial.hdr");
+    QString hdrfile_path = QString("/Users/neoflame99/HDRI/office.hdr");
 #else
     QString hdrfile_path = QString("/home/neoflame99/memorial.hdr");
 #endif
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
     double maxv;
     uint32 idx;
     QString rfn;
-    double gmv = 0.45;
+    double gmv = 1.0;
     /* ----- 1st stage tonemapping ------ */
     Mat facV = Mat::zeros(20,1,1,DTYP::DOUBLE);
     for (i = 0, fac = 0.1 ; i < 20; ++i, fac += 0.1 ){
@@ -78,7 +79,7 @@ int main(int argc, char *argv[])
     hdrimg_tm = imgproc::gamma( hdrimg * Yhdrimg_tm3c / Yhdrimg_3c, gmv);
     hdrimg_tm = hdrimg_tm / hdrimg_tm.max().max().at<double>(0)*255.0;
     hdrtm_bmp = qimmat::mat2qim(hdrimg_tm);
-    rfn = QString("../output/hdr_tm1_%1_gm_%2.bmp").arg(fac).arg(gmv);
+    rfn = QString("../output/office_hdr_tm1_%1_gm_%2.bmp").arg(fac).arg(gmv);
     hdrtm_bmp.save(rfn);
     /* ------- 2nd stage tonemapping ------- */
     facV = Mat::zeros(20,1,1,DTYP::DOUBLE);
@@ -94,16 +95,16 @@ int main(int argc, char *argv[])
             idx = static_cast<uint32>(i);
         }
     }
-    stdvIdx.printMat("stdvIdx 1st: ");
+    stdvIdx.printMat("stdvIdx 2nd: ");
     fac = facV.at<double>(1);
     Yhdrimg_tm2 = imgproc::nakaSigTonemap(Yhdrimg_tm1, gau, fac);
 
     Yhdrimg_tm3c = Mat::repeat(Yhdrimg_tm2, 1, 1, 3);
 
-    hdrimg_tm = imgproc::gamma( hdrimg * Yhdrimg_tm3c / Yhdrimg_3c, gmv);
+    hdrimg_tm = imgproc::gamma( hdrimg * Yhdrimg_tm3c / Yhdrimg_3c, 1.0);
     hdrimg_tm = hdrimg_tm / hdrimg_tm.max().max().at<double>(0)*255.0;
     hdrtm_bmp = qimmat::mat2qim(hdrimg_tm);
-    rfn = QString("../output/hdr_tm2_%1_gm_%2.bmp").arg(fac).arg(gmv);
+    rfn = QString("../output/office_hdr_tm2_%1_gm_%2.bmp").arg(fac).arg(1.0);
     hdrtm_bmp.save(rfn);
 
 
