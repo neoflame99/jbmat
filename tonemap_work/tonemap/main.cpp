@@ -22,6 +22,8 @@ int main(int argc, char *argv[])
 #ifdef _MACOS_
     //QString hdrfile_path = QString("/Users/neoflame99/HDRI/memorial.hdr");
     QString hdrfile_path = QString("/Users/neoflame99/HDRI/office.hdr");
+    QFileInfo f(hdrfile_path);
+    QString Filename_only = f.fileName();
 #else
     //QString hdrfile_path = QString("/home/neoflame99/HDRI/memorial.hdr");
     QString hdrfile_path = QString("/home/neoflame99/HDRI/office.hdr");
@@ -74,6 +76,7 @@ int main(int argc, char *argv[])
     stdv.printMat("stdv 1st:");
     stdvIdx.printMat("stdvIdx 1st: ");
     fac = facV.at<double>(idx);
+    fac = 0;
     Yhdrimg_tm1 = imgproc::nakaSigTonemap(Yhdrimg, gau, fac);
 
 
@@ -85,7 +88,9 @@ int main(int argc, char *argv[])
     hdrtm_bmp = qimmat::mat2qim(hdrimg_tm);
     rfn = QString("../output/%1_tm1_%2_gm_%3.bmp").arg(Filename_only).arg(fac).arg(gmv);
     hdrtm_bmp.save(rfn);
+
     /* ------- 2nd stage tonemapping ------- */
+    /*
     facV = Mat::zeros(20,1,1,DTYP::DOUBLE);
     for (i = 0, fac = 0.1 ; i < 20; ++i, fac += 0.1 ){
         facV.at<double>(static_cast<uint32>(i)) = fac;
@@ -110,7 +115,7 @@ int main(int argc, char *argv[])
     hdrtm_bmp = qimmat::mat2qim(hdrimg_tm);
     rfn = QString("../output/%1_tm2_%2_gm_%3.bmp").arg(Filename_only).arg(fac).arg(1.0);
     hdrtm_bmp.save(rfn);
-
+*/
 
     return 0;
 }
