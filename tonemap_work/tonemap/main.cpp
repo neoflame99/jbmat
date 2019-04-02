@@ -16,24 +16,33 @@
 
 using namespace jmat;
 
+Mat retinexSigmoidMethod1(Mat);
+Mat retinexSigmoidMethod2(Mat);
+/* hdrfile reading and writing to bmp */
+#ifdef _MACOS_
+//QString hdrfile_path = QString("/Users/neoflame99/HDRI/memorial.hdr");
+static QString hdrfile_path = QString("/Users/neoflame99/HDRI/office.hdr");
+static QFileInfo f(hdrfile_path);
+static QString Filename_only = f.fileName();
+#else
+//QString hdrfile_path = QString("/home/neoflame99/HDRI/memorial.hdr");
+static QString hdrfile_path = QString("/home/neoflame99/HDRI/office.hdr");
+static QFileInfo f(hdrfile_path);
+static QString Filename_only = f.fileName();
+#endif
+
 int main(int argc, char *argv[])
 {
-    /* hdrfile reading and writing to bmp */
-#ifdef _MACOS_
-    //QString hdrfile_path = QString("/Users/neoflame99/HDRI/memorial.hdr");
-    QString hdrfile_path = QString("/Users/neoflame99/HDRI/office.hdr");
-    QFileInfo f(hdrfile_path);
-    QString Filename_only = f.fileName();
-#else
-    //QString hdrfile_path = QString("/home/neoflame99/HDRI/memorial.hdr");
-    QString hdrfile_path = QString("/home/neoflame99/HDRI/office.hdr");
-    QFileInfo f(hdrfile_path);
-    QString Filename_only = f.fileName();
-#endif
     Mat hdrimg = qimmat::read_hdr(hdrfile_path);
-    QImage hdr_bmp = qimmat::mat2qim(hdrimg);
-    hdr_bmp.save("../output/hdr_bmp.bmp");
-    /* ----- */
+    //QImage hdr_bmp = qimmat::mat2qim(hdrimg);
+    //hdr_bmp.save("../output/hdr_bmp.bmp");
+
+    retinexSigmoidMethod1(hdrimg);
+
+    return 0;
+}
+
+Mat retinexSigmoidMethod1(Mat hdrimg){
 
     /*--- gauss mask / box mask gen ---*/
 
@@ -117,5 +126,4 @@ int main(int argc, char *argv[])
     hdrtm_bmp.save(rfn);
 */
 
-    return 0;
 }
