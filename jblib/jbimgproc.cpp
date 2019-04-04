@@ -341,6 +341,37 @@ Mat nakaSigTonemap( Mat& src, Mat& localmask, const double gmfactor){
     return A;
 }
 
+Mat nakaSig3MeanTonemap( Mat& src, Mat& s_localmean, Mat& l_localmean, const double globalmean, const double Imax){
+    DTYP srcDtype  = src.getDatType();
+    DTYP smeanDtype = s_localmean.getDatType();
+    DTYP lmeanDtype = l_localmean.getDatType();
+
+    if(srcDtype != smeanDtype){
+        fprintf(stderr,"the data types between src and s_localmean aren't the same!\n ");
+        return Mat();
+    }else if( srcDtype != lmeanDtype){
+        fprintf(stderr,"the data types between src and l_localmean aren't the same!\n ");
+        return Mat();
+    }
+
+    Mat A;
+    switch( srcDtype ){
+    case DTYP::DOUBLE :
+        A   = _nakaSig3MeanTm<double>( src, s_localmean, l_localmean, globalmean, Imax );
+        break;
+    case DTYP::FLOAT  :
+        A   = _nakaSig3MeanTm<float >( src, s_localmean, l_localmean, globalmean, Imax);
+        break;
+    case DTYP::INT    :
+        A   = _nakaSig3MeanTm<int32 >( src, s_localmean, l_localmean, globalmean, Imax);
+        break;
+    default:
+        fprintf(stderr,"Unsupproted data type in nakaSig3MeanTonemap\n ");
+    }
+
+    return A;
+}
+
 Mat gamma( const Mat& src, const double gmvalue){
     DTYP srcDtype = src.getDatType();
 
