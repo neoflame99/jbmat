@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     //QImage hdr_bmp = qimmat::mat2qim(hdrimg);
     //hdr_bmp.save("../output/hdr_bmp.bmp");
 
-    retinexSigmoidMethod1(hdrimg);
+    retinexSigmoidMethod2(hdrimg);
 
     return 0;
 }
@@ -61,18 +61,25 @@ Mat retinexSigmoidMethod1(Mat hdrimg){
     Mat Yhdrimg_tm3c, Yhdrimg_3c, hdrimg_tm;
     QImage hdrtm_bmp;
 
+
+    double Imax;
+    double globalMean;
     Yhdrimg   = imgproc::rgb2gray(hdrimg);
     Mat stdv = Mat::zeros(20,1,1, DTYP::DOUBLE);
     Mat stdvIdx = Mat::zeros(20,1,1,DTYP::INT);
     double maxv;
-    uint32 idx;
+    uint32 idx=0;
     QString rfn;
     double gmv = 0.45;
+
+    Imax = Yhdrimg.max().at<double>(0);
+    globalMean = Yhdrimg.mean().at<double>(0);
+    Mat localMean = imgproc::localMeanMat(Yhdrimg, gau);
     /* ----- 1st stage tonemapping ------ */
     Mat facV = Mat::zeros(20,1,1,DTYP::DOUBLE);
     for (i = 0, fac = 0.1 ; i < 20; ++i, fac += 0.1 ){
         facV.at<double>(static_cast<uint32>(i)) = fac;
-        Yhdrimg_tm1  = imgproc::nakaSigTonemap(Yhdrimg, gau, fac);
+        Yhdrimg_tm1  = imgproc::nakaSigTonemap(Yhdrimg, localMean, fac*globalMean, Imax);
         stdv.at<double>(static_cast<uint32>(i)) = Yhdrimg_tm1.std().at<double>(0);
     }
     maxv = stdv.max().at<double>(0);
@@ -85,8 +92,7 @@ Mat retinexSigmoidMethod1(Mat hdrimg){
     stdv.printMat("stdv 1st:");
     stdvIdx.printMat("stdvIdx 1st: ");
     fac = facV.at<double>(idx);
-    fac = 0;
-    Yhdrimg_tm1 = imgproc::nakaSigTonemap(Yhdrimg, gau, fac);
+    Yhdrimg_tm1 = imgproc::nakaSigTonemap(Yhdrimg, localMean, fac*globalMean, Imax);
 
 
     Yhdrimg_tm3c = Mat::repeat(Yhdrimg_tm1, 1, 1, 3);
@@ -125,5 +131,69 @@ Mat retinexSigmoidMethod1(Mat hdrimg){
     rfn = QString("../output/%1_tm2_%2_gm_%3.bmp").arg(Filename_only).arg(fac).arg(1.0);
     hdrtm_bmp.save(rfn);
 */
+
+}
+Mat retinexSigmoidMethod2(Mat hdrimg){
+
+    /*--- gauss mask / box mask gen ---*/
+    int32 boxmasksize = 20;
+    Mat gau = imgproc::gaussMaskGen(1,6);
+    Mat box = imgproc::boxMaskGen(boxmasksize);
+
+    gau.printMat("gaussian Mat");
+    box.printMat("box Mat");
+
+    /*------------------*/
+
+    /*----- tonemapping ------ */
+    int i;
+    double fac;
+    Mat Yhdrimg, Yhdrimg_tm1, Yhdrimg_tm2;
+    Mat Yhdrimg_tm3c, Yhdrimg_3c, hdrimg_tm;
+    QImage hdrtm_bmp;
+
+
+    double Imax;
+    double globalMean;
+    Yhdrimg   = imgproc::rgb2gray(hdrimg);
+    Mat stdv = Mat::zeros(20,1,1, DTYP::DOUBLE);
+    Mat stdvIdx = Mat::zeros(20,1,1,DTYP::INT);
+    double maxv;
+    uint32 idx=0;
+    QString rfn;
+    double gmv = 0.45;
+
+    Imax = Yhdrimg.max().at<double>(0);
+    globalMean = Yhdrimg.mean().at<double>(0);
+    Mat s_localMean = imgproc::localMeanMat(Yhdrimg, gau);
+    Mat l_localMean = imgproc::localMeanMat(Yhdrimg, box);
+    /* ----- 1st stage tonemapping ------ */
+    Mat facV = Mat::zeros(20,1,1,DTYP::DOUBLE);
+    for (i = 0, fac = 0.1 ; i < 20; ++i, fac += 0.1 ){
+        facV.at<double>(static_cast<uint32>(i)) = fac;
+        Yhdrimg_tm1  = imgproc::nakaSig3MeanTonemap(Yhdrimg, s_localMean, l_localMean, fac*globalMean, Imax);
+        stdv.at<double>(static_cast<uint32>(i)) = Yhdrimg_tm1.std().at<double>(0);
+    }
+    maxv = stdv.max().at<double>(0);
+    for (i=0; i < 20; ++i){
+        if ( stdv.at<double>(static_cast<uint32>(i)) == maxv ){
+            stdvIdx.at<int32>(static_cast<uint32>(i)) = 1;
+            idx = static_cast<uint32>(i);
+        }
+    }
+    stdv.printMat("stdv 1st:");
+    stdvIdx.printMat("stdvIdx 1st: ");
+    fac = facV.at<double>(idx);
+    Yhdrimg_tm1 = imgproc::nakaSig3MeanTonemap(Yhdrimg, s_localMean, l_localMean, fac*globalMean, Imax);
+
+
+    Yhdrimg_tm3c = Mat::repeat(Yhdrimg_tm1, 1, 1, 3);
+    Yhdrimg_3c   = Mat::repeat(Yhdrimg, 1, 1, 3);
+
+    hdrimg_tm = imgproc::gamma( hdrimg * Yhdrimg_tm3c / Yhdrimg_3c, gmv);
+    hdrimg_tm = hdrimg_tm / hdrimg_tm.max().max().at<double>(0)*255.0;
+    hdrtm_bmp = qimmat::mat2qim(hdrimg_tm);
+    rfn = QString("../output/%1_gls_tm1_%2_gm_%3_llm_%4.bmp").arg(Filename_only).arg(fac).arg(gmv).arg(boxmasksize);
+    hdrtm_bmp.save(rfn);
 
 }
