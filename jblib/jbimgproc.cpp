@@ -308,31 +308,25 @@ Mat boxMaskGen( const uint32 sz, const uint32 ch){
     return mask;
 }
 
-Mat nakaSigTonemap( Mat& src, Mat& localmask, const double gmfactor){
+Mat nakaSigTonemap( Mat& src, Mat& localmean, const double globalmean, const double Imax){
     DTYP srcDtype  = src.getDatType();
-    DTYP maskDtype = localmask.getDatType();
+    DTYP lmeanDtype = localmean.getDatType();
 
-    if(srcDtype != maskDtype){
+    if(srcDtype != lmeanDtype){
         fprintf(stderr,"the data types between src and localmask aren't the same!\n ");
         return Mat();
     }
-    double max;
 
-    Mat maxMat   = src.max();
-    Mat gmeanMat = src.mean() * gmfactor;
     Mat A;
     switch( srcDtype ){
     case DTYP::DOUBLE :
-        max = maxMat._max<double>().at<double>(0);
-        A   = _nakaSigTm<double>( src, localmask, gmeanMat, max );
+        A   = _nakaSigTm<double>( src, localmean, globalmean, Imax );
         break;
     case DTYP::FLOAT  :
-        max = static_cast<double>(maxMat._max<float >().at<float >(0));
-        A   = _nakaSigTm<float >( src, localmask, gmeanMat, max);
+        A   = _nakaSigTm<float >( src, localmean, globalmean, Imax);
         break;
     case DTYP::INT    :
-        max = maxMat._max<int32 >().at<int32 >(0);
-        A   = _nakaSigTm<int32  >( src, localmask, gmeanMat, max);
+        A   = _nakaSigTm<int32  >( src, localmean, globalmean, Imax);
         break;
     default:
         fprintf(stderr,"Unsupproted data type in nakaSigtonemap\n ");

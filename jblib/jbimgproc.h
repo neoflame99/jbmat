@@ -43,10 +43,10 @@ namespace imgproc {
     Mat gaussMaskGen (const double sigma, const double factor = 6, const uint32 ch=1);
     Mat boxMaskGen (const uint32 sz, const uint32 ch=1);
     Mat inline localMeanMat ( const Mat& src, const Mat& mask);
-    Mat nakaSigTonemap( Mat& src, Mat& localmask, const double gmfactor=1.0);
+    Mat nakaSigTonemap( Mat& src, Mat& localmean, const double globalmean, const double Imax);
     Mat nakaSig3MeanTonemap( Mat& src, Mat& s_localmean, Mat& l_localmean, const double globalmean, const double Imax);
 
-    template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmask, const Mat& globalmean, const double Imax);
+    template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmean, const double globalmean, const double Imax);
     template <typename _T> inline Mat _nakaSig3MeanTm(const Mat& Im, const Mat& smLocalMean, const Mat& lgLocalMean, const double globalMean, const double Imax);
 }
 
@@ -418,20 +418,20 @@ namespace  imgproc{
         return A;
     }
 
-template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmask, const Mat& globalmean, const double Imax){
-    Mat lmn = localMeanMat(Im, localmask);
-    Mat Imt = Im.copy();
+template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmean, const double globalmean, const double Imax){
+
+    Mat Imt(Im.getDatType(), Im.getRow(), Im.getCol(), Im.getChannel());
 
     _T *ImDat_pt  = Im.getDataPtr<_T>();
-    _T *lmnDat_pt = lmn.getDataPtr<_T>();
     _T *ImtDat_pt = Imt.getDataPtr<_T>();
-    _T *gmnDat_pt = globalmean.getDataPtr<_T>();
+    _T *lmnDat_pt = localmean.getDataPtr<_T>();
+
     uint32 rc = Im.getRowColSize();
     uint32 ch = Im.getChannel();
     uint32 i, ich;
     for ( ich =0 ; ich < ch ; ++ich){
         for( i =0 ; i < rc; ++i )
-            ImtDat_pt[i] = nakaSigmoid( ImDat_pt[i], lmnDat_pt[i] + gmnDat_pt[ich], Imax);
+            ImtDat_pt[i] = nakaSigmoid( ImDat_pt[i], lmnDat_pt[i] + globalmean, Imax);
     }
     return Imt;
 }
