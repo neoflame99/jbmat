@@ -69,7 +69,7 @@ Mat rgb2gray(const Mat& rgbIm, const int32 HowToGray){
  *  Y =  0.2126 * r +  0.7152 * g +  0.0722 * b
  *
  *  if HowToGray = 2 (3 equal-weight)
- *  Y = 0.333 * r + 0.334 * g + 0.333 * b
+ *  Y = 0.3333 * r + 0.3334 * g + 0.3333 * b
  */
     switch(rgbIm.getDatType()){
     case DTYP::DOUBLE : return _rgb2gray<double>(rgbIm, HowToGray);
@@ -313,7 +313,7 @@ Mat nakaSigTonemap( Mat& src, Mat& localmean, const double globalmean, const dou
     DTYP lmeanDtype = localmean.getDatType();
 
     if(srcDtype != lmeanDtype){
-        fprintf(stderr,"the data types between src and localmask aren't the same!\n ");
+        fprintf(stderr,"the data types between src and localmean aren't the same!\n ");
         return Mat();
     }
 
@@ -326,7 +326,7 @@ Mat nakaSigTonemap( Mat& src, Mat& localmean, const double globalmean, const dou
         A   = _nakaSigTm<float >( src, localmean, globalmean, Imax);
         break;
     case DTYP::INT    :
-        A   = _nakaSigTm<int32  >( src, localmean, globalmean, Imax);
+        A   = _nakaSigTm<int32 >( src, localmean, globalmean, Imax);
         break;
     default:
         fprintf(stderr,"Unsupproted data type in nakaSigtonemap\n ");
@@ -361,6 +361,33 @@ Mat nakaSig3MeanTonemap( Mat& src, Mat& s_localmean, Mat& l_localmean, const dou
         break;
     default:
         fprintf(stderr,"Unsupproted data type in nakaSig3MeanTonemap\n ");
+    }
+
+    return A;
+}
+
+Mat logRetinexTonemap( Mat& src, Mat& surround){
+    DTYP srcDtype  = src.getDatType();
+    DTYP surrDtype = surround.getDatType();
+
+    if(srcDtype != surrDtype){
+        fprintf(stderr,"the data types between src and surround aren't the same!\n ");
+        return Mat();
+    }
+
+    Mat A;
+    switch( srcDtype ){
+    case DTYP::DOUBLE :
+        A   = _logRetinexTm<double>( src, surround );
+        break;
+    case DTYP::FLOAT  :
+        A   = _logRetinexTm<float >( src, surround );
+        break;
+    case DTYP::INT    :
+        A   = _logRetinexTm<int32 >( src, surround );
+        break;
+    default:
+        fprintf(stderr,"Unsupproted data type in nakaSigtonemap\n ");
     }
 
     return A;

@@ -45,9 +45,10 @@ namespace imgproc {
     Mat inline localMeanMat ( const Mat& src, const Mat& mask);
     Mat nakaSigTonemap( Mat& src, Mat& localmean, const double globalmean, const double Imax);
     Mat nakaSig3MeanTonemap( Mat& src, Mat& s_localmean, Mat& l_localmean, const double globalmean, const double Imax);
-
+    Mat logRetinexTonemap( Mat& src, Mat& surround);
     template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmean, const double globalmean, const double Imax);
     template <typename _T> inline Mat _nakaSig3MeanTm(const Mat& Im, const Mat& smLocalMean, const Mat& lgLocalMean, const double globalMean, const double Imax);
+    template <typename _T> inline Mat _logRetinexTm(const Mat& Im, const Mat& localmean);
 }
 
 
@@ -158,7 +159,7 @@ namespace  imgproc{
      *  Y =  0.2126 * r +  0.7152 * g +  0.0722 * b
      *
      *  if HowToGray = 2 (3 equal-weight)
-     *  Y = 0.333 * r + 0.334 * g + 0.333 * b
+     *  Y = 0.3333 * r + 0.3334 * g + 0.3333 * b
      */
 
         uint32 row = rgbIm.getRow();
@@ -181,7 +182,7 @@ namespace  imgproc{
                 tarDat_pt[k  ] =  bt709_r2y[0][0] * srcDat_pt[x  ] + bt709_r2y[0][1] * srcDat_pt[x+ch_offset1] + bt709_r2y[0][2] * srcDat_pt[x+ch_offset2];
         }else if( HowToGray==2){
             for(x= 0, k=0 ; x < imsize; x++, k++)
-                tarDat_pt[k  ] =  0.333 * srcDat_pt[x  ] + 0.334 * srcDat_pt[x+ch_offset1] + 0.333 * srcDat_pt[x+ch_offset2];
+                tarDat_pt[k  ] =  0.3333 * srcDat_pt[x  ] + 0.3334 * srcDat_pt[x+ch_offset1] + 0.3333 * srcDat_pt[x+ch_offset2];
         }
 
         return A;
@@ -478,6 +479,22 @@ template <typename _T> inline Mat _gamma(const Mat& src, const double gmval){
     A *= maxA;
     return A;
 }
+
+template <typename _T> inline Mat _logRetinexTm(const Mat& Im, const Mat& surround){
+    Mat Imt = Im / surround;
+    _T *ImtDat_pt = Imt.getDataPtr<_T>();
+
+    uint32 rc = Im.getRowColSize();
+    uint32 ch = Im.getChannel();
+    uint32 i, ich;
+
+    for ( ich =0 ; ich < ch ; ++ich){
+        for( i =0 ; i < rc; ++i )
+            ImtDat_pt[i] = log(ImtDat_pt[i]);
+    }
+    return Imt;
+}
+
 
 } // end of imgproc namespace
 } // end of jmat namespace
