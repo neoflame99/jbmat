@@ -14,16 +14,23 @@
     #include <string.h>
 #endif
 
+#define _HDRIMG_
+
 using namespace jmat;
 
 Mat retinexSigmoidMethod1(Mat);
 Mat retinexSigmoidMethod2(Mat);
 Mat retinexLogMethod(Mat);
 
+
 /* hdrfile reading and writing to bmp */
 #ifdef _MACOS_
+#ifdef _HDRIMG_
 static QString hdrfile_path = QString("/Users/neoflame99/HDRI/memorial.hdr");
 //static QString hdrfile_path = QString("/Users/neoflame99/HDRI/office.hdr");
+#else
+static QString hdrfile_path = QString("/Users/neoflame99/Workspace/Experiments/MSRetinex/example.bmp");
+#endif
 static QFileInfo f(hdrfile_path);
 static QString Filename_only = f.fileName();
 #else
@@ -35,9 +42,15 @@ static QString Filename_only = f.fileName();
 
 int main(int argc, char *argv[])
 {
+#ifdef _HDRIMG_
     Mat hdrimg = qimmat::read_hdr(hdrfile_path);
+#else
+    QImage im(hdrfile_path);
+    Mat hdrimg = qimmat::qim2mat(im);
+#endif
     //QImage hdr_bmp = qimmat::mat2qim(hdrimg);
     //hdr_bmp.save("../output/hdr_bmp.bmp");
+
 
     fprintf(stdout," retinex method1\n");
     retinexSigmoidMethod1(hdrimg);
@@ -77,7 +90,7 @@ Mat retinexSigmoidMethod1(Mat hdrimg){
     double maxv;
     uint32 idx=0;
     QString rfn;
-    double gmv = 0.45;
+    double gmv = 0.7; //0.45;
 
     Imax = Yhdrimg.max().at<double>(0);
     globalMean = Yhdrimg.mean().at<double>(0);
@@ -168,7 +181,7 @@ Mat retinexSigmoidMethod2(Mat hdrimg){
     double maxv;
     uint32 idx=0;
     QString rfn;
-    double gmv = 0.45;
+    double gmv = 0.7; //0.45;
 
     Imax = Yhdrimg.max().at<double>(0);
     globalMean = Yhdrimg.mean().at<double>(0);
@@ -209,60 +222,102 @@ Mat retinexSigmoidMethod2(Mat hdrimg){
 Mat retinexLogMethod(Mat hdrimg){
 
     /*--- gauss mask / box mask gen ---*/
-    int32 boxmasksize = 6;
-    Mat gau = imgproc::gaussMaskGen(1,6);
+    int32 boxmasksize = 300;
+    Mat gau = imgproc::gaussMaskGen(2,6);
     Mat box = imgproc::boxMaskGen(boxmasksize);
 
-    //gau.printMat("gaussian Mat");
+    gau.printMat("gaussian Mat");
     //box.printMat("box Mat");
 
     /*------------------*/
 
     /*----- tonemapping ------ */
     Mat Yhdrimg, Yhdrimg_tm;
-    Mat Yhdrimg_plus1;
-    Mat Yhdrimg_tm3c, Yhdrimg_3c, hdrimg_tm;
+    Mat hdrimg_tm = hdrimg.copy();
     QImage hdrtm_bmp;
     Mat surround;
 
+    /* extract gray */
+    hdrimg += 1;
     Yhdrimg       = imgproc::rgb2gray(hdrimg,2);
-    Yhdrimg_plus1 = Yhdrimg+1;
 
     double maxv;
     QString rfn;
     double gmv = 0.45;
 
-    maxv = hdrimg.max().max().at<double>(0);
 
     // * ---- Intensity log tonemapping ---- * //
     surround   = imgproc::localMeanMat(Yhdrimg, gau);
-    Yhdrimg_tm = imgproc::logRetinexTonemap(Yhdrimg_plus1, surround );
-    double tm_max = Yhdrimg_tm.max().at<double>(0);
-    double tm_min = Yhdrimg_tm.min().at<double>(0);
+    hdrtm_bmp  = qimmat::mat2qim(surround);
+    hdrtm_bmp.save("../output/surround.bmp");
+    Yhdrimg_tm = imgproc::logRetinexTonemap(Yhdrimg, surround );
 
-    //Yhdrimg_tm = (Yhdrimg_tm - tm_min) * (255.0 / (tm_max - tm_min));
+    /* ---- simplest color balance by histogram ---- */
+    uint32 len = Yhdrimg_tm.getLength(); // One channel Matrix
+    double pl = 1; // low pixels of 1% among total pixels
+    double ph = 1; // high piexls of 1% among total pixels
+    double lo_pixels = pl*0.01*len;
+    double hi_pixels = len - ph*0.01*len;
+    double chistval;
+    uint32 k;
+    uint32 binIdx1=0, binIdx2=0;
+    double scale;
+
+    double *yhdrimgTm_datPt = Yhdrimg_tm.getDataPtr<double>();
+    double *yhdrimg_datPt   = Yhdrimg.getDataPtr<double>();
+    double *hdrimg_datPt    = hdrimg.getDataPtr<double>();
+    double *hdrimgTm_datPt  = hdrimg_tm.getDataPtr<double>();
+    double binstep = 0.01;
+    Mat histCm = imgproc::histoCmf(Yhdrimg_tm,256,binstep);
+
+    for( k=0; k < histCm.getRowColSize(); k++){
+        chistval = histCm.at<double>(k);
+        if( chistval <  lo_pixels) binIdx1 = k;
+        if( chistval <= hi_pixels) binIdx2 = k;
+    }
+
+    scale = 255. /((double)(binIdx2 - binIdx1)*binstep);
+
+    for( k = 0; k < len ; k++){
+        if( yhdrimgTm_datPt[k] < binIdx1)      yhdrimgTm_datPt[k] = 0.;
+        else if( yhdrimgTm_datPt[k] > binIdx2) yhdrimgTm_datPt[k] = 255.;
+        else yhdrimgTm_datPt[k] = scale*(yhdrimgTm_datPt[k] - binIdx1);
+    }
+
+    hdrtm_bmp = qimmat::mat2qim(Yhdrimg_tm);
+    hdrtm_bmp.save("../output/logTmGray.bmp");
 
     /* ----- color channel processing ------ */
-    double scaleB = 255.0 / maxv;
+    double ro,go,bo, r,g,b;
+    uint32 len2 = len << 1;
+    for(k =0; k < len ; k++){
+        if(yhdrimg_datPt[k] <= 1.) yhdrimg_datPt[k]=1.;
+        scale = yhdrimgTm_datPt[k]/ yhdrimg_datPt[k];
+        if( scale > 3.) scale = 3.;
 
-    uint32 r  = hdrimg.getRow();
-    uint32 c  = hdrimg.getCol();
-    uint32 ch = hdrimg.getChannel();
-    uint32 rc = hdrimg.getRowColSize();
-    Mat ratioMat  = Yhdrimg_tm / Yhdrimg;
-    Mat ratioMat2(DTYP::DOUBLE, r,c,ch);
+        r  = hdrimg_datPt[k     ];
+        g  = hdrimg_datPt[k+len ];
+        b  = hdrimg_datPt[k+len2];
+        ro = scale*r;
+        go = scale*g;
+        bo = scale*b;
 
-    double ratioVal ;
-    uint32 idx=0;
-    for( uint32 k =0 ; k < ch; ++k){
-        for ( uint32 m=0 ; m < rc; ++m){
-            ratioVal = ratioMat.at<double>(m);
-            ratioMat2.at<double>(idx++) = ratioVal; // ( scaleB < ratioVal ) ? scaleB : ratioVal;
+        if( ro > 255. || go > 255. || bo > 255.)
+        {
+            maxv = r;
+            if( g > maxv) maxv = g;
+            if( b > maxv) maxv = b;
+            scale = 255. /maxv;
+            ro = scale*r;
+            go = scale*g;
+            bo = scale*b;
         }
+        hdrimgTm_datPt[k     ] = ro;
+        hdrimgTm_datPt[k+len ] = go;
+        hdrimgTm_datPt[k+len2] = bo;
     }
-    fprintf(stdout, "%f %f", Yhdrimg_tm.max().at<double>(), Yhdrimg_tm.min().at<double>());
-    hdrimg_tm = imgproc::gamma( hdrimg * ratioMat2, gmv);
-    //hdrimg_tm = hdrimg_tm / hdrimg_tm.max().max().at<double>(0)*255.0;
+
+
     hdrtm_bmp = qimmat::mat2qim(hdrimg_tm);
     rfn = QString("../output/%1_logmethod_gm_%2.bmp").arg(Filename_only).arg(gmv);
     hdrtm_bmp.save(rfn);

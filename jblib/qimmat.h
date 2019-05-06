@@ -64,49 +64,49 @@ namespace qimmat {
         uchar* qim_dat = tar.bits();
         _T*    mat_dat = src.getDataPtr<_T>();
         //_T a,b,c;
-        uint32 y, k;
+        uint32 y, k, x, m;
         uint32 lenRowCol  = row*col;
         uint32 lenRowCol2 = lenRowCol << 1;
 
         if(fmt == QImage::Format_RGB32){
             for( y=0, k=0 ; y < lenRowCol; y++, k+=4){
-                //a = mat_dat[y           ]; // r
-                //b = mat_dat[y+lenRowCol ]; // g
-                //c = mat_dat[y+lenRowCol2]; // b
-                //if(a > 255) a = 255; else if( a < 0) a = 0;
-                //if(b > 255) b = 255; else if( b < 0) b = 0;
-                //if(c > 255) c = 255; else if( c < 0) c = 0;
-                //qim_dat[k  ] = static_cast<unsigned char>(c);
-                //qim_dat[k+1] = static_cast<unsigned char>(b);
-                //qim_dat[k+2] = static_cast<unsigned char>(a);
-                //qim_dat[k+3] = 255;
                 qim_dat[k  ] = sat_cast<uchar>(mat_dat[y+lenRowCol2]);
                 qim_dat[k+1] = sat_cast<uchar>(mat_dat[y+lenRowCol ]);
                 qim_dat[k+2] = sat_cast<uchar>(mat_dat[y           ]);
                 qim_dat[k+3] = 255;
             }
+
         }else if(fmt==QImage::Format_RGB888){
-            for( y=0, k=0 ; y < lenRowCol; y++, k+=3 ){
-                //a = mat_dat[y           ]; // r
-                //b = mat_dat[y+lenRowCol ]; // g
-                //c = mat_dat[y+lenRowCol2]; // b
-                //if(a > 255) a = 255; else if( a < 0) a = 0;
-                //if(b > 255) b = 255; else if( b < 0) b = 0;
-                //if(c > 255) c = 255; else if( c < 0) c = 0;
-                //qim_dat[k  ] = static_cast<unsigned char>(c);
-                //qim_dat[k+1] = static_cast<unsigned char>(b);
-                //qim_dat[k+2] = static_cast<unsigned char>(a);
-                qim_dat[k  ] = sat_cast<uchar>(mat_dat[y+lenRowCol2]);
-                qim_dat[k+1] = sat_cast<uchar>(mat_dat[y+lenRowCol ]);
-                qim_dat[k+2] = sat_cast<uchar>(mat_dat[y           ]);
+            uint32 colBytes = (col<< 2) + (col<<2) % 3;
+            k=0; m=0;
+            for( y=0 ; y < row; ++y ){
+                for( x = 0; x < col; ++x){
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m+lenRowCol2]);
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m+lenRowCol ]);
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m           ]);
+                    m++;
+                }
+                for( x= col<<2 ; x < colBytes; ++x){
+                    qim_dat[k++] = 0;
+                }
             }
         }else if(fmt==QImage::Format_Grayscale8){
+            uint32 colBytes = col + col % 4;
+
+            k=0; m=0;
+            for( y=0 ; y < row; y++){
+                for( x=0; x < col ; ++x){
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m++ ]);
+                }
+                for( ; x < colBytes; ++x){
+                    qim_dat[k++] = 0;
+                }
+            }
+            /*
             for( y=0 ; y < lenRowCol ; y++){
-                //a = mat_dat[y];
-                //if(a > 255) a = 255; else if( a < 0) a = 0;
-                //qim_dat[y] = static_cast<unsigned char>(a);
                 qim_dat[y] = sat_cast<uchar>(mat_dat[y]);
             }
+            */
         }
     }
 
@@ -121,7 +121,7 @@ namespace qimmat {
         uchar* qim_dat = tar.bits();
         cmplx* mat_dat = src.getDataPtr<cmplx>();
         //cmplx a,b,c;
-        uint32 y, k;
+        uint32 y, x, k, m;
         uint32 lenRowCol  = row*col;
         uint32 lenRowCol2 = lenRowCol << 1;
 
@@ -133,14 +133,30 @@ namespace qimmat {
                 qim_dat[k+3] = 255;
             }
         }else if(fmt==QImage::Format_RGB888){
-            for( y=0, k=0 ; y < lenRowCol; y++, k+=3 ){
-                qim_dat[k  ] = sat_cast<uchar>(mat_dat[y+lenRowCol2].re);
-                qim_dat[k+1] = sat_cast<uchar>(mat_dat[y+lenRowCol ].re);
-                qim_dat[k+2] = sat_cast<uchar>(mat_dat[y           ].re);
+            uint32 colBytes = (col<< 2) + (col<<2) % 3;
+            k=0; m=0;
+            for( y=0 ; y < row; ++y ){
+                for( x = 0; x < col; ++x){
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m+lenRowCol2].re);
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m+lenRowCol ].re);
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m           ].re);
+                    m++;
+                }
+                for( x = col<<2 ; x < colBytes; ++x){
+                    qim_dat[k++] = 0;
+                }
             }
         }else if(fmt==QImage::Format_Grayscale8){
-            for( y=0 ; y < lenRowCol ; y++){
-                qim_dat[y] = sat_cast<uchar>(mat_dat[y].re);
+            uint32 colBytes = col + col % 4;
+
+            k=0; m=0;
+            for( y=0 ; y < row; y++){
+                for( x=0; x < col ; ++x){
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m++ ].re);
+                }
+                for( ; x < colBytes; ++x){
+                    qim_dat[k++] = 0;
+                }
             }
         }
     }

@@ -23,13 +23,13 @@ namespace imgproc {
     template <typename _T> inline Mat _conv_Yxy2rgb(const Mat& YxyIm);
 
     // histogram functions
-    Mat histoPmf(const Mat& src,const int32 bins, const int32 step);
-    Mat histoCmf(const Mat& src,const int32 bins, const int32 step);
+    Mat histoPmf(const Mat& src,const int32 bins, const double step);
+    Mat histoCmf(const Mat& src,const int32 bins, const double step);
     Mat clip_HistoPmf(const Mat& src, const int32 clipVal,const int32 bins, const int32 step);
     Mat clip_HistoCmf(const Mat& src, const int32 clipVal,const int32 bins, const int32 step);
     Mat clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step);
-    template <typename _T> inline Mat _histoPmf(const Mat& src, const int32 bins , const int32 step);
-    template <typename _T> inline Mat _histoCmf(const Mat& src, const int32 bins, const int32 step);
+    template <typename _T> inline Mat _histoPmf(const Mat& src, const int32 bins, const double step);
+    template <typename _T> inline Mat _histoCmf(const Mat& src, const int32 bins, const double step);
     template <typename _T> inline Mat _clip_HistoPmf(const Mat& src,const int32 clipVal, const int32 bins, const int32 step);
     template <typename _T> inline Mat _clip_HistoCmf(const Mat& src,const int32 clipVal, const int32 bins, const int32 step);
     template <typename _T> inline Mat _clip_HistoEqual(const Mat& src, const Mat& histCmf, const int32 step);
@@ -311,7 +311,7 @@ namespace  imgproc{
     }
 
 
-    template <typename _T> inline Mat _histoPmf(const Mat& src, const int32 bins , const int32 step){
+    template <typename _T> inline Mat _histoPmf(const Mat& src, const int32 bins , const double step){
 
         Mat A = Mat::zeros(1,bins,1,DTYP::DOUBLE);
         double *tarDat_pt = A.getDataPtr<double>();
@@ -328,7 +328,7 @@ namespace  imgproc{
         return A;
     }
 
-    template <typename _T> inline Mat _histoCmf(const Mat& src, const int32 bins, const int32 step){
+    template <typename _T> inline Mat _histoCmf(const Mat& src, const int32 bins, const double step){
 
         Mat cmf = _histoPmf<_T>(src, bins, step);
 
@@ -481,16 +481,24 @@ template <typename _T> inline Mat _gamma(const Mat& src, const double gmval){
 }
 
 template <typename _T> inline Mat _logRetinexTm(const Mat& Im, const Mat& surround){
-    Mat Imt = Im / surround;
+    Mat Imt(Im.getDatType(),Im.getRow(), Im.getCol(), Im.getChannel()) ;
     _T *ImtDat_pt = Imt.getDataPtr<_T>();
+    _T *ImDat_pt = Im.getDataPtr<_T>();
+    _T *SrDat_pt = surround.getDataPtr<_T>();
 
     uint32 rc = Im.getRowColSize();
     uint32 ch = Im.getChannel();
     uint32 i, ich;
+    double mn = 0;
+    for ( ich =0 ; ich < ch ; ++ich){
+        for( i =0 ; i < rc; ++i )
+            mn += SrDat_pt[i];
+    }
+    mn /= rc*ch;
 
     for ( ich =0 ; ich < ch ; ++ich){
         for( i =0 ; i < rc; ++i )
-            ImtDat_pt[i] = log(ImtDat_pt[i]);
+            ImtDat_pt[i] = log(ImDat_pt[i])+log(ImDat_pt[i]/SrDat_pt[i]);//log(ImDat_pt[i]) - log(SrDat_pt[i]);
     }
     return Imt;
 }

@@ -136,7 +136,7 @@ Mat Yxy2rgb(const Mat& YxyIm){
 }
 
 
-Mat histoPmf(const Mat& src, const int32 bins, const int32 step){
+Mat histoPmf(const Mat& src, const int32 bins, const double step){
     uint32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
@@ -148,10 +148,8 @@ Mat histoPmf(const Mat& src, const int32 bins, const int32 step){
     }else if( bins < 1) {
         fprintf(stderr,"histoPmf : 'bins' should be larger than or equal 1 \n");
         return Mat();
-    }else if( step < 1) {
-        fprintf(stderr,"histoPmf : 'step' should be larger than or equal 1 \n");
-        return Mat();
     }
+
     switch(src.getDatType()){
     case DTYP::DOUBLE : return _histoPmf<double>(src, bins, step);
     case DTYP::FLOAT  : return _histoPmf<float >(src, bins, step);
@@ -164,7 +162,7 @@ Mat histoPmf(const Mat& src, const int32 bins, const int32 step){
     }
 }
 
-Mat histoCmf(const Mat& src, const int32 bins, const int32 step){
+Mat histoCmf(const Mat& src, const int32 bins, const double step){
     uint32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
@@ -175,9 +173,6 @@ Mat histoCmf(const Mat& src, const int32 bins, const int32 step){
         return Mat();
     }else if( bins < 1) {
         fprintf(stderr,"histoCmf : 'bins' should be larger than or equal 1 \n");
-        return Mat();
-    }else if( step < 1) {
-        fprintf(stderr,"histoCmf : 'step' should be larger than or equal 1 \n");
         return Mat();
     }
 
