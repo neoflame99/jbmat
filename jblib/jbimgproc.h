@@ -49,6 +49,9 @@ namespace imgproc {
     template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmean, const double globalmean, const double Imax);
     template <typename _T> inline Mat _nakaSig3MeanTm(const Mat& Im, const Mat& smLocalMean, const Mat& lgLocalMean, const double globalMean, const double Imax);
     template <typename _T> inline Mat _logRetinexTm(const Mat& Im, const Mat& localmean);
+
+    // fft
+    void fft();
 }
 
 

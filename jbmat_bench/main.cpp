@@ -221,6 +221,7 @@ int32 main(int32 argc, char *argv[])
     /*------------------*/
 
     /*----- tonemapping ------ */
+    /*
     imgproc::gamma(hdrimg, 1.0);
     Mat Yhdrimg    = imgproc::rgb2gray(hdrimg);
     Mat Yhdrimg_tm = imgproc::nakaSigTonemap(Yhdrimg,gau,0.2);
@@ -231,8 +232,11 @@ int32 main(int32 argc, char *argv[])
     hdrimg_tm = hdrimg_tm / hdrimg_tm.max().max().at<double>(0)*255.0;
     QImage hdrtm_bmp = qimmat::mat2qim(hdrimg_tm);
     hdrtm_bmp.save("../jbmat_bench/hdr_tm_0.2.bmp");
+    */
     /*-------------------------*/
 
+
+    imgproc::fft();
 
     /*
     Mat mk(DTYP::DOUBLE,3,4,2,"mk");

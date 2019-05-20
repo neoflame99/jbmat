@@ -1,4 +1,5 @@
 #include "jbimgproc.h"
+#include "jbimgproc.h"
 
 
 namespace jmat {
@@ -399,6 +400,32 @@ Mat gamma( const Mat& src, const double gmvalue){
     default: fprintf(stderr, "Unsuppretd data type in gamma func.\n"); return Mat();
     }
 }
+
+void fft(){
+    uint32 k, i;
+
+    uint32 n= 5;
+    uint32 t, t1, t2;
+
+    uint32 mask;
+
+    for( i=0 ; i < (1<<n) ; i++){
+        t=0;
+        for(k= 0; k <= n/2 ; k++){
+            mask = 1 << k;
+            t2 = i & mask;
+            t1 = t2 << (n-1-2*k);
+            t |= t1;
+
+            mask = 1 << (n-1-k);
+            t2 = i & mask;
+            t1 = t2 >> (n-1-2*k);
+            t |=t1;
+        }
+        fprintf(stdout,"%3d: %3d(%X)\n",i,t,t);
+    }
+}
+
 
 } // end of imgproc namespace
 } // end of jmat namespace
