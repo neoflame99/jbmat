@@ -52,6 +52,7 @@ namespace imgproc {
 
     // fft
     void fft();
+    void fft_butterfly(double ra[], double ia[], uint32 step, uint32 len);
 }
 
 

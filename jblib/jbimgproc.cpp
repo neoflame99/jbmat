@@ -402,30 +402,59 @@ Mat gamma( const Mat& src, const double gmvalue){
 }
 
 void fft(){
-    uint32 k, i;
+    uint32 k,dk, i;
 
-    uint32 n= 5;
+    uint32 n= 3;
+    uint32 n_minus_1 = n -1;
     uint32 t, t1, t2;
 
     uint32 mask;
-
-    for( i=0 ; i < (1<<n) ; i++){
-        t=0;
-        for(k= 0; k <= n/2 ; k++){
-            mask = 1 << k;
-            t2 = i & mask;
-            t1 = t2 << (n-1-2*k);
-            t |= t1;
-
-            mask = 1 << (n-1-k);
-            t2 = i & mask;
-            t1 = t2 >> (n-1-2*k);
-            t |=t1;
-        }
-        fprintf(stdout,"%3d: %3d(%X)\n",i,t,t);
+    double *dat_r = new double[(1<<n)];
+    double *dat_i = new double[(1<<n)];
+    double dattmp;
+    uint32 tNum = 1 << n;
+    FILE *f1 = fopen("../a.txt","w");
+    FILE *f2 = fopen("../b.txt","w");
+    for(i=0; i < tNum; ++i){
+        dat_r[i] = i;
+        dat_i[i] = 0.;
     }
+
+    fprintf(stdout,"Suffle\n");
+    for( i=0 ; i < tNum ; i++){ // increaing index upto a half of 2^n
+        t=0;
+        // bit reverse of index
+        for(k= 0; k <= n/2 ; k++){
+            dk   = k << 1;    // k*2
+            mask = 1 << k;
+            t2   = i & mask;
+            t1   = t2 << (n_minus_1-dk);
+            t   |= t1;
+
+            mask = 1 << (n_minus_1-k);
+            t2   = i & mask;
+            t1   = t2 >> (n_minus_1-dk);
+            t   |= t1;
+        }
+        fprintf(f1,"%3d: %3d(%X)\n",i,t,t);
+        if( t <= i) continue;
+        dattmp   = dat_r[i];
+        dat_r[i] = dat_r[t];
+        dat_r[t] = dattmp;
+    }
+    for( i =0; i < tNum ; ++i){
+        fprintf(f2,"%3d: %.4f\n",i,dat_r[i]);
+    }
+
+    delete [] dat_r;
+    delete [] dat_i;
 }
 
+void fft_butterfly(double ra[], double ia[], uint32 step, uint32 len){
+//    double f;
+//    f = 2*3.141592;
+//    ra[i]*cos(f/step)
+}
 
 } // end of imgproc namespace
 } // end of jmat namespace
