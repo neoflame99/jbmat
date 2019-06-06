@@ -235,6 +235,13 @@ int32 main(int32 argc, char *argv[])
     */
     /*-------------------------*/
 
+    _complex ca(100,5);
+    _complex cb(4,-2);
+    _complex da = ca * cb;
+    _complex db = ca / cb;
+    _complex dc = ca + cb;
+    _complex dd = ca - cb;
+    printf("ca*cb=%f+j%f, ca/cb=%f+j%f, ca+cb=%f+j%f, ca-cb=%f+j%f\n",da.re, da.im, db.re, db.im, dc.re, dc.im, dd.re, dd.im);
 
     imgproc::fft();
 

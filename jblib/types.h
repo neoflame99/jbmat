@@ -30,8 +30,8 @@ namespace jmat {
         // operator override
         friend inline _complex operator+(_complex& lhs, double rhs);
         friend inline _complex operator+(double lhs, _complex& rhs);
+        //friend inline _complex operator+(const _complex& lhs, const _complex& rhs);
         inline _complex operator+(const _complex& rhs);
-
 
         friend inline _complex operator-(_complex& lhs, double rhs);
         friend inline _complex operator-(double lhs, _complex& rhs);
@@ -39,26 +39,26 @@ namespace jmat {
 
         friend inline _complex operator*(_complex& lhs, double rhs);
         friend inline _complex operator*(double lhs, _complex& rhs);
+        friend inline _complex operator*(const _complex& lhs, const _complex& rhs);
         inline _complex operator*(const _complex& rhs);
 
         friend inline _complex operator/(_complex& lhs, double rhs);
         friend inline _complex operator/(double lhs, _complex& rhs);
-        inline _complex operator/(const _complex& rhs);
+        friend inline _complex operator/(const _complex& lhs, const _complex& rhs);
 
-
-        friend inline double operator+=(double lhs, _complex& rhs);
+        friend inline double operator+=(const double lhs, const _complex& rhs);
         inline _complex& operator+=(const _complex& rhs);
         inline _complex& operator+=(const double rhs);
 
-        friend inline double operator-=(double lhs, _complex& rhs);
+        friend inline double operator-=(const double lhs, const _complex& rhs);
         inline _complex& operator-=(const _complex& rhs);
         inline _complex& operator-=(const double rhs);
 
-        friend inline double operator*=(double lhs, _complex& rhs);
+        friend inline double operator*=(const double lhs, const _complex& rhs);
         inline _complex& operator*=(const _complex& rhs);
         inline _complex& operator*=(const double rhs);
 
-        friend inline double operator/=(double lhs, _complex& rhs);
+        friend inline double operator/=(const double lhs, const _complex& rhs);
         inline _complex& operator/=(const _complex& rhs);
         inline _complex& operator/=(const double rhs);
 
@@ -73,7 +73,9 @@ namespace jmat {
 
         inline void set_val(double r=0, double i=0) { re= r; im = i; }
         inline void zero() {set_val(0,0);}
-        inline void conj() {im=-im; }
+        //inline void conj() {im=-im; }
+        inline _complex conj(const _complex& A) { return _complex(A.re, -A.im); }
+
     };
 
     inline _complex operator +(_complex& lhs, double rhs){
@@ -92,62 +94,68 @@ namespace jmat {
         A.im += im;
         return A;
     }
-
-
     inline _complex operator -(_complex& lhs, double rhs){
-        _complex A = lhs;
-        A.re -= rhs;
+        _complex A;
+        A.re = lhs.re - rhs;
         return A;
     }
     inline _complex operator -(double lhs , _complex& rhs){
-        _complex A = rhs;
-        A.re -= lhs;
+        _complex A;
+        A.re = lhs - rhs.re;
+        A.im = -rhs.im;
         return A;
     }
     inline _complex _complex::operator -(const _complex& rhs){
-        _complex A = rhs;
-        A.re -= re;
-        A.im -= im;
+        _complex A;
+        A.re = re - rhs.re;
+        A.im = im - rhs.im;
         return A;
     }
 
     inline _complex operator *(_complex& lhs, double rhs){
         _complex A = lhs;
         A.re *= rhs;
+        A.im *= rhs;
         return A;
     }
     inline _complex operator *(double lhs , _complex& rhs){
         _complex A = rhs;
         A.re *= lhs;
+        A.im *= lhs;
+        return A;
+    }
+    inline _complex operator *(const _complex& lhs ,const _complex& rhs){
+        _complex A;
+        A.re = lhs.re * rhs.re - lhs.im * rhs.im;
+        A.im = lhs.re * rhs.im + lhs.im * rhs.re;
         return A;
     }
     inline _complex _complex::operator *(const _complex& rhs){
         _complex A = rhs;
-        A.re *= re;
-        A.im *= im;
+        A.re = rhs.re * re - rhs.im * im;
+        A.im = rhs.re * im + rhs.im * re;
         return A;
     }
-
     inline _complex operator /(_complex& lhs, double rhs){
         _complex A = lhs;
         A.re /= rhs;
+        A.im /= rhs;
         return A;
     }
     inline _complex operator /(double lhs , _complex& rhs){
-        _complex A = rhs;
-        A.re /= lhs;
-        return A;
+        _complex A(rhs.re, -rhs.im);
+
+        return ( lhs * A) /( rhs * A).re;
     }
-    inline _complex _complex::operator /(const _complex& rhs){
-        _complex A = rhs;
-        A.re /= re;
-        A.im /= im;
-        return A;
+    inline _complex operator /(const _complex& lhs, const _complex& rhs){
+        _complex C(rhs.re, -rhs.im);
+        _complex N = lhs * C;
+        double   d = (rhs * C).re;
+        return N / d;
     }
 
-    inline double operator+=(double lhs, _complex& rhs){
-        lhs += rhs.re;
-        return lhs;
+    inline double operator+=(const double lhs, const _complex& rhs){
+        return lhs + rhs.re;
     }
     inline _complex& _complex::operator+=(const _complex& rhs){
         re += rhs.re;
@@ -158,10 +166,8 @@ namespace jmat {
         re += rhs;
         return *this;
     }
-
-    inline double operator-=(double lhs, _complex& rhs){
-        lhs -= rhs.re;
-        return lhs;
+    inline double operator-=(const double lhs, const _complex& rhs){
+        return lhs - rhs.re;
     }
     inline _complex& _complex::operator -=(const _complex& rhs){
         re -= rhs.re;
@@ -172,32 +178,30 @@ namespace jmat {
         re -= rhs;
         return (*this);
     }
-
-    inline double operator*=(double lhs, _complex& rhs){
-        lhs *= rhs.re;
-        return lhs;
+    inline double operator*=(const double lhs, const _complex& rhs){
+        return lhs * rhs.re;
     }
     inline _complex& _complex::operator *=(const _complex& rhs){
-        re *= rhs.re;
-        im *= rhs.im;
+        *this = *this * rhs;
+
         return (*this);
     }
     inline _complex& _complex::operator *=(const double rhs){
         re *= rhs;
+        im *= rhs;
         return (*this);
     }
-
-    inline double operator/=(double lhs, _complex& rhs){
-        lhs /= rhs.re;
-        return lhs;
+    inline double operator/=(const double lhs, const _complex& rhs){
+        return lhs / rhs.re;
     }
     inline _complex& _complex::operator /=(const _complex& rhs){
-        re /= rhs.re;
-        im /= rhs.im;
+        *this = *this / rhs;
+
         return (*this);
     }
     inline _complex& _complex::operator /=(const double rhs){
         re /= rhs;
+        im /= rhs;
         return (*this);
     }
 
