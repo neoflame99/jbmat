@@ -84,14 +84,14 @@ namespace jmat {
         return A;
     }
     inline _complex operator +(double lhs , _complex& rhs){
-        _complex A = rhs;
-        A.re += lhs;
+        _complex A ;
+        A.re = lhs + rhs.re;
         return A;
     }
     inline _complex _complex::operator +(const _complex& rhs){
-        _complex A = rhs;
-        A.re += re;
-        A.im += im;
+        _complex A ;
+        A.re = re + rhs.re;
+        A.im = im + rhs.im;
         return A;
     }
     inline _complex operator -(_complex& lhs, double rhs){

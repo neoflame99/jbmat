@@ -243,7 +243,7 @@ int32 main(int32 argc, char *argv[])
     _complex dd = ca - cb;
     printf("ca*cb=%f+j%f, ca/cb=%f+j%f, ca+cb=%f+j%f, ca-cb=%f+j%f\n",da.re, da.im, db.re, db.im, dc.re, dc.im, dd.re, dd.im);
 
-    imgproc::fft();
+    imgproc::fft(false);
 
     /*
     Mat mk(DTYP::DOUBLE,3,4,2,"mk");

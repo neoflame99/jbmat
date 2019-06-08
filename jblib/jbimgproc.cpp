@@ -401,59 +401,66 @@ Mat gamma( const Mat& src, const double gmvalue){
     }
 }
 
-void fft(){
-    uint32 k,dk, i;
+void fft( bool backward){
+    uint32 k, i;
 
-    uint32 n= 3;
-    uint32 n_minus_1 = n -1;
-    uint32 t, t1, t2;
+    uint32 n= 4;
+    uint32 n_minus_1 = n-1;
+    uint32 t, pn;
+    int32  direc = (backward) ? 2 : -2;
+    double theta ;
+    _complex *dat = new _complex[1<<n];
+    _complex tmp;
 
-    uint32 mask;
-    double *dat_r = new double[(1<<n)];
-    double *dat_i = new double[(1<<n)];
-    double dattmp;
     uint32 tNum = 1 << n;
     FILE *f1 = fopen("../a.txt","w");
     FILE *f2 = fopen("../b.txt","w");
-    for(i=0; i < tNum; ++i){
-        dat_r[i] = i;
-        dat_i[i] = 0.;
-    }
+    for(i=0; i < tNum; ++i)
+        dat[i] = _complex(i,0);
 
     fprintf(stdout,"Suffle\n");
-    for( i=0 ; i < tNum ; i++){ // increaing index upto a half of 2^n
-        t=0;
-        // bit reverse of index
-        for(k= 0; k <= n/2 ; k++){
-            dk   = k << 1;    // k*2
-            mask = 1 << k;
-            t2   = i & mask;
-            t1   = t2 << (n_minus_1-dk);
-            t   |= t1;
-
-            mask = 1 << (n_minus_1-k);
-            t2   = i & mask;
-            t1   = t2 >> (n_minus_1-dk);
-            t   |= t1;
+    //-- data suffle by bit reverse
+    for (i=0;i < tNum; ++i) {
+        //-- doinbit reverse
+        for(t=0, k=0; k < n; ++k){
+            t |= ((i >> k) & 1) << (n_minus_1 - k); // n_minus_1 : n-1
         }
-        fprintf(f1,"%3d: %3d(%X)\n",i,t,t);
-        if( t <= i) continue;
-        dattmp   = dat_r[i];
-        dat_r[i] = dat_r[t];
-        dat_r[t] = dattmp;
+        // fprintf(f1,"%3d: %.4f\n",i,double(t));
+        if( i < t)
+            std::swap(dat[i], dat[t]);
     }
-    for( i =0; i < tNum ; ++i){
-        fprintf(f2,"%3d: %.4f\n",i,dat_r[i]);
+    //for( i =0; i < tNum ; ++i)
+    //    fprintf(f2,"%3d: %.4f\n",i,dat[i].re);
+
+
+    for(pn = 2; pn <= tNum; pn <<=1 ){ // 'pn' is partial tNum at the step.
+        theta = direc * M_PI /pn ;     // (direc * 2) * M_PI /pn;
+        _complex ws(cos(theta), sin(theta));
+        for(i=0; i < tNum; i += pn){   // group-wise at n-th step loop
+            _complex w(1,0);
+            uint32 half_pn = pn >> 1;
+            //-- Butterfly
+            for(k=0; k < half_pn ; ++k){
+                tmp = dat[i+k+ half_pn] * w;
+                dat[i+k+half_pn] = dat[i+k] - tmp;
+                dat[i+k] += tmp;
+                w *= ws;
+            }
+        }
+    }
+    if( backward ){
+        for( i=0 ; i < tNum; ++i){
+            dat[i] /= tNum;
+        }
     }
 
-    delete [] dat_r;
-    delete [] dat_i;
-}
+    for( i =0 ; i < tNum; ++i){
+        fprintf(f2,"%3d:%.4g %+.4gj\n",i, dat[i].re, dat[i].im);
+    }
 
-void fft_butterfly(double ra[], double ia[], uint32 step, uint32 len){
-//    double f;
-//    f = 2*3.141592;
-//    ra[i]*cos(f/step)
+    delete [] dat;
+    fclose(f1);
+    fclose(f2);
 }
 
 } // end of imgproc namespace

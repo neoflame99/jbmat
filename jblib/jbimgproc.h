@@ -2,6 +2,7 @@
 #define JBIMGPROC_H
 #include "jbMat.h"
 #include "jbmath.h"
+#include <math.h>
 
 namespace jmat {
 namespace imgproc {
@@ -51,7 +52,7 @@ namespace imgproc {
     template <typename _T> inline Mat _logRetinexTm(const Mat& Im, const Mat& localmean);
 
     // fft
-    void fft();
+    void fft(bool backward=false);
     void fft_butterfly(double ra[], double ia[], uint32 step, uint32 len);
 }
 
