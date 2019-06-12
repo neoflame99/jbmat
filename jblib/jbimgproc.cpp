@@ -401,44 +401,43 @@ Mat gamma( const Mat& src, const double gmvalue){
     }
 }
 
-void fft( bool backward){
-    uint32 k, i;
 
-    uint32 n= 4;
-    uint32 n_minus_1 = n-1;
-    uint32 t, pn;
+void fft_p2( _complex *dat, int32 len, bool backward){
+// len has to be a number of power of 2
+    int32 k, i;
+
+    if(len <= 0){
+        fprintf(stderr, " argument len of fft_p2 is less than or equal to zero\n ");
+    }
+    int32 n=0;
+    k = len;
+    while(k > 0){
+        k >>= 1;
+        ++n;
+    }
+
+    int32 n_minus_1 = n-1;
+    int32 t, pn;
     int32  direc = (backward) ? 2 : -2;
     double theta ;
-    _complex *dat = new _complex[1<<n];
     _complex tmp;
 
-    uint32 tNum = 1 << n;
-    FILE *f1 = fopen("../a.txt","w");
-    FILE *f2 = fopen("../b.txt","w");
-    for(i=0; i < tNum; ++i)
-        dat[i] = _complex(i,0);
-
-    fprintf(stdout,"Suffle\n");
     //-- data suffle by bit reverse
-    for (i=0;i < tNum; ++i) {
-        //-- doinbit reverse
+    for (i=0; i < len; ++i) {
+        //-- doing bit-reverse
         for(t=0, k=0; k < n; ++k){
             t |= ((i >> k) & 1) << (n_minus_1 - k); // n_minus_1 : n-1
         }
-        // fprintf(f1,"%3d: %.4f\n",i,double(t));
         if( i < t)
             std::swap(dat[i], dat[t]);
     }
-    //for( i =0; i < tNum ; ++i)
-    //    fprintf(f2,"%3d: %.4f\n",i,dat[i].re);
 
-
-    for(pn = 2; pn <= tNum; pn <<=1 ){ // 'pn' is partial tNum at the step.
+    for(pn = 2; pn <= len; pn <<=1 ){ // 'pn' is partial len at the step.
         theta = direc * M_PI /pn ;     // (direc * 2) * M_PI /pn;
         _complex ws(cos(theta), sin(theta));
-        for(i=0; i < tNum; i += pn){   // group-wise at n-th step loop
+        for(i=0; i < len; i += pn){   // group-wise at n-th step loop
             _complex w(1,0);
-            uint32 half_pn = pn >> 1;
+            int32 half_pn = pn >> 1;
             //-- Butterfly
             for(k=0; k < half_pn ; ++k){
                 tmp = dat[i+k+ half_pn] * w;
@@ -449,18 +448,10 @@ void fft( bool backward){
         }
     }
     if( backward ){
-        for( i=0 ; i < tNum; ++i){
-            dat[i] /= tNum;
+        for( i=0 ; i < len; ++i){
+            dat[i] /= len;
         }
     }
-
-    for( i =0 ; i < tNum; ++i){
-        fprintf(f2,"%3d:%.4g %+.4gj\n",i, dat[i].re, dat[i].im);
-    }
-
-    delete [] dat;
-    fclose(f1);
-    fclose(f2);
 }
 
 } // end of imgproc namespace
