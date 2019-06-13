@@ -52,8 +52,8 @@ namespace imgproc {
     template <typename _T> inline Mat _logRetinexTm(const Mat& Im, const Mat& localmean);
 
     // fft
-    void fft(bool backward=false);
-    void fft_butterfly(double ra[], double ia[], uint32 step, uint32 len);
+    void fft_p2(_complex* dat, int32 len, bool backward=false);
+
 }
 
 
