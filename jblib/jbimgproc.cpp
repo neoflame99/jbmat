@@ -416,7 +416,11 @@ void fft( bool backward){
     FILE *f1 = fopen("../a.txt","w");
     FILE *f2 = fopen("../b.txt","w");
     for(i=0; i < tNum; ++i)
-        dat[i] = _complex(i,0);
+        dat[i] = _complex(i,tNum-i);
+
+    for( i =0 ; i < tNum; ++i){
+        fprintf(f1,"%3d:%.4g %+.4gj\n",i, dat[i].re, dat[i].im);
+    }
 
     fprintf(stdout,"Suffle\n");
     //-- data suffle by bit reverse
@@ -454,8 +458,8 @@ void fft( bool backward){
         }
     }
 
-    for( i =0 ; i < tNum; ++i){
-        fprintf(f2,"%3d:%.4g %+.4gj\n",i, dat[i].re, dat[i].im);
+    for( i =0 ; i < tNum; ++i){        
+        fprintf(f2,"%3d:%.4f %+.4fj\n",i, dat[i].re, dat[i].im);
     }
 
     delete [] dat;
