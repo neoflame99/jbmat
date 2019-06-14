@@ -243,7 +243,19 @@ int32 main(int32 argc, char *argv[])
     _complex dd = ca - cb;
     printf("ca*cb=%f+j%f, ca/cb=%f+j%f, ca+cb=%f+j%f, ca-cb=%f+j%f\n",da.re, da.im, db.re, db.im, dc.re, dc.im, dd.re, dd.im);
 
-    imgproc::fft(false);
+    int32 len = 14;
+    _complex *dat = new _complex[len];
+    for(int32 i=0; i < len; ++i)
+        dat[i] = _complex(i+1, len-i);
+
+    imgproc::fft_czt(dat, len, true);
+
+
+    for(int32 i=0; i < len; ++i)
+        printf("%2d : %.4f %+.4fj \n",i,dat[i].re, dat[i].im);
+
+    delete [] dat;
+
 
     /*
     Mat mk(DTYP::DOUBLE,3,4,2,"mk");

@@ -410,7 +410,7 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
     int32 k, i;
     int32 n=0;
     k = len;
-    while(k > 0){
+    while(k > 1){
         k >>= 1; ++n;
     }
 
@@ -447,9 +447,8 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
     }
 
     if( backward ){
-        for( i=0 ; i < len; ++i){
+        for( i=0 ; i < len; ++i)
             dat[i] /= len;
-        }
     }
 }
 
@@ -468,23 +467,24 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
     int32 k, i;
 
     k = cN;
-    while(k > 0){
+    while(k > 1){
         k >>= 1; ++N2;
     }
     N2 = (1 << N2) < cN ? N2+1 : N2;
+    N2 = 1 << N2;
 
     _complex*  chirp= new _complex[static_cast<uint32>(cN)];
     _complex* ichirp= new _complex[static_cast<uint32>(N2)];
     _complex* extdat= new _complex[static_cast<uint32>(N2)];
 
-    if( chirp == nullptr || ichirp == nullptr || extdat)
+    if( chirp == nullptr || ichirp == nullptr || extdat == nullptr)
         fprintf(stderr," At least one of memories for chipr, ichirp and extdat is not allocated!\n");
 
-    //_complex W(cos( M_PI / N ), -sin( M_PI / N));
 
     // filling chirp values ; its indices: -N+1, -N+2, ..., 0 , ..., N-1
-    // W**(k**2)/(-2) = exp(j2*PI/N*(k**2)/(-2)) = exp(-j*PI/N*(k**2))
-    double unit_theta = M_PI/N;
+    // forward  : W**(k**2)/(-2) = exp(j2*PI/N*(k**2)/(-2)) = exp(-j*PI/N*(k**2))
+    // backward : W**(k**2)/2 = exp(j2*PI/N*(k**2)/2) = exp(j*PI/N*(k**2))
+    double unit_theta = inverse  ? -M_PI/N : M_PI/N;
     double theta;
     for(k=1-N , i=0 ; k <N ; ++k, ++i ){
         theta = unit_theta*(k*k);
@@ -500,7 +500,8 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
         ichirp[i] = _complex(0,0);
 
     // filling extdat; its indices: 0, 1, 2,..., N-1
-    // x(n)*exp(2j*PI/N*(n**2)/(-2)) = x(n)*exp(-j*PI/N*(n**2))
+    // forward  : x(n)*exp(2j*PI/N*(n**2)/(-2)) = x(n)*exp(-j*PI/N*(n**2))
+    // backward : X(n)*exp(2j*PI/N*(n**2)/2) = X(n)*exp(j*PI/N*(n**2))
     int32 N_minus_1 = N-1;
     for(i=0; i < N ; ++i)
         extdat[i] = dat[i] * chirp[i+N_minus_1];
@@ -509,18 +510,24 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
         extdat[i] = _complex(0,0);
 
     // fft through fft_radix2
-    fft_radix2(extdat,N2, false);
-    fft_radix2(ichirp,N2, false);
+    fft_radix2(extdat, N2, false);
+    fft_radix2(ichirp, N2, false);
 
     // convolution in time or sample domain
     for(i=0; i < N2; ++i)
         extdat[i] *= ichirp[i];
 
     // inverse fft
-    fft_radix2(extdat,N2, true);
+    fft_radix2(extdat, N2, true);
 
     for(i=0, k=N-1; i < N; ++i, ++k)
         dat[i] = extdat[k] * chirp[k];
+
+    if( inverse ){
+        for( i=0 ; i < N; ++i)
+            dat[i] /= N;
+    }
+
 
     delete [] chirp;
     delete [] ichirp;
