@@ -244,17 +244,20 @@ int32 main(int32 argc, char *argv[])
     printf("ca*cb=%f+j%f, ca/cb=%f+j%f, ca+cb=%f+j%f, ca-cb=%f+j%f\n",da.re, da.im, db.re, db.im, dc.re, dc.im, dd.re, dd.im);
 
     int32 len = 14;
-    _complex *dat = new _complex[len];
+    _complex *dat1 = new _complex[len];
+    _complex *dat2 = new _complex[len];
+    for(int32 i=0; i < len; ++i){
+        dat1[i] = _complex(i+1, len-i);
+        dat2[i] = dat1[i];
+    }
+    imgproc::fft_czt(dat1, len, false); // fft
+    imgproc::fft_czt(dat2, len, true);  // ifft
+
     for(int32 i=0; i < len; ++i)
-        dat[i] = _complex(i+1, len-i);
+        printf("%2d : %- 4.4f %+4.4fj \t % 4.4f %+4.4fj\n",i,dat2[i].re, dat2[i].im, dat1[i].re, dat1[i].im);
 
-    imgproc::fft_czt(dat, len, true);
-
-
-    for(int32 i=0; i < len; ++i)
-        printf("%2d : %.4f %+.4fj \n",i,dat[i].re, dat[i].im);
-
-    delete [] dat;
+    delete [] dat1;
+    delete [] dat2;
 
 
     /*

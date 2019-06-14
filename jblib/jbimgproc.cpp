@@ -496,9 +496,11 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
     for(i=0; i < cN; ++i)
         ichirp[i] = 1.0/chirp[i];
     // zero padding
-    for(i=cN; i < N2; ++i)
-        ichirp[i] = _complex(0,0);
-
+    for(i=cN; i < N2; ++i){
+        //ichirp[i] = _complex(0,0);
+        ichirp[i].re = 0.0;
+        ichirp[i].im = 0.0;
+    }
     // filling extdat; its indices: 0, 1, 2,..., N-1
     // forward  : x(n)*exp(2j*PI/N*(n**2)/(-2)) = x(n)*exp(-j*PI/N*(n**2))
     // backward : X(n)*exp(2j*PI/N*(n**2)/2) = X(n)*exp(j*PI/N*(n**2))
@@ -506,9 +508,11 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
     for(i=0; i < N ; ++i)
         extdat[i] = dat[i] * chirp[i+N_minus_1];
     // zero padding
-    for(i=N; i < N2; ++i)
-        extdat[i] = _complex(0,0);
-
+    for(i=N; i < N2; ++i){
+        //extdat[i] = _complex(0,0);
+        extdat[i].re = 0.0;
+        extdat[i].im = 0.0;
+    }
     // fft through fft_radix2
     fft_radix2(extdat, N2, false);
     fft_radix2(ichirp, N2, false);
