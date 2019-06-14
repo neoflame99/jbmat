@@ -253,8 +253,37 @@ int32 main(int32 argc, char *argv[])
     imgproc::fft_czt(dat1, len, false); // fft
     imgproc::fft_czt(dat2, len, true);  // ifft
 
+    double max_d1, max_d2, min_d1, min_d2;
+    max_d1 = abs(dat1[0].re) > abs(dat1[0].im) ? abs(dat1[0].re) : abs(dat1[0].im);
+    min_d1 = abs(dat1[0].re) < abs(dat1[0].im) ? abs(dat1[0].im) : abs(dat1[0].re);
+    max_d2 = abs(dat2[0].re) > abs(dat2[0].im) ? abs(dat2[0].re) : abs(dat2[0].im);
+    min_d2 = abs(dat2[0].re) < abs(dat2[0].im) ? abs(dat2[0].im) : abs(dat2[0].re);
+    for(int32 i=1; i < len; ++i){
+        if( max_d1 < abs(dat1[i].re)) max_d1 = abs(dat1[i].re);
+        if( max_d1 < abs(dat1[i].im)) max_d1 = abs(dat1[i].im);
+        if( max_d2 < abs(dat2[i].re)) max_d2 = abs(dat2[i].re);
+        if( max_d2 < abs(dat2[i].im)) max_d2 = abs(dat2[i].im);
+
+        if( min_d1 > abs(dat1[i].re)) min_d1 = abs(dat1[i].re);
+        if( min_d1 > abs(dat1[i].im)) min_d1 = abs(dat1[i].im);
+        if( min_d2 > abs(dat2[i].re)) min_d2 = abs(dat2[i].re);
+        if( min_d2 > abs(dat2[i].im)) min_d2 = abs(dat2[i].im);
+    }
+    printf("FFT:\n");
+
+    double rat;
+    rat = pow(10,round(log10(max_d1 / min_d1)));
+    printf("\t%.3E \n",rat);
+    for(int32 i=0; i < len; ++i){
+        printf("%3d : % 8.4f %+8.4fj \n",i, dat1[i].re/rat, dat1[i].im/rat);
+    }
+
+    printf("IFFT:\n");
+    rat = pow(10,round(log10(max_d2 / min_d2)));
+    printf("\t%.3E \n",rat);
     for(int32 i=0; i < len; ++i)
-        printf("%2d : %- 4.4f %+4.4fj \t % 4.4f %+4.4fj\n",i,dat2[i].re, dat2[i].im, dat1[i].re, dat1[i].im);
+        printf("%3d : % 8.4f %+8.4fj \n",i, dat2[i].re/rat, dat2[i].im/rat);
+
 
     delete [] dat1;
     delete [] dat2;
