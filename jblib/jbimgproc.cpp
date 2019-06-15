@@ -532,12 +532,104 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
             dat[i] /= N;
     }
 
-
     delete [] chirp;
     delete [] ichirp;
     delete [] extdat;
 }
 
+void  fft(_complex* dat, int32 len){
+    int32 k, i;
 
+    k = len;
+    i = 0;
+    while(k > 1){
+        k >>= 1; ++i;
+    }
+    i = 1 << i;
+    if( i == len ) // N is a power of 2
+        fft_radix2(dat, len, false);
+    else
+        fft_czt(dat, len, false);
+
+}
+void  ifft(_complex* dat, int32 len){
+    int32 k, i;
+
+    k = len;
+    i = 0;
+    while(k > 1){
+        k >>= 1; ++i;
+    }
+    i = 1 << i;
+    if( i == len ) // N is a power of 2
+        fft_radix2(dat, len, true);
+    else
+        fft_czt(dat, len, true);
+}
+
+void fft2d(_complex* dat, int32 r_len, int32 c_len){
+
+    if( dat == nullptr ){
+        fprintf(stderr, " dat argument into fft2d is NULL!\n"); return ;
+    }else if( r_len <=0 || c_len <=0 ){
+        fprintf(stderr, " both or one of r_len or c_len arguments of fft2d is zero or negative!\n"); return ;
+    }
+
+    _complex* rdat = new _complex[static_cast<uint32>(r_len)];
+    if( rdat == nullptr){
+        fprintf(stderr, " data memory for fft2d is not allocated\n"); return ;
+    }
+
+    int32 i, k, r;
+    _complex* cdat;
+    // fft on column direction
+    for(i=0, cdat = dat; i < r_len; ++i, cdat += c_len){
+        fft(cdat, c_len);
+    }
+    // fft on row direction
+    for(i=0; i < c_len; ++i ){
+        for(k=0, r=i; k < r_len; ++k, r+= c_len){
+            rdat[k] = dat[r];
+        }
+        fft(rdat, r_len);
+        for(k=0, r=i; k < r_len; ++k, r+= c_len){
+            dat[r] = rdat[k];
+        }
+    }
+
+    delete [] rdat;
+}
+void ifft2d(_complex* dat, int32 r_len, int32 c_len){
+
+    if( dat == nullptr ){
+        fprintf(stderr, " dat argument into ifft2d is NULL!\n"); return ;
+    }else if( r_len <=0 || c_len <=0 ){
+        fprintf(stderr, " both or one of r_len or c_len arguments of ifft2d is zero or negative!\n"); return ;
+    }
+
+    _complex* rdat = new _complex[static_cast<uint32>(r_len)];
+    if( rdat == nullptr){
+        fprintf(stderr, " data memory for ifft2d is not allocated\n"); return ;
+    }
+
+    int32 i, k, r;
+    _complex* cdat;
+    // ifft on column direction
+    for(i=0, cdat = dat; i < r_len; ++i, cdat += c_len){
+        ifft(cdat, c_len);
+    }
+    // fft on row direction
+    for(i=0; i < c_len; ++i ){
+        for(k=0, r=i; k < r_len; ++k, r+= c_len){
+            rdat[k] = dat[r];
+        }
+        ifft(rdat, r_len);
+        for(k=0, r=i; k < r_len; ++k, r+= c_len){
+            dat[r] = rdat[k];
+        }
+    }
+
+    delete [] rdat;
+}
 } // end of imgproc namespace
 } // end of jmat namespace

@@ -54,6 +54,10 @@ namespace imgproc {
     // fft
     void fft_radix2(_complex* dat, int32 len, bool backward=false);
     void fft_czt( _complex *dat, int32 len, bool inverse=false);
+    void fft(_complex* dat, int32 len);
+    void ifft(_complex* dat, int32 len);
+    void fft2d(_complex* dat, int32 r_len, int32 c_len);
+    void ifft2d(_complex* dat, int32 r_len, int32 c_len);
 }
 
 

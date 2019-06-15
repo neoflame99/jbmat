@@ -190,6 +190,13 @@ int32 main(int32 argc, char *argv[])
     mdp3.printMat("dim=1 dot product");
 
 
+    mdps3 *= 1000;
+    mdps3.printMat("mdps3 transpose input");
+    mdps3.transpose();
+    mdps3.printMat("mdps3 transpose output");
+    mdps3.transpose();
+    mdps3.printMat("mdps3 reverse transpose output");
+
     Mat tt;
     {
         tt= Mat(DTYP::INT,1,1,1);
@@ -243,15 +250,15 @@ int32 main(int32 argc, char *argv[])
     _complex dd = ca - cb;
     printf("ca*cb=%f+j%f, ca/cb=%f+j%f, ca+cb=%f+j%f, ca-cb=%f+j%f\n",da.re, da.im, db.re, db.im, dc.re, dc.im, dd.re, dd.im);
 
-    int32 len = 14;
+    int32 len = 12;
     _complex *dat1 = new _complex[len];
     _complex *dat2 = new _complex[len];
     for(int32 i=0; i < len; ++i){
         dat1[i] = _complex(i+1, len-i);
         dat2[i] = dat1[i];
     }
-    imgproc::fft_czt(dat1, len, false); // fft
-    imgproc::fft_czt(dat2, len, true);  // ifft
+    imgproc::fft(dat1, len); // fft
+    imgproc::ifft(dat2, len);  // ifft
 
     double max_d1, max_d2, min_d1, min_d2;
     max_d1 = abs(dat1[0].re) > abs(dat1[0].im) ? abs(dat1[0].re) : abs(dat1[0].im);
@@ -272,18 +279,71 @@ int32 main(int32 argc, char *argv[])
     printf("FFT:\n");
 
     double rat;
-    rat = pow(10,round(log10(max_d1 / min_d1)));
-    printf("\t%.3E \n",rat);
+    rat = 1.0;
+    if (max_d1 > 10 ){
+        rat = pow(10,floor(log10(max_d1)));
+        printf("\t%.3E \n",rat);
+    }
     for(int32 i=0; i < len; ++i){
         printf("%3d : % 8.4f %+8.4fj \n",i, dat1[i].re/rat, dat1[i].im/rat);
     }
 
     printf("IFFT:\n");
-    rat = pow(10,round(log10(max_d2 / min_d2)));
-    printf("\t%.3E \n",rat);
+    rat = 1.0;
+    if(max_d2 > 10){
+        rat = pow(10,floor(log10(max_d2)));
+        printf("\t%.3E \n",rat);
+    }
     for(int32 i=0; i < len; ++i)
         printf("%3d : % 8.4f %+8.4fj \n",i, dat2[i].re/rat, dat2[i].im/rat);
 
+
+    for(int32 i=0; i < len; ++i){
+        dat1[i] = _complex(i+1, len-i);
+        dat2[i] = dat1[i];
+    }
+    for(int32 i=0; i < len; ++i)
+        printf("%3d : % 8.4f %+8.4fj \n",i, dat2[i].re, dat2[i].im);
+
+    imgproc::fft2d(dat1, 4, 3);
+
+    max_d1 = abs(dat1[0].re) > abs(dat1[0].im) ? abs(dat1[0].re) : abs(dat1[0].im);
+    min_d1 = abs(dat1[0].re) < abs(dat1[0].im) ? abs(dat1[0].im) : abs(dat1[0].re);
+    printf("2D FFT:\n");
+    rat = 1.0;
+    if (max_d1 > 10 ){
+        rat = pow(10,floor(log10(max_d1)));
+        printf("\t%.3E \n",rat);
+    }
+    for(int32 i=0; i < len; ++i){
+        printf("%3d : % 8.4f %+8.4fj \n",i, dat1[i].re/rat, dat1[i].im/rat);
+    }
+
+    imgproc::ifft2d(dat1, 4, 3);
+
+    for(int32 i=1; i < len; ++i){
+        if( max_d1 < abs(dat1[i].re)) max_d1 = abs(dat1[i].re);
+        if( max_d1 < abs(dat1[i].im)) max_d1 = abs(dat1[i].im);
+        if( max_d2 < abs(dat2[i].re)) max_d2 = abs(dat2[i].re);
+        if( max_d2 < abs(dat2[i].im)) max_d2 = abs(dat2[i].im);
+    }
+    max_d2 = abs(dat2[0].re) > abs(dat2[0].im) ? abs(dat2[0].re) : abs(dat2[0].im);
+    min_d2 = abs(dat2[0].re) < abs(dat2[0].im) ? abs(dat2[0].im) : abs(dat2[0].re);
+    for(int32 i=1; i < len; ++i){
+        if( min_d1 > abs(dat1[i].re)) min_d1 = abs(dat1[i].re);
+        if( min_d1 > abs(dat1[i].im)) min_d1 = abs(dat1[i].im);
+        if( min_d2 > abs(dat2[i].re)) min_d2 = abs(dat2[i].re);
+        if( min_d2 > abs(dat2[i].im)) min_d2 = abs(dat2[i].im);
+    }
+
+    printf("2D IFFT:\n");
+    rat = 1.0;
+    if(max_d2 > 10){
+        rat = pow(10,floor(log10(max_d2)));
+        printf("\t%.3E \n",rat);
+    }
+    for(int32 i=0; i < len; ++i)
+        printf("%3d : % 8.4f %+8.4fj \n",i, dat2[i].re/rat, dat2[i].im/rat);
 
     delete [] dat1;
     delete [] dat2;
