@@ -469,9 +469,7 @@ void Mat::transpose(){
             for(j=0; j<col; j++){ // column step
                 lhs_idx = (ch_offset + j*row +i)*byteStep;
                 rhs_idx = (ch_offset + i*col +j)*byteStep;
-                for(m=0; m< byteStep; m++){ // byte step
-                    tmA[lhs_idx] = mdat[rhs_idx];
-                }
+                memcpy(&tmA[lhs_idx], &mdat[rhs_idx], byteStep);
             }
         }
     }

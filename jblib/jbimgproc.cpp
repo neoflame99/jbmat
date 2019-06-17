@@ -473,13 +473,27 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
     N2 = (1 << N2) < cN ? N2+1 : N2;
     N2 = 1 << N2;
 
-    _complex*  chirp= new _complex[static_cast<uint32>(cN)];
-    _complex* ichirp= new _complex[static_cast<uint32>(N2)];
-    _complex* extdat= new _complex[static_cast<uint32>(N2)];
-
-    if( chirp == nullptr || ichirp == nullptr || extdat == nullptr)
-        fprintf(stderr," At least one of memories for chipr, ichirp and extdat is not allocated!\n");
-
+    _complex*  chirp;
+    _complex* ichirp;
+    _complex* extdat;
+    try{
+        chirp= new _complex[static_cast<uint32>(cN)];
+    }catch(std::bad_alloc& ex){
+        fprintf(stderr,"Chirp memory bad allocation!: %s\n",ex.what());
+        return;
+    }
+    try{
+        ichirp= new _complex[static_cast<uint32>(N2)];
+    }catch(std::bad_alloc& ex){
+        fprintf(stderr,"IChirp memory bad allocation!: %s\n",ex.what());
+        return;
+    }
+    try{
+        extdat= new _complex[static_cast<uint32>(N2)];
+    }catch(std::bad_alloc& ex){
+        fprintf(stderr,"extdat memory bad allocation!: %s\n",ex.what());
+        return;
+    }
 
     // filling chirp values ; its indices: -N+1, -N+2, ..., 0 , ..., N-1
     // forward  : W**(k**2)/(-2) = exp(j2*PI/N*(k**2)/(-2)) = exp(-j*PI/N*(k**2))
@@ -492,27 +506,18 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
     }
 
     // filling ichirp( inverse of chirp )
-    // it needs zero padding
+    // we need zero padding but 'new' operator calls the default constructor so each element of array is zero initilized.
     for(i=0; i < cN; ++i)
         ichirp[i] = 1.0/chirp[i];
-    // zero padding
-    for(i=cN; i < N2; ++i){
-        //ichirp[i] = _complex(0,0);
-        ichirp[i].re = 0.0;
-        ichirp[i].im = 0.0;
-    }
+
     // filling extdat; its indices: 0, 1, 2,..., N-1
     // forward  : x(n)*exp(2j*PI/N*(n**2)/(-2)) = x(n)*exp(-j*PI/N*(n**2))
     // backward : X(n)*exp(2j*PI/N*(n**2)/2) = X(n)*exp(j*PI/N*(n**2))
+    // we need zero padding but 'new' operator calls the default constructor so each element of array is zero initilized.
     int32 N_minus_1 = N-1;
     for(i=0; i < N ; ++i)
         extdat[i] = dat[i] * chirp[i+N_minus_1];
-    // zero padding
-    for(i=N; i < N2; ++i){
-        //extdat[i] = _complex(0,0);
-        extdat[i].re = 0.0;
-        extdat[i].im = 0.0;
-    }
+
     // fft through fft_radix2
     fft_radix2(extdat, N2, false);
     fft_radix2(ichirp, N2, false);
@@ -575,9 +580,12 @@ void fft2d(_complex* dat, int32 r_len, int32 c_len){
         fprintf(stderr, " both or one of r_len or c_len arguments of fft2d is zero or negative!\n"); return ;
     }
 
-    _complex* rdat = new _complex[static_cast<uint32>(r_len)];
-    if( rdat == nullptr){
-        fprintf(stderr, " data memory for fft2d is not allocated\n"); return ;
+
+    _complex* rdat;
+    try{
+        rdat = new _complex[static_cast<uint32>(r_len)];
+    }catch(std::bad_alloc& ex){
+        fprintf(stderr, " data memory for fft2d is not allocated : %s\n", ex.what()); return ;
     }
 
     int32 i, k, r;
@@ -607,7 +615,13 @@ void ifft2d(_complex* dat, int32 r_len, int32 c_len){
         fprintf(stderr, " both or one of r_len or c_len arguments of ifft2d is zero or negative!\n"); return ;
     }
 
-    _complex* rdat = new _complex[static_cast<uint32>(r_len)];
+    _complex* rdat;
+    try{
+        rdat = new _complex[static_cast<uint32>(r_len)];
+    }catch(std::bad_alloc& ex){
+        fprintf(stderr, " data memory for ifft2d is not allocated : %s\n", ex.what()); return ;
+    }
+
     if( rdat == nullptr){
         fprintf(stderr, " data memory for ifft2d is not allocated\n"); return ;
     }

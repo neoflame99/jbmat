@@ -128,9 +128,10 @@ namespace qimmat {
 
         int32 dlen = (ysize * xsize) << 2;
 
-        rgbe = new uchar [dlen];
-        if (rgbe == nullptr ){
-            fprintf(stderr,"Memory allocation error\n");
+        try{
+            rgbe = new uchar [static_cast<uint32>(dlen)];
+        }catch(std::bad_alloc& ex){
+            fprintf(stderr,"Memory allocation error: %s\n", ex.what());
             return Mat();
         }
 

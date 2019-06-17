@@ -252,8 +252,10 @@ int32 main(int32 argc, char *argv[])
 
     int32 len = 12;
     _complex *dat1 = new _complex[len];
-    _complex *dat2 = new _complex[len];
+    _complex *dat2 = new _complex[len];   
+
     for(int32 i=0; i < len; ++i){
+        printf("%3d : %f %+fj\n",i, dat1[i].re, dat1[i].im);
         dat1[i] = _complex(i+1, len-i);
         dat2[i] = dat1[i];
     }
@@ -298,6 +300,7 @@ int32 main(int32 argc, char *argv[])
         printf("%3d : % 8.4f %+8.4fj \n",i, dat2[i].re/rat, dat2[i].im/rat);
 
 
+    printf("data\n");
     for(int32 i=0; i < len; ++i){
         dat1[i] = _complex(i+1, len-i);
         dat2[i] = dat1[i];

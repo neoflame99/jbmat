@@ -9,6 +9,7 @@
 #include <assert.h>
 #include "types.h"
 #include <math.h>
+#include <string.h>
 
 #ifdef _MACOS_
     #include <string>
