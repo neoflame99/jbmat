@@ -198,19 +198,98 @@ template <typename _Tslf, typename _Totr> void Mat::_plus_mat(_Tslf* self, _Totr
     for(uint32 k=0; k < len; k++ )
         self[k] += other[k];
 }
+#ifdef C11
+template <> inline void Mat::_plus_mat(double* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] += creal(other[k]);
+}
+template <> inline void Mat::_plus_mat(float* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] += creal(other[k]);
+}
+template <> inline void Mat::_plus_mat(int32* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] += creal(other[k]);
+}
+template <> inline void Mat::_plus_mat(uchar* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] += creal(other[k]);
+}
+#endif
 template <typename _Tslf, typename _Totr> void Mat::_minus_mat(_Tslf* self, _Totr* other, uint32 len){
     for(uint32 k=0; k < len; k++ )
         self[k] -= other[k];
 }
+#ifdef C11
+template <> inline void Mat::_minus_mat(double* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] -= creal(other[k]);
+}
+template <> inline void Mat::_minus_mat(float* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] -= creal(other[k]);
+}
+template <> inline void Mat::_minus_mat(int32* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] -= creal(other[k]);
+}
+template <> inline void Mat::_minus_mat(uchar* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] -= creal(other[k]);
+}
+#endif
 template <typename _Tslf, typename _Totr> void Mat::_multiply_mat(_Tslf* self, _Totr* other, uint32 len){
     for(uint32 k=0; k < len; k++ )
         self[k] *= other[k];
 }
+#ifdef C11
+template <> inline void Mat::_multiply_mat(double* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] *= creal(other[k]);
+}
+template <> inline void Mat::_multiply_mat(float* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] *= creal(other[k]);
+}
+template <> inline void Mat::_multiply_mat(int32* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] *= creal(other[k]);
+}
+template <> inline void Mat::_multiply_mat(uchar* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ )
+        self[k] *= creal(other[k]);
+}
+#endif
 template <typename _Tslf, typename _Totr> void Mat::_divide_mat(_Tslf* self, _Totr* other, uint32 len){
     for(uint32 k=0; k < len; k++ )
         self[k] /= other[k];
 }
-
+#ifdef C11
+template <> inline void Mat::_divide_mat(double* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ ){
+        cmplx a = self[k] / other[k];
+        self[k] /= creal(a);
+    }
+}
+template <> inline void Mat::_divide_mat(float* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ ){
+        cmplx a = self[k] / other[k];
+        self[k] /= creal(a);
+    }
+}
+template <> inline void Mat::_divide_mat(int32* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ ){
+        cmplx a = self[k] / other[k];
+        self[k] /= creal(a);
+    }
+}
+template <> inline void Mat::_divide_mat(uchar* self, cmplx* other, uint32 len){
+    for(uint32 k=0; k < len; k++ ){
+        cmplx a = self[k] / other[k];
+        self[k] /= creal(a);
+    }
+}
+#endif
 template <typename _Tslf, typename _Totr> void Mat::_plus_scalar(_Tslf* self, _Totr scalar, uint32 len){
     for(uint32 k=0; k < len ; k++)
         self[k] += scalar;
@@ -317,6 +396,7 @@ template <> inline void Mat::_print<cmplx>(cmplx* mdat){
 
     if(datT==DTYP::CMPLX){
         cmplx val;
+        double cre, cim;
         for( k = 0 ; k < Nch; k++){
             fprintf(stdout,"channel: %d \n",k);
             ch_offset = k*lenRowCol;
@@ -324,11 +404,11 @@ template <> inline void Mat::_print<cmplx>(cmplx* mdat){
                 snprintf(buf,bufsz,"[");
                 for( j=0; j < col; j++){          // columns
                     val = mdat[i+j+ch_offset];
-                    if( val.re >= neg_max_double && val.re <= pos_min_double)
-                        val.re = 0.0;
-                    if( val.im >= neg_max_double && val.im <= pos_min_double)
-                        val.im = 0.0;
-                    snprintf(tmp,bufsz," %10.4f + i%10.4f",val.re, val.im);
+                    cre = creal(val);
+                    cim = cimag(val);
+                    if ( cre >= neg_max_double && cre <= pos_min_double) cre = 0.0;
+                    if( cim >= neg_max_double && cim <= pos_min_double)  cim = 0.0;
+                    snprintf(tmp,bufsz," %10.4f + i%10.4f", cre, cim);
                     strncat(buf,tmp,bufsz);
                 }
                 strncat(buf,"]",1);
@@ -371,10 +451,11 @@ template <> inline Mat Mat::_max<cmplx>() {
     n=0;
     for(k=0 ; k < ch; k++){
         large = datPtr[n++];
-        large_mag = large.re*large.re + large.im*large.im;
+        //large_mag = large.re*large.re + large.im*large.im;
+        large_mag = creal(large)*creal(large) + cimag(large)*cimag(large);
         for(m = 1 ; m < rclen; m++, n++ ){
-            tmp = datPtr[n];
-            tmp_mag = tmp.re*tmp.re + tmp.im*tmp.im;
+            tmp = datPtr[n];            
+            tmp_mag = creal(tmp)*creal(tmp) + cimag(tmp)*cimag(tmp);
             if( large_mag < tmp_mag){
                 large = datPtr[n];
                 large_mag = tmp_mag;
@@ -418,10 +499,10 @@ template <> inline Mat Mat::_min<cmplx>() {
     n=0;
     for(k=0 ; k < ch; k++){
         less = datPtr[n++];
-        less_mag = less.re*less.re + less.im*less.im;
+        less_mag = creal(less)*creal(less) + cimag(less)*cimag(less);
         for(m = 1 ; m < rclen; m++, n++ ){
             tmp = datPtr[n];
-            tmp_mag = tmp.re*tmp.re + tmp.im*tmp.im;
+            tmp_mag = creal(tmp)*creal(tmp) + cimag(tmp)*cimag(tmp);
             if( less_mag > tmp_mag){
                 less     = datPtr[n];
                 less_mag = tmp_mag;
@@ -462,7 +543,11 @@ template <> inline Mat Mat::_mean<cmplx>() {
     uint32 k, m, n;
     n = 0;
     for(k=0 ; k < ch; k++){
-        sum.zero();
+#ifdef C11
+        sum = 0.0 + I*0.0;
+#else
+        //sum.zero();
+#endif
         for(m = 0 ; m < rclen; m++){
             sum += cmplx(datPtr[n++]);
         }
@@ -554,7 +639,11 @@ template <> inline Mat Mat::_sum<cmplx>() {
     uint32 k, m, n;
     n = 0;
     for(k=0 ; k < ch; k++){
-        sum.zero();
+#ifdef C11
+      sum = 0.0 + I*0.0;
+#else
+      sum.zero();
+#endif
         for(m = 0 ; m < rclen; m++){
             sum += cmplx(datPtr[n++]);
         }

@@ -432,6 +432,20 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
 
     for(pn = 2; pn <= len; pn <<=1 ){ // 'pn' is partial len at the step.
         theta = direc * M_PI /pn ;     // (direc * 2) * M_PI /pn;
+#ifdef C11
+        _complex ws = cexp(theta*I);
+        for(i=0; i < len; i += pn){   // group-wise at n-th step loop
+            _complex w = 1.0 + 0.0*I;
+            int32 half_pn = pn >> 1;
+            //-- Butterfly
+            for(k=0; k < half_pn ; ++k){
+                tmp = dat[i+k+ half_pn] * w;
+                dat[i+k+half_pn] = dat[i+k] - tmp;
+                dat[i+k] += tmp;
+                w *= ws;
+            }
+        }
+#else
         _complex ws(cos(theta), sin(theta));
         for(i=0; i < len; i += pn){   // group-wise at n-th step loop
             _complex w(1,0);
@@ -444,6 +458,7 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
                 w *= ws;
             }
         }
+#endif
     }
 
     if( backward ){
@@ -498,13 +513,19 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
     // filling chirp values ; its indices: -N+1, -N+2, ..., 0 , ..., N-1
     // forward  : W**(k**2)/(-2) = exp(j2*PI/N*(k**2)/(-2)) = exp(-j*PI/N*(k**2))
     // backward : W**(k**2)/2 = exp(j2*PI/N*(k**2)/2) = exp(j*PI/N*(k**2))
-    double unit_theta = inverse  ? -M_PI/N : M_PI/N;
+    double unit_theta = inverse  ? M_PI/N : -M_PI/N;
     double theta;
+#ifdef C11
     for(k=1-N , i=0 ; k <N ; ++k, ++i ){
         theta = unit_theta*(k*k);
-        chirp[i] = _complex(cos(theta),-sin(theta));
+        chirp[i] = cexp(I*theta);
     }
-
+#else
+    for(k=1-N , i=0 ; k <N ; ++k, ++i ){
+        theta = unit_theta*(k*k);
+        chirp[i] = _complex(cos(theta), sin(theta));
+    }
+#endif
     // filling ichirp( inverse of chirp )
     // we need zero padding but 'new' operator calls the default constructor so each element of array is zero initilized.
     for(i=0; i < cN; ++i)

@@ -4,6 +4,10 @@
 #include <cstdint>
 #include <float.h>
 
+#ifdef C11
+    #include <complex.h>
+#endif
+
 #define U08 uint8_t
 #define I32 int32_t
 #define U32 uint32_t
@@ -22,6 +26,10 @@ namespace jmat {
     typedef int64_t        int64;
     typedef std::shared_ptr<uchar> shr_ptr;
     enum    DTYP {UCHAR=0 , INT=1 , FLOAT=2, DOUBLE=3, CMPLX=4};    
+#ifdef C11
+    typedef double _Complex _complex;
+    #define cmplx _complex
+#else
     struct _complex;
     typedef _complex  cmplx;
 
@@ -219,6 +227,11 @@ namespace jmat {
     inline bool operator==(const double lhs, const _complex& rhs){
         return (rhs.re <= lhs+DBL_EPSILON && rhs.re >= lhs-DBL_EPSILON && rhs.im == 0.0) ? true : false;
     }
+
+    inline double creal(_complex X)  { return X.re; }
+    inline double cimag(_complex X)  { return X.im; }
+
+#endif
 
 }
 

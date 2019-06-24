@@ -127,9 +127,9 @@ namespace qimmat {
 
         if(fmt == QImage::Format_RGB32){
             for( y=0, k=0 ; y < lenRowCol; y++, k+=4){
-                qim_dat[k  ] = sat_cast<uchar>(mat_dat[y+lenRowCol2].re);
-                qim_dat[k+1] = sat_cast<uchar>(mat_dat[y+lenRowCol ].re);
-                qim_dat[k+2] = sat_cast<uchar>(mat_dat[y           ].re);
+                qim_dat[k  ] = sat_cast<uchar>(mat_dat[y+lenRowCol2]);
+                qim_dat[k+1] = sat_cast<uchar>(mat_dat[y+lenRowCol ]);
+                qim_dat[k+2] = sat_cast<uchar>(mat_dat[y           ]);
                 qim_dat[k+3] = 255;
             }
         }else if(fmt==QImage::Format_RGB888){
@@ -137,9 +137,9 @@ namespace qimmat {
             k=0; m=0;
             for( y=0 ; y < row; ++y ){
                 for( x = 0; x < col; ++x){
-                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m+lenRowCol2].re);
-                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m+lenRowCol ].re);
-                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m           ].re);
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m+lenRowCol2]);
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m+lenRowCol ]);
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m           ]);
                     m++;
                 }
                 for( x = col<<2 ; x < colBytes; ++x){
@@ -152,7 +152,7 @@ namespace qimmat {
             k=0; m=0;
             for( y=0 ; y < row; y++){
                 for( x=0; x < col ; ++x){
-                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m++ ].re);
+                    qim_dat[k++] = sat_cast<uchar>(mat_dat[m++ ]);
                 }
                 for( ; x < colBytes; ++x){
                     qim_dat[k++] = 0;

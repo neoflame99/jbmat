@@ -198,7 +198,12 @@ template <> inline void _triu<cmplx>( Mat& utri_mat){
     uint32 rcstep = rows*cols;
     uint32 tlen   = rcstep*ch;
     cmplx fact;
+#ifdef C11
+    cmplx zero = 0.0;
+#else
     cmplx zero(0,0);
+#endif
+
     cmplx* mat = utri_mat.getDataPtr<cmplx>();
     // do triu
     for( uint32 cc=0; cc < tlen ; cc+=rcstep){
@@ -258,7 +263,11 @@ template <> inline void _tril<cmplx>( Mat& ltri_mat){
     uint32   pv, j, cr, pvr;
     int32 i;
     cmplx fact;
+#ifdef C11
+    cmplx zero = 0.0;
+#else
     cmplx zero(0,0);
+#endif
     cmplx* mat = ltri_mat.getDataPtr<cmplx>();
     // do tril
     for(uint32 cc=0; cc < tlen ; cc+= rcstep){
@@ -417,7 +426,7 @@ template <> inline Mat _inverse<cmplx>(const Mat& srcmat){
             pvr   = pv * ltri_col;
             ltrichr_off = ci + pvr;
             pivot = ltri_pt[ltrichr_off + pv];
-            if(pivot.re==0.0 ) continue;
+            if( creal(pivot) ==0.0 ) continue;
             for(j=0 ; j < ltri_col ; j++)
                 ltri_pt[ltrichr_off + j] /= pivot;
         }
