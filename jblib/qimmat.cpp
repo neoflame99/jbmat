@@ -127,14 +127,20 @@ namespace qimmat {
 
 
         int32 dlen = (ysize * xsize) << 2;
-
+#ifdef MALLOC_F
+        rgbe = (uchar*)calloc(dlen, sizeof(uchar));
+        if(rgbe == nullptr){
+            fprintf(stderr,"Memory allocation error in readhdr function.\n");
+            return Mat();
+        }
+#else
         try{
             rgbe = new uchar [static_cast<uint32>(dlen)];
         }catch(std::bad_alloc& ex){
-            fprintf(stderr,"Memory allocation error: %s\n", ex.what());
+            fprintf(stderr,"Memory allocation error in readhdr function: %s\n", ex.what());
             return Mat();
         }
-
+#endif
         uchar   a,b;
         uchar   c,d;
         uchar   rlc;

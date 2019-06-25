@@ -491,6 +491,16 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
     _complex*  chirp;
     _complex* ichirp;
     _complex* extdat;
+
+#ifdef MALLOC_F
+    chirp  = (_complex *)calloc(cN, sizeof(_complex));
+    ichirp = (_complex *)calloc(N2, sizeof(_complex));
+    extdat = (_complex *)calloc(N2, sizeof(_complex));
+    if( chirp == nullptr || ichirp == nullptr || extdat == nullptr){
+        fprintf(stderr,"memory allocation error!\n");
+        return;
+    }
+#else
     try{
         chirp= new _complex[static_cast<uint32>(cN)];
     }catch(std::bad_alloc& ex){
@@ -509,6 +519,7 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
         fprintf(stderr,"extdat memory bad allocation!: %s\n",ex.what());
         return;
     }
+#endif
 
     // filling chirp values ; its indices: -N+1, -N+2, ..., 0 , ..., N-1
     // forward  : W**(k**2)/(-2) = exp(j2*PI/N*(k**2)/(-2)) = exp(-j*PI/N*(k**2))
@@ -530,6 +541,12 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
     // we need zero padding but 'new' operator calls the default constructor so each element of array is zero initilized.
     for(i=0; i < cN; ++i)
         ichirp[i] = 1.0/chirp[i];
+#ifdef C11
+#   ifndef MALLOC_F
+    for(i=cN; i < N2; ++i) // zero padding
+        ichirp[i] = 0.0 + 0.0*I;
+#   endif
+#endif
 
     // filling extdat; its indices: 0, 1, 2,..., N-1
     // forward  : x(n)*exp(2j*PI/N*(n**2)/(-2)) = x(n)*exp(-j*PI/N*(n**2))
@@ -538,6 +555,12 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
     int32 N_minus_1 = N-1;
     for(i=0; i < N ; ++i)
         extdat[i] = dat[i] * chirp[i+N_minus_1];
+#ifdef C11
+#   ifndef MALLOC_F
+    for(i=N; i < N2; ++i) // zero padding
+        extdat[i] = 0.0 + 0.0*I;
+#   endif
+#endif
 
     // fft through fft_radix2
     fft_radix2(extdat, N2, false);
@@ -558,9 +581,15 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
             dat[i] /= N;
     }
 
+#ifdef MALLOC_F
+    free( chirp);
+    free(ichirp);
+    free(extdat);
+#else
     delete [] chirp;
     delete [] ichirp;
     delete [] extdat;
+#endif
 }
 
 void  fft(_complex* dat, int32 len){
@@ -603,12 +632,18 @@ void fft2d(_complex* dat, int32 r_len, int32 c_len){
 
 
     _complex* rdat;
+#ifdef MALLOC_F
+    rdat = (_complex*)calloc(r_len, sizeof(_complex));
+    if( rdat == nullptr){
+        fprintf(stderr, " data memory for fft2d is not allocated \n"); return ;
+    }
+#else
     try{
         rdat = new _complex[static_cast<uint32>(r_len)];
     }catch(std::bad_alloc& ex){
         fprintf(stderr, " data memory for fft2d is not allocated : %s\n", ex.what()); return ;
     }
-
+#endif
     int32 i, k, r;
     _complex* cdat;
     // fft on column direction
@@ -637,11 +672,18 @@ void ifft2d(_complex* dat, int32 r_len, int32 c_len){
     }
 
     _complex* rdat;
+#ifdef MALLOC_F
+    rdat = (_complex*)calloc(r_len, sizeof(_complex));
+    if( rdat == nullptr){
+        fprintf(stderr, " data memory for fft2d is not allocated \n"); return ;
+    }
+#else
     try{
         rdat = new _complex[static_cast<uint32>(r_len)];
     }catch(std::bad_alloc& ex){
         fprintf(stderr, " data memory for ifft2d is not allocated : %s\n", ex.what()); return ;
     }
+#endif
 
     if( rdat == nullptr){
         fprintf(stderr, " data memory for ifft2d is not allocated\n"); return ;

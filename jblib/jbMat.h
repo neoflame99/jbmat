@@ -314,12 +314,21 @@ template <typename _Tslf, typename _Totr> void Mat::_dividing_scalar(_Tslf* self
 template <typename _Tsrc, typename _Ttar> inline void Mat::_type_change(){
     _Tsrc* src_pt = (_Tsrc *)mA.get();
     _Ttar* tar_pt;
+
+#ifdef MALLOC_F
+    tar_pt = (_Ttar*)malloc(length*sizeof(_Ttar));
+    if(tar_pt == nullptr){
+        fprintf(stderr,"memory allocation Error during type changing\n");
+        return;
+    }
+#else
     try{
         tar_pt = new _Ttar[static_cast<unsigned long>(length)];
     }catch(std::bad_alloc& ex){
-        fprintf(stderr,"Transpose Error: %s\n",ex.what());
+        fprintf(stderr,"memory allocation Error during type changing: %s\n",ex.what());
         return;
     }
+#endif
 
     uint32 k;
     for( k=0; k < length; k++){

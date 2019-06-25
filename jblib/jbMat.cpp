@@ -15,17 +15,26 @@ void Mat::alloc(uint32 len){
         mA = nullptr;
         dat_ptr = nullptr;
     }else{
-        mA = shr_ptr (new uchar[len], std::default_delete<uchar[]>());
-        dat_ptr = mA.get();
+
+#ifdef MALLOC_F
+        uchar * arr = (uchar *)malloc(sizeof(uchar)*len);
+        if( arr == nullptr){
+            mA = nullptr;
+            dat_ptr = nullptr;
+        }else{
+            mA = shr_ptr( arr, free );
+            dat_ptr = mA.get();
+        }
+#else
+        try{
+            mA = shr_ptr (new uchar[len], std::default_delete<uchar[]>());
+            dat_ptr = mA.get();
+        }catch(std::bad_alloc& ex){
+            dat_ptr = nullptr;
+            fprintf(stderr,"memory allocation error during constructing the instance: %s\n",ex.what());
+        }
+#endif
     }
-    /*
-    try{
-        mA = (len==0)? nullptr : new double[len];
-    }catch(std::bad_alloc& ex){
-        fprintf(stderr,"memory allocation error: %s\n",ex.what());
-        mA = nullptr;
-    }
-    */
 }
 void Mat::init(uint32 r, uint32 c, uint32 ch, DTYP dt){
     row = r;
@@ -454,12 +463,20 @@ void Mat::transpose(){
     uchar *tmA;
     uchar *mdat;
 
+#ifdef MALLOC_F
+    tmA = (uchar *)malloc(byteLen);
+    if(tmA == nullptr){
+        fprintf(stderr,"Memory allocation error in Transpose method\n");
+        return;
+    }
+#else
     try{
         tmA= new uchar[static_cast<unsigned long>(byteLen)];
     }catch(std::bad_alloc& ex){
         fprintf(stderr,"Transpose Error: %s\n",ex.what());
         return;
     }
+#endif
 
     mdat = mA.get();
     uint32 i, j, k, m, ch_offset, lhs_idx, rhs_idx;

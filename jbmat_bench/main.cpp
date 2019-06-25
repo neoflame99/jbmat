@@ -265,6 +265,7 @@ int32 main(int32 argc, char *argv[])
         printf("%3d : %f %+fj\n",i, creal(dat1[i]), cimag(dat1[i]));
     }
     imgproc::fft(dat1, len); // fft
+    //imgproc::ifft(dat1,len); // ifft
     imgproc::ifft(dat2, len);  // ifft
 
     double max_d1, max_d2, min_d1, min_d2;
@@ -324,8 +325,8 @@ int32 main(int32 argc, char *argv[])
         printf("\t%.3E \n",rat);
     }
     for(int32 i=0; i < len; ++i){
-        //printf("%3d : % 8.4f %+8.4fj \n",i, creal(dat1[i])/rat, cimag(dat1[i])/rat);
-        printf("%3d : % 8.4f %+8.4fj \n",i, creal(dat1[i]), cimag(dat1[i]));
+        printf("%3d : % 8.4f %+8.4fj \n",i, creal(dat1[i])/rat, cimag(dat1[i])/rat);
+        //printf("%3d : % 8.4f %+8.4fj \n",i, creal(dat1[i]), cimag(dat1[i]));
     }
 
     imgproc::ifft2d(dat1, 4, 3);

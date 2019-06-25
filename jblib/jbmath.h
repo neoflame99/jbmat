@@ -297,8 +297,26 @@ template <typename _T> std::shared_ptr<uchar> _augment(const Mat& srcmat, const 
 
     uint32 len     = rows*augCols*ch;
     uint32 bytelen = len*sizeof(_T);
+    std::shared_ptr<uchar> augm;
 
-    std::shared_ptr<uchar> augm = std::shared_ptr<uchar>(new uchar[bytelen], std::default_delete<uchar[]>());
+#ifdef MALLOC_F
+    uchar* arr = (uchar *)calloc(bytelen, sizeof(uchar));
+    if( arr == nullptr){
+        fprintf(stderr,"memory allocation error during constructing _augment function\n");
+        augm = nullptr;
+        return augm;
+    }else{
+        augm = std::shared_ptr<uchar>( arr , free);
+    }
+#else
+    try {
+        augm = std::shared_ptr<uchar>(new uchar[bytelen], std::default_delete<uchar[]>());
+    } catch (std::bad_alloc& ex) {
+        fprintf(stderr,"memory allocation error during constructing _augment function: %s\n",ex.what());
+        augm = nullptr;
+        return augm;
+    }
+#endif
     _T* augm_ma = (_T*)augm.get();
     _T* mA      = srcmat.getDataPtr<_T>();
 
