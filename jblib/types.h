@@ -29,6 +29,16 @@ namespace jmat {
 #ifdef C11
     typedef double _Complex _complex;
     #define cmplx _complex
+
+    #ifdef __cplusplus
+        extern "C"{
+    #endif
+        double creal(double _Complex);
+        double cimag(double _Complex);
+    #ifdef __cplusplus
+        }
+    #endif
+
 #else
     struct _complex;
     typedef _complex  cmplx;

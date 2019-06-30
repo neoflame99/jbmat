@@ -420,7 +420,8 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
     double theta ;
     _complex tmp;
 
-    //-- data suffle by bit reverse
+    //-- data shuffle by bit reverse
+// shuffle method1
     for (i=0; i < len; ++i) {
         //-- doing bit-reverse
         for(t=0, k=0; k < n; ++k){
@@ -428,6 +429,20 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
         }
         if( i < t)
             std::swap(dat[i], dat[t]);
+    }
+// shuffle method2
+    /* Do the bit reversal */
+    int32 i2 = len >> 1;
+    t = 0;
+    for (i=0; i< len-1; i++) {
+        if (i < t) std::swap(dat[i], dat[t]);
+
+         k = i2;
+         while (k <= t) {
+             t -= k;
+             k >>= 1;
+         }
+         t += k;
     }
 
     for(pn = 2; pn <= len; pn <<=1 ){ // 'pn' is partial len at the step.
@@ -446,7 +461,8 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
             }
         }
 #else
-        _complex ws(cos(theta), sin(theta));
+        /*
+        _complex ws(cos(theta), sin(theta));  
         for(i=0; i < len; i += pn){   // group-wise at n-th step loop
             _complex w(1,0);
             int32 half_pn = pn >> 1;
@@ -458,6 +474,33 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
                 w *= ws;
             }
         }
+        */
+        _complex ws(cos(theta), sin(theta));
+        _complex w(1,0);
+        int32 half_pn = pn >> 1;
+        int32 kk ;
+
+        // when k = 0
+        kk = half_pn;
+        //-- Butterfly
+        for(i=0; i < len; i += pn){
+            tmp = dat[i + kk] * w;
+            dat[i + kk] = dat[i + k] - tmp;
+            dat[i  ] = dat[i ] + tmp;
+        }
+        w = ws;
+        // when k > 0
+        for(k=1; k < half_pn ; ++k){
+            kk = k + half_pn;
+            //-- Butterfly
+            for(i=0; i < len; i += pn){
+                tmp = dat[i + kk] * w;
+                dat[i + kk] = dat[i + k] - tmp;
+                dat[i + k ] = dat[i + k] + tmp;
+            }
+            w *= ws;
+        }
+
 #endif
     }
 
