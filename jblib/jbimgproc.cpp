@@ -414,24 +414,13 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
         k >>= 1; ++n;
     }
 
-    int32 n_minus_1 = n-1;
     int32 t, pn;
-    int32  direc = (backward) ? 2 : -2;
+    double dirPI = (backward) ? M_PI*2 : - M_PI*2;
     double theta ;
     _complex tmp;
 
-    //-- data shuffle by bit reverse
-// shuffle method1
-    for (i=0; i < len; ++i) {
-        //-- doing bit-reverse
-        for(t=0, k=0; k < n; ++k){
-            t |= ((i >> k) & 1) << (n_minus_1 - k); // n_minus_1 : n-1
-        }
-        if( i < t)
-            std::swap(dat[i], dat[t]);
-    }
-// shuffle method2
-    /* Do the bit reversal */
+
+    //-- data shuffle by bit reverse    
     int32 i2 = len >> 1;
     t = 0;
     for (i=0; i< len-1; i++) {
@@ -445,8 +434,10 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
          t += k;
     }
 
+clock_t clk_start = clock();
     for(pn = 2; pn <= len; pn <<=1 ){ // 'pn' is partial len at the step.
-        theta = direc * M_PI /pn ;     // (direc * 2) * M_PI /pn;
+        //theta = direc * M_PI /pn ;     // (direc * 2) * M_PI /pn;
+        theta = dirPI / pn;
 #ifdef C11
         _complex ws = cexp(theta*I);
         for(i=0; i < len; i += pn){   // group-wise at n-th step loop
@@ -461,7 +452,6 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
             }
         }
 #else
-        /*
         _complex ws(cos(theta), sin(theta));  
         for(i=0; i < len; i += pn){   // group-wise at n-th step loop
             _complex w(1,0);
@@ -474,35 +464,14 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
                 w *= ws;
             }
         }
-        */
-        _complex ws(cos(theta), sin(theta));
-        _complex w(1,0);
-        int32 half_pn = pn >> 1;
-        int32 kk ;
-
-        // when k = 0
-        kk = half_pn;
-        //-- Butterfly
-        for(i=0; i < len; i += pn){
-            tmp = dat[i + kk] * w;
-            dat[i + kk] = dat[i + k] - tmp;
-            dat[i  ] = dat[i ] + tmp;
-        }
-        w = ws;
-        // when k > 0
-        for(k=1; k < half_pn ; ++k){
-            kk = k + half_pn;
-            //-- Butterfly
-            for(i=0; i < len; i += pn){
-                tmp = dat[i + kk] * w;
-                dat[i + kk] = dat[i + k] - tmp;
-                dat[i + k ] = dat[i + k] + tmp;
-            }
-            w *= ws;
-        }
 
 #endif
     }
+
+    clock_t clk_end = clock();
+    double elaps = double(clk_end - clk_start ) / CLOCKS_PER_SEC;
+    printf("fft_radix2 elapse time:  %4.12f\n", elaps);
+
 
     if( backward ){
         for( i=0 ; i < len; ++i)

@@ -3,6 +3,7 @@
 #include "jbMat.h"
 #include "jbmath.h"
 #include <math.h>
+#include <ctime>
 
 namespace jmat {
 namespace imgproc {
@@ -52,7 +53,7 @@ namespace imgproc {
     template <typename _T> inline Mat _logRetinexTm(const Mat& Im, const Mat& localmean);
 
     // fft
-    void fft_radix2(_complex* dat, int32 len, bool backward=false);
+    void fft_radix2(_complex* dat, int32 len, bool backward=false);    
     void fft_czt( _complex *dat, int32 len, bool inverse=false);
     void fft(_complex* dat, int32 len);
     void ifft(_complex* dat, int32 len);
