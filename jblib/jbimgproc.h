@@ -53,12 +53,15 @@ namespace imgproc {
     template <typename _T> inline Mat _logRetinexTm(const Mat& Im, const Mat& localmean);
 
     // fft
-    void fft_radix2(_complex* dat, int32 len, bool backward=false);    
+    void fft_radix2(_complex* dat, int32 len, bool backward=false);
+    void fft_radix4(_complex* dat, int32 len, bool backward=false);
     void fft_czt( _complex *dat, int32 len, bool inverse=false);
     void fft(_complex* dat, int32 len);
     void ifft(_complex* dat, int32 len);
     void fft2d(_complex* dat, int32 r_len, int32 c_len);
     void ifft2d(_complex* dat, int32 r_len, int32 c_len);
+    void permute_radix4(_complex *a, int32 len);
+    inline int digit_rev(int x, int n, int radix);
 }
 
 

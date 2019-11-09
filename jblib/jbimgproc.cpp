@@ -720,5 +720,100 @@ void ifft2d(_complex* dat, int32 r_len, int32 c_len){
 
     delete [] rdat;
 }
+
+void fft_radix4(_complex* dat, int32 len, bool backward){
+
+// len has to be a number of power of 4
+    assert( dat != nullptr);
+    assert( len > 0 );
+
+    int32 k, i;
+    int32 ldn;
+
+    // -- ldn = log4(len) = log2(len)/2
+    ldn = 0;
+    k = len;
+    while(k > 1){
+        k >>= 1; ++ldn;
+    }
+    ldn >>= 1;
+    // --
+
+    double dir2PI = (backward) ? M_PI*2 : - M_PI*2;
+    double theta ;
+
+    int32 mh, mh2, mh3;
+    int32 m = len;
+    int32 ldm;
+    _complex e, e2, e3;
+    _complex u0, u1, u2, u3;
+    _complex x, y, t0, t1, t2, t3;
+    _complex ii(0,1);
+
+    for (ldm = ldn ; ldm >= 1; ldm--, m /= 4 ){
+        // m = m/4 -> m = pow(4,ldm);
+        mh  = m >> 2;     // -> mh = m /4;
+        mh2 = mh +mh;
+        mh3 = mh2+mh;
+
+        for ( k = 0; k < mh; k++){
+            e.re = cos(dir2PI*k/m);
+            e.im = sin(dir2PI*k/m);
+            e2 = e * e;
+            e3 = e2* e;
+            for ( int r = 0; r < len ; r += m){
+                u0 = dat[r+k    ];
+                u1 = dat[r+k+mh ];
+                u2 = dat[r+k+mh2];
+                u3 = dat[r+k+mh3];
+
+                x = u0 + u2;
+                y = u1 + u3;
+                t0 = x + y;
+                t2 = x - y;
+
+                x = u0 - u2;
+                y = (backward) ? u1 - u3 : u3 - u1; // y = (u1-u3)*dir
+                y = _complex(-y.im, y.re) ; // y = (u1-u3)*dir * ii;
+
+                t1 = x + y;
+                t3 = x - y;
+
+                t1 = t1 * e ;
+                t2 = t2 * e2;
+                t3 = t3 * e3;
+
+                dat[r+k    ] = t0;
+                dat[r+k+mh ] = t1;
+                dat[r+k+mh2] = t2;
+                dat[r+k+mh3] = t3;
+            }
+        }
+    }
+    permute_radix4( dat, len);
+}
+inline int digit_rev(int x, int n, int radix){
+    int j = 0;
+    int ldn = log2(n);
+    int radbit = log2(radix);
+    int andBit = radix-1;
+    while ( ldn > 0){
+        j <<= radbit;
+        j += (x & andBit);
+        x >>= radbit;
+        ldn -= radbit;
+    }
+    return j;
+}
+void permute_radix4(_complex *a, int32 len){
+    int32 r;
+    for(int x=0; x < len ; x++){
+        r = digit_rev(x,len,4);
+        if( r > x ) {
+            std::swap(a[x], a[r]);
+        }
+    }
+}
+
 } // end of imgproc namespace
 } // end of jmat namespace
