@@ -352,6 +352,20 @@ int32 main(int32 argc, char *argv[])
     delete [] dat2;
 
 
+    len = 64;
+    _complex *dat3 = new _complex[len];
+
+    for(int32 i=0; i < len; ++i){
+        dat3[i] = _complex(i+1, len-i);
+        printf("%3d : %f %+fj\n",i, dat3[i].re, dat3[i].im);
+    }
+    imgproc::fftdif4(dat3, len, false); // fft
+
+    for(int32 i=0; i < len; ++i)
+        printf("%3d : % 8.4f %+8.4fj \n",i, dat3[i].re, dat3[i].im);
+
+    delete [] dat3;
+
     /*
     Mat mk(DTYP::DOUBLE,3,4,2,"mk");
     Mat ml(DTYP::DOUBLE,4,3,2,"ml");
