@@ -3,6 +3,7 @@
 #include "jbMat.h"
 #include "jbmath.h"
 #include <math.h>
+#define EXP_TABLE
 
 namespace jmat {
 namespace imgproc {

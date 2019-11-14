@@ -723,29 +723,34 @@ void fftdif4(_complex *dat, int32 len, bool backward){
     _complex e, e2, e3;
     _complex u0, u1, u2, u3;
     _complex x, y, t0, t1, t2, t3;
-    double dir2PI = (backward) ? 2*M_PI : -2*M_PI;
+#ifdef EXP_TABLE
     _complex *e_arr;
     e_arr = new _complex[len+1];
+    double PI_2 = M_PI*2;
     double cosq ;
     mh  = len >> 2;
     mh2 = len >> 1;
     mh3 = mh2 + mh;
     for(k=1; k <= mh ; ++k){
-        cosq = cos(2*M_PI*k/len);
+        cosq = cos(PI_2 * k/len); // cos is even function
         e_arr[mh2-k].re = -cosq;
         e_arr[mh2+k].re = -cosq;
         e_arr[len-k].re =  cosq;
         e_arr[k    ].re =  cosq;
 
+        cosq = (backward) ? cosq : -cosq; // make sin table with cos
         e_arr[mh3-k].im = -cosq;
         e_arr[mh3+k].im = -cosq;
         e_arr[mh-k ].im =  cosq;
         e_arr[mh+k ].im =  cosq;
     }
-    e_arr[0]   = _complex( 1, 0);
+    e_arr[0  ] = _complex( 1, 0);
     e_arr[mh2] = _complex(-1, 0);
-    e_arr[mh]  = _complex( 0, 1);
-    e_arr[mh3] = _complex( 0,-1);
+    e_arr[mh ] = (backward)? _complex(0,-1) : _complex( 0, 1);
+    e_arr[mh3] = (backward)? _complex(0, 1) : _complex( 0,-1);
+#else
+    double dir2PI = (backward) ? 2*M_PI : -2*M_PI;
+#endif
 
     for (int32 ldm = ldn; ldm >= 1; ldm--, m >>= 2){ // m >>=2 -> m /=4
         //m = pow(4,ldm);
@@ -753,8 +758,13 @@ void fftdif4(_complex *dat, int32 len, bool backward){
         mh2 = mh+mh;
         mh3 = mh2+mh;
         for ( k=0; k < mh; k++){ // k : 0, 1, 2, ... , m/4-1
+#ifdef EXP_TABLE
+            int32 idx_exp = k << (ldn-ldm)*2;
+            e = e_arr[idx_exp];
+#else
             e.re = cos(dir2PI*k/m);
             e.im = sin(dir2PI*k/m);
+#endif
             e2 = e * e;
             e3 = e2* e;
             for ( int32 r = 0; r < len ; r += m){
@@ -786,7 +796,9 @@ void fftdif4(_complex *dat, int32 len, bool backward){
         }
     }
     permute_radix4( dat, len);
+#ifdef EXP_TABLE
     delete [] e_arr;
+#endif
 }
 
 } // end of imgproc namespace
