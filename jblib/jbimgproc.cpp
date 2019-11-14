@@ -685,6 +685,25 @@ void permute_radix4(_complex *a, int32 len){
             std::swap(a[x], a[r]);
     }
 }
+inline int32 revdig_update(int32 r, int32 half_len, int32 radix_bit){
+    int32 m = half_len;
+    //for( m = half_len; (!((r^=m)&m)) ; m >>=radix_bit );
+    while(1){
+        r = r^m;
+        if( r & m) break;
+        m >>=radix_bit;
+    }
+    return r;
+}
+void revdig_permute(_complex *a, int32 len){
+    int32 r=0 ;
+    int32 x;
+    int32 half_len = len >> 2;
+    for( x = 0; x < len-1; ++x){
+        if( r > x ) std::swap(a[x], a[r]);
+        r = revdig_update(r, half_len, 2);
+    }
+}
 void fftdif4(_complex *dat, int32 len, bool backward){
 
 // len has to be a number of power of 4
@@ -705,13 +724,35 @@ void fftdif4(_complex *dat, int32 len, bool backward){
     _complex u0, u1, u2, u3;
     _complex x, y, t0, t1, t2, t3;
     double dir2PI = (backward) ? 2*M_PI : -2*M_PI;
+    _complex *e_arr;
+    e_arr = new _complex[len+1];
+    double cosq ;
+    mh  = len >> 2;
+    mh2 = len >> 1;
+    mh3 = mh2 + mh;
+    for(k=1; k <= mh ; ++k){
+        cosq = cos(2*M_PI*k/len);
+        e_arr[mh2-k].re = -cosq;
+        e_arr[mh2+k].re = -cosq;
+        e_arr[len-k].re =  cosq;
+        e_arr[k    ].re =  cosq;
+
+        e_arr[mh3-k].im = -cosq;
+        e_arr[mh3+k].im = -cosq;
+        e_arr[mh-k ].im =  cosq;
+        e_arr[mh+k ].im =  cosq;
+    }
+    e_arr[0]   = _complex( 1, 0);
+    e_arr[mh2] = _complex(-1, 0);
+    e_arr[mh]  = _complex( 0, 1);
+    e_arr[mh3] = _complex( 0,-1);
 
     for (int32 ldm = ldn; ldm >= 1; ldm--, m >>= 2){ // m >>=2 -> m /=4
         //m = pow(4,ldm);
-        mh = m >> 2; // mh = m /4;
+        mh  = m >> 2; // mh = m /4;
         mh2 = mh+mh;
         mh3 = mh2+mh;
-        for ( k=0; k < mh; k++){
+        for ( k=0; k < mh; k++){ // k : 0, 1, 2, ... , m/4-1
             e.re = cos(dir2PI*k/m);
             e.im = sin(dir2PI*k/m);
             e2 = e * e;
@@ -745,6 +786,7 @@ void fftdif4(_complex *dat, int32 len, bool backward){
         }
     }
     permute_radix4( dat, len);
+    delete [] e_arr;
 }
 
 } // end of imgproc namespace
