@@ -3,7 +3,8 @@
 #include "jbMat.h"
 #include "jbmath.h"
 #include <math.h>
-#define EXP_TABLE
+#define FFT_EXP_TABLE
+#define MALLOC_F
 
 namespace jmat {
 namespace imgproc {
@@ -62,10 +63,8 @@ namespace imgproc {
 
     void fftdif4(_complex *dat, int32 len, bool backward=false);
     void permute_radix4(_complex *a, int32 len);
-    int32 digit4_rev(int x, int32 ldn, int32 radbit, int32 andBit);
+    inline int32 digit4_rev(int x, int32 ldn, int32 radbit, int32 andBit);
 
-    inline int32 revdig_update(int32 r, int32 half_len, int32 radix_bit);
-    void revdig_permute(_complex *a, int32 len);
 }
 
 

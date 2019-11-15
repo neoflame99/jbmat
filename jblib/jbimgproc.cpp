@@ -414,25 +414,74 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
         k >>= 1; ++n;
     }
 
-    int32 n_minus_1 = n-1;
     int32 t, pn;
-    int32  direc = (backward) ? 2 : -2;
-    double theta ;
-    _complex tmp;
-
-    //-- data suffle by bit reverse
-    for (i=0; i < len; ++i) {
-        //-- doing bit-reverse
-        for(t=0, k=0; k < n; ++k){
-            t |= ((i >> k) & 1) << (n_minus_1 - k); // n_minus_1 : n-1
-        }
-        if( i < t)
-            std::swap(dat[i], dat[t]);
+#ifdef FFT_EXP_TABLE
+    _complex *e_arr;
+ #ifdef MALLOC_F
+    e_arr = (_complex *)calloc(len+1,sizeof(_complex));
+    if( e_arr == nullptr){
+        fprintf(stderr, " memories for sin and con table are not allocated ! \n");
+        return ;
     }
+ #else
+    try{
+        e_arr = new _complex[len+1];
+    }catch(std::bad_alloc& ex){
+        fprintf(stderr, " memories for sin and con table are not allocated : %s\n", ex.what());
+        return ;
+    }
+ #endif // MALLOC_F
+    double PI_2 = M_PI*2;
+    double cosq ;
+    int32 mh  = len >> 2;
+    int32 mh2 = len >> 1;
+    int32 mh3 = mh2 + mh;
+    for(k=1; k <= mh ; ++k){
+        cosq = cos(PI_2 * k/len); // cos is even function
+        e_arr[mh2-k].re = -cosq;
+        e_arr[mh2+k].re = -cosq;
+        e_arr[len-k].re =  cosq;
+        e_arr[k    ].re =  cosq;
 
+        cosq = (backward) ? cosq : -cosq; // make sin table with cos
+        e_arr[mh3-k].im = -cosq;
+        e_arr[mh3+k].im = -cosq;
+        e_arr[mh-k ].im =  cosq;
+        e_arr[mh+k ].im =  cosq;
+    }
+    e_arr[0  ] = _complex( 1, 0);
+    e_arr[mh2] = _complex(-1, 0);
+    e_arr[mh ] = (backward)? _complex(0, 1) : _complex( 0,-1);
+    e_arr[mh3] = (backward)? _complex(0,-1) : _complex( 0, 1);
+    //for(k=0;k < len; ++k)
+    //    fprintf(stdout, "%d : %8.8f + %8.8f j\n", k, e_arr[k].re, e_arr[k].im);
+#else
+    double theta ;
+    double dirPI = (backward) ? 2*M_PI : -2*M_PI;
+#endif
+    //-- data shuffle by bit reverse  -----------
+    int32 i2 = len >> 1;
+    t = 0;
+    for (i=0; i< len-1; i++) {
+        if (i < t) std::swap(dat[i], dat[t]);
+         k = i2;
+         while (k <= t) {
+             t -= k;
+             k >>= 1;
+         }
+         t += k;
+    }
+    //-------- shuffle finished -----------------
+
+    _complex tmp;
     for(pn = 2; pn <= len; pn <<=1 ){ // 'pn' is partial len at the step.
-        theta = direc * M_PI /pn ;     // (direc * 2) * M_PI /pn;
+#ifdef FFT_EXP_TABLE
+        t = len/pn;
+        _complex ws = e_arr[t];
+#else
+        theta = dirPI /pn ;     // (direc * 2) * M_PI /pn;
         _complex ws(cos(theta), sin(theta));
+#endif
         for(i=0; i < len; i += pn){   // group-wise at n-th step loop
             _complex w(1,0);
             int32 half_pn = pn >> 1;
@@ -450,6 +499,13 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
         for( i=0 ; i < len; ++i)
             dat[i] /= len;
     }
+#ifdef FFT_EXP_TABLE
+ #ifdef MALLOC_F
+    free(e_arr);
+ #else
+    delete [] e_arr;
+ #endif
+#endif
 }
 
 void fft_czt( _complex *dat, int32 len, bool inverse){
@@ -476,6 +532,15 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
     _complex*  chirp;
     _complex* ichirp;
     _complex* extdat;
+#ifdef MALLOC_F
+    chirp  = (_complex *)calloc(cN, sizeof(_complex));
+    ichirp = (_complex *)calloc(N2, sizeof(_complex));
+    extdat = (_complex *)calloc(N2, sizeof(_complex));
+    if( chirp == nullptr || ichirp == nullptr || extdat == nullptr){
+        fprintf(stderr,"memory allocation error!\n");
+        return;
+    }
+#else
     try{
         chirp= new _complex[static_cast<uint32>(cN)];
     }catch(std::bad_alloc& ex){
@@ -494,6 +559,8 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
         fprintf(stderr,"extdat memory bad allocation!: %s\n",ex.what());
         return;
     }
+#endif
+
 
     // filling chirp values ; its indices: -N+1, -N+2, ..., 0 , ..., N-1
     // forward  : W**(k**2)/(-2) = exp(j2*PI/N*(k**2)/(-2)) = exp(-j*PI/N*(k**2))
@@ -537,9 +604,16 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
             dat[i] /= N;
     }
 
+#ifdef MALLOC_F
+    free( chirp);
+    free(ichirp);
+    free(extdat);
+#else
     delete [] chirp;
     delete [] ichirp;
     delete [] extdat;
+#endif
+
 }
 
 void  fft(_complex* dat, int32 len){
@@ -582,11 +656,18 @@ void fft2d(_complex* dat, int32 r_len, int32 c_len){
 
 
     _complex* rdat;
+#ifdef MALLOC_F
+    rdat = (_complex*)calloc(r_len, sizeof(_complex));
+    if( rdat == nullptr){
+        fprintf(stderr, " data memory for fft2d is not allocated \n"); return ;
+    }
+#else
     try{
         rdat = new _complex[static_cast<uint32>(r_len)];
     }catch(std::bad_alloc& ex){
         fprintf(stderr, " data memory for fft2d is not allocated : %s\n", ex.what()); return ;
     }
+#endif
 
     int32 i, k, r;
     _complex* cdat;
@@ -604,9 +685,13 @@ void fft2d(_complex* dat, int32 r_len, int32 c_len){
             dat[r] = rdat[k];
         }
     }
-
+#ifdef MALLOC_F
+    free( rdat );
+#else
     delete [] rdat;
+#endif
 }
+
 void ifft2d(_complex* dat, int32 r_len, int32 c_len){
 
     if( dat == nullptr ){
@@ -616,11 +701,18 @@ void ifft2d(_complex* dat, int32 r_len, int32 c_len){
     }
 
     _complex* rdat;
+#ifdef MALLOC_F
+    rdat = (_complex*)calloc(r_len, sizeof(_complex));
+    if( rdat == nullptr){
+        fprintf(stderr, " data memory for fft2d is not allocated \n"); return ;
+    }
+#else
     try{
         rdat = new _complex[static_cast<uint32>(r_len)];
     }catch(std::bad_alloc& ex){
         fprintf(stderr, " data memory for ifft2d is not allocated : %s\n", ex.what()); return ;
     }
+#endif
 
     if( rdat == nullptr){
         fprintf(stderr, " data memory for ifft2d is not allocated\n"); return ;
@@ -642,8 +734,12 @@ void ifft2d(_complex* dat, int32 r_len, int32 c_len){
             dat[r] = rdat[k];
         }
     }
-
+#ifdef MALLOC_F
+    free( rdat);
+#else
     delete [] rdat;
+#endif
+
 }
 /*int digit_rev(int x, int n, int radix){
     int32 j = 0;
@@ -658,7 +754,7 @@ void ifft2d(_complex* dat, int32 r_len, int32 c_len){
     }
     return j;
 }*/
-int32 digit4_rev(int32 x, int32 ldn, int32 radbit, int32 andBit){
+inline int32 digit4_rev(int32 x, int32 ldn, int32 radbit, int32 andBit){
     int32 j = 0;
     while ( ldn > 0){
         j <<= radbit;
@@ -685,27 +781,7 @@ void permute_radix4(_complex *a, int32 len){
             std::swap(a[x], a[r]);
     }
 }
-inline int32 revdig_update(int32 r, int32 half_len, int32 radix_bit){
-    int32 m = half_len;
-    //for( m = half_len; (!((r^=m)&m)) ; m >>=radix_bit );
-    while(1){
-        r = r^m;
-        if( r & m) break;
-        m >>=radix_bit;
-    }
-    return r;
-}
-void revdig_permute(_complex *a, int32 len){
-    int32 r=0 ;
-    int32 x;
-    int32 half_len = len >> 2;
-    for( x = 0; x < len-1; ++x){
-        if( r > x ) std::swap(a[x], a[r]);
-        r = revdig_update(r, half_len, 2);
-    }
-}
 void fftdif4(_complex *dat, int32 len, bool backward){
-
 // len has to be a number of power of 4
     assert( dat != nullptr);
     assert( len > 0 );
@@ -723,9 +799,22 @@ void fftdif4(_complex *dat, int32 len, bool backward){
     _complex e, e2, e3;
     _complex u0, u1, u2, u3;
     _complex x, y, t0, t1, t2, t3;
-#ifdef EXP_TABLE
+#ifdef FFT_EXP_TABLE
     _complex *e_arr;
-    e_arr = new _complex[len+1];
+ #ifdef MALLOC_F
+    e_arr = (_complex *)calloc(len+1, sizeof(_complex));
+    if( e_arr == nullptr ){
+        fprintf(stderr, "sin, cos table memory allocation error\n!");
+        return ;
+    }
+ #else
+    try {
+        e_arr = new _complex[len+1];
+    } catch ( std::bad_alloc& ex) {
+        fprintf(stderr, "sin, cos table memory allocation error!: %s\n", ex.what());
+        return;
+    }
+ #endif // end of MALLOC_F
     double PI_2 = M_PI*2;
     double cosq ;
     mh  = len >> 2;
@@ -746,8 +835,10 @@ void fftdif4(_complex *dat, int32 len, bool backward){
     }
     e_arr[0  ] = _complex( 1, 0);
     e_arr[mh2] = _complex(-1, 0);
-    e_arr[mh ] = (backward)? _complex(0,-1) : _complex( 0, 1);
-    e_arr[mh3] = (backward)? _complex(0, 1) : _complex( 0,-1);
+    e_arr[mh ] = (backward)? _complex(0, 1) : _complex( 0,-1);
+    e_arr[mh3] = (backward)? _complex(0,-1) : _complex( 0, 1);
+    //for(k=0;k < len; ++k)
+    //    fprintf(stdout, "%d : %8.8f + %8.8f j\n", k, e_arr[k].re, e_arr[k].im);
 #else
     double dir2PI = (backward) ? 2*M_PI : -2*M_PI;
 #endif
@@ -758,7 +849,7 @@ void fftdif4(_complex *dat, int32 len, bool backward){
         mh2 = mh+mh;
         mh3 = mh2+mh;
         for ( k=0; k < mh; k++){ // k : 0, 1, 2, ... , m/4-1
-#ifdef EXP_TABLE
+#ifdef FFT_EXP_TABLE
             int32 idx_exp = k << (ldn-ldm)*2;
             e = e_arr[idx_exp];
 #else
@@ -768,8 +859,8 @@ void fftdif4(_complex *dat, int32 len, bool backward){
             e2 = e * e;
             e3 = e2* e;
             for ( int32 r = 0; r < len ; r += m){
-                u0 = dat[r+k];
-                u1 = dat[r+k+mh];
+                u0 = dat[r+k    ];
+                u1 = dat[r+k+mh ];
                 u2 = dat[r+k+mh2];
                 u3 = dat[r+k+mh3];
 
@@ -788,16 +879,25 @@ void fftdif4(_complex *dat, int32 len, bool backward){
                 t2 = t2 * e2;
                 t3 = t3 * e3;
 
-                dat[r+k]     = t0;
-                dat[r+k+mh]  = t1;
+                dat[r+k    ] = t0;
+                dat[r+k+mh ] = t1;
                 dat[r+k+mh2] = t2;
                 dat[r+k+mh3] = t3;
             }
         }
     }
     permute_radix4( dat, len);
-#ifdef EXP_TABLE
+    if( backward ){
+        for( k=0 ; k < len; ++k)
+            dat[k] /= len;
+    }
+
+#ifdef FFT_EXP_TABLE
+ #ifdef MALLOC_F
+    free( e_arr);
+ #else
     delete [] e_arr;
+ #endif
 #endif
 }
 
