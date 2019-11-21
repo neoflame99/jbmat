@@ -839,7 +839,31 @@ void fftdif4(_complex *dat, int32 len, bool backward){
         mh  = m >> 2; // mh = m /4;
         mh2 = mh+mh;
         mh3 = mh2+mh;
-        for ( k=0; k < mh; k++){ // k : 0, 1, 2, ... , m/4-1
+        // extract loop for k = 0 from following loop
+        for ( int32 r = 0; r < len ; r += m){
+            u0 = dat[r    ];
+            u1 = dat[r+mh ];
+            u2 = dat[r+mh2];
+            u3 = dat[r+mh3];
+
+            x = u0 + u2;
+            y = u1 + u3;
+            t0 = x + y;
+            t2 = x - y;
+
+            x = u0 - u2;
+            y = u1 - u3;
+            y = (backward) ? _complex(-y.im, y.re) : _complex(y.im,-y.re); // y * j * dir ;
+            t1 = x + y;
+            t3 = x - y;
+
+            dat[r    ] = t0;
+            dat[r+mh ] = t1;
+            dat[r+mh2] = t2;
+            dat[r+mh3] = t3;
+        }
+        //for ( k=0; k < mh; k++){ // k : 0, 1, 2, ... , m/4-1
+        for ( k=1; k < mh; k++){ // k : 0, 1, 2, ... , m/4-1
 #ifdef FFT_EXP_TABLE
             int32 idx_exp = k << (ldn-ldm)*2;
             e = e_arr[idx_exp];
