@@ -400,9 +400,24 @@ Mat gamma( const Mat& src, const double gmvalue){
     default: fprintf(stderr, "Unsuppretd data type in gamma func.\n"); return Mat();
     }
 }
+inline void bitrev_permute(_complex* dat, int32 len){
+    //-- data shuffle by bit reverse  -----------
+    int32 i, k;
+    int32 hlen = len >> 1;
+    int32 t = 0;
+    for (i=0; i< len-1; i++) {
+        if (i < t) std::swap(dat[i], dat[t]);
+         k = hlen;
+         while (k <= t) {
+             t -= k;
+             k >>= 1;
+         }
+         t += k;
+    }
+    //-------- shuffle finished -----------------
+}
 
-
-void fft_radix2( _complex *dat, int32 len, bool backward){
+void fft_dit2( _complex *dat, int32 len, bool backward){
 // len has to be a number of power of 2
     assert( dat != nullptr);
     assert( len > 0 );
@@ -415,17 +430,20 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
     }
 
     int32 t, pn;
+    int32 mh = len >> 2;
 #ifdef FFT_EXP_TABLE
     _complex *e_arr;
  #ifdef MALLOC_F
-    e_arr = (_complex *)calloc(len+1,sizeof(_complex));
+    //e_arr = (_complex *)calloc(len+1,sizeof(_complex));
+    e_arr = (_complex *)calloc(mh+1,sizeof(_complex));
     if( e_arr == nullptr){
         fprintf(stderr, " memories for sin and con table are not allocated ! \n");
         return ;
     }
  #else
     try{
-        e_arr = new _complex[len+1];
+        //e_arr = new _complex[len+1];
+        e_arr = new _complex[mh+1];
     }catch(std::bad_alloc& ex){
         fprintf(stderr, " memories for sin and con table are not allocated : %s\n", ex.what());
         return ;
@@ -433,48 +451,34 @@ void fft_radix2( _complex *dat, int32 len, bool backward){
  #endif // MALLOC_F
     double PI_2 = M_PI*2;
     double cosq ;
-    int32 mh  = len >> 2;
-    int32 mh2 = len >> 1;
-    int32 mh3 = mh2 + mh;
     for(k=1; k <= mh ; ++k){
         cosq = cos(PI_2 * k/len); // cos is even function
-        e_arr[mh2-k].re = -cosq;
-        e_arr[mh2+k].re = -cosq;
-        e_arr[len-k].re =  cosq;
         e_arr[k    ].re =  cosq;
 
         cosq = (backward) ? cosq : -cosq; // make sin table with cos
-        e_arr[mh3-k].im = -cosq;
-        e_arr[mh3+k].im = -cosq;
         e_arr[mh-k ].im =  cosq;
-        e_arr[mh+k ].im =  cosq;
     }
     e_arr[0  ] = _complex( 1, 0);
-    e_arr[mh2] = _complex(-1, 0);
     e_arr[mh ] = (backward)? _complex(0, 1) : _complex( 0,-1);
-    e_arr[mh3] = (backward)? _complex(0,-1) : _complex( 0, 1);
-    //for(k=0;k < len; ++k)
+    //for(k=0;k < mh; ++k)
     //    fprintf(stdout, "%d : %8.8f + %8.8f j\n", k, e_arr[k].re, e_arr[k].im);
 #else
     double theta ;
     double dirPI = (backward) ? 2*M_PI : -2*M_PI;
 #endif
     //-- data shuffle by bit reverse  -----------
-    int32 i2 = len >> 1;
-    t = 0;
-    for (i=0; i< len-1; i++) {
-        if (i < t) std::swap(dat[i], dat[t]);
-         k = i2;
-         while (k <= t) {
-             t -= k;
-             k >>= 1;
-         }
-         t += k;
-    }
+    bitrev_permute(dat,len);
     //-------- shuffle finished -----------------
 
     _complex tmp;
-    for(pn = 2; pn <= len; pn <<=1 ){ // 'pn' is partial len at the step.
+   // extract first loop from following loop
+    for(i=0; i < len; i+=2){
+        tmp      = dat[i] + dat[i+1];
+        dat[i+1] = dat[i] - dat[i+1];
+        dat[i  ] = tmp;
+    }
+    //for(pn = 2; pn <= len; pn <<=1 ){ // 'pn' is partial len at the step.
+    for(pn = 4; pn <= len; pn <<=1 ){ // 'pn' is partial len at the step.
 #ifdef FFT_EXP_TABLE
         t = len/pn;
         _complex ws = e_arr[t];
@@ -585,16 +589,16 @@ void fft_czt( _complex *dat, int32 len, bool inverse){
     for(i=0; i < N ; ++i)
         extdat[i] = dat[i] * chirp[i+N_minus_1];
 
-    // fft through fft_radix2
-    fft_radix2(extdat, N2, false);
-    fft_radix2(ichirp, N2, false);
+    // fft through fft_dit2
+    fft_dit2(extdat, N2, false);
+    fft_dit2(ichirp, N2, false);
 
     // convolution in time or sample domain
     for(i=0; i < N2; ++i)
         extdat[i] *= ichirp[i];
 
     // inverse fft
-    fft_radix2(extdat, N2, true);
+    fft_dit2(extdat, N2, true);
 
     for(i=0, k=N-1; i < N; ++i, ++k)
         dat[i] = extdat[k] * chirp[k];
@@ -626,7 +630,7 @@ void  fft(_complex* dat, int32 len){
     }
     i = 1 << i;
     if( i == len ) // N is a power of 2
-        fft_radix2(dat, len, false);
+        fft_dit2(dat, len, false);
     else
         fft_czt(dat, len, false);
 
@@ -641,7 +645,7 @@ void  ifft(_complex* dat, int32 len){
     }
     i = 1 << i;
     if( i == len ) // N is a power of 2
-        fft_radix2(dat, len, true);
+        fft_dit2(dat, len, true);
     else
         fft_czt(dat, len, true);
 }
@@ -741,19 +745,6 @@ void ifft2d(_complex* dat, int32 r_len, int32 c_len){
 #endif
 
 }
-/*int digit_rev(int x, int n, int radix){
-    int32 j = 0;
-    int32 ldn = log2(n);
-    int32 radbit = log2(radix);
-    int32 andBit = radix-1;
-    while ( ldn > 0){
-        j <<= radbit;
-        j += (x & andBit);
-        x >>= radbit;
-        ldn -= radbit;
-    }
-    return j;
-}*/
 inline int32 digit4_rev(int32 x, int32 ldn, int32 radbit, int32 andBit){
     int32 j = 0;
     while ( ldn > 0){

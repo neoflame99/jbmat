@@ -1137,7 +1137,6 @@ Mat& Mat::dividingScalar(const uchar scalar){
 
 Mat Mat::max(){
     if(isEmpty()) return Mat();
-
     switch(datT){
     case DTYP::DOUBLE : return _max<double>();
     case DTYP::FLOAT  : return _max<float >();
