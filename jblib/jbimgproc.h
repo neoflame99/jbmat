@@ -65,7 +65,7 @@ namespace imgproc {
     void fftdif4(_complex *dat, int32 len, bool backward=false);
     void permute_radix4(_complex *a, int32 len);
     inline int32 digit4_rev(int x, int32 ldn, int32 radbit, int32 andBit);
-
+    void fft_compositN(_complex *dat, int32 len, bool backward=false);
 }
 
 

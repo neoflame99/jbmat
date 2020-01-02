@@ -916,5 +916,60 @@ void fftdif4(_complex *dat, int32 len, bool backward){
 #endif
 }
 
+void fft_compositN(_complex *dat, int32 len, bool backward){
+    len = 12;
+    int32 B = 1;
+    int32 F = 1;
+    int32 Q = 1;
+    int32 BF;
+
+    _complex* A = new _complex[len];
+    _complex* Z = new _complex[len];
+    _complex *Y, *C ;
+    for(int32 i=0; i < len; ++i){
+        A[i] = i+1;
+    }
+    int32 fac[]={1,3,2,2};
+    double theta;
+    _complex WBF, z, zf, Yp;
+    int32 l, r;
+    bool pt_sw = false;
+    for(int32 v=0; v < 3; ++v){
+        B *= fac[v];
+        F = fac[v+1];
+        BF = B*F;
+        Q = len/BF;
+        theta = 2*M_PI/BF;
+        C = pt_sw ? Z : A;
+        Y = pt_sw ? A : Z;
+        WBF = backward ? _complex(cos(theta), sin(theta)) : _complex(cos(theta), -sin(theta));
+        z = 1;
+        for(int32 ff=0; ff < F; ++ff){
+            for(int32 bb=0; bb < B; ++bb){
+                for(int32 q=0; q < Q; ++q){
+                    zf = 1;
+                    Yp = 0;
+                    for(int32 f=0; f < F; ++f){
+                        l = (f*Q+q)*B+bb;
+                        Yp += C[l]*zf;
+                        zf *= z ;
+                    }
+                    r  = (q*F+ff)*B+bb;
+                    Y[r] = Yp;
+                }
+                z = z*WBF;
+            }
+        }
+        pt_sw = !pt_sw;
+    }
+
+    for(int32 i=0; i < len; ++i)
+        printf("%3d : % 8.4f %+8.4fj \n",i, Y[i].re, Y[i].im);
+
+    delete [] A;
+    delete [] Z;
+}
+
+
 } // end of imgproc namespace
 } // end of jmat namespace
