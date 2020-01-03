@@ -3,6 +3,8 @@
 #include "jbMat.h"
 #include "jbmath.h"
 #include <math.h>
+#include <vector>
+
 #define FFT_EXP_TABLE
 #define MALLOC_F
 
@@ -66,6 +68,7 @@ namespace imgproc {
     void permute_radix4(_complex *a, int32 len);
     inline int32 digit4_rev(int x, int32 ldn, int32 radbit, int32 andBit);
     void fft_compositN(_complex *dat, int32 len, bool backward=false);
+    std::vector<int32> factorizeN(int32 N );
 }
 
 

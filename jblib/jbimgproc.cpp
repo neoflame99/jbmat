@@ -970,6 +970,28 @@ void fft_compositN(_complex *dat, int32 len, bool backward){
     delete [] Z;
 }
 
+std::vector<int32> factorizeN(int32 N){
+        std::vector<int32> factorization;
+        for (int d : {2, 3, 5}) {
+            while (N % d == 0) {
+                factorization.push_back(d);
+                N /= d;
+            }
+        }
+        int32 increments[] = {4, 2, 4, 2, 4, 6, 2, 6};
+        int i = 0;
+        for (int32 d = 7; d * d <= N; d += increments[i++]) {
+            while (N % d == 0) {
+                factorization.push_back(d);
+                N /= d;
+            }
+            if (i == 8)
+                i = 0;
+        }
+        if (N > 1)
+            factorization.push_back(N);
+        return factorization;
+}
 
 } // end of imgproc namespace
 } // end of jmat namespace
