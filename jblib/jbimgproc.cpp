@@ -917,31 +917,32 @@ void fftdif4(_complex *dat, int32 len, bool backward){
 }
 
 void fft_compositN(_complex *dat, int32 len, bool backward){
-    len = 12;
-    int32 B = 1;
-    int32 F = 1;
-    int32 Q = 1;
-    int32 BF;
+/* reference : Inside The Fft Black Box- Serial And Parallel Fast Fourier Transform Algorithms, chapter 15*/
 
-    _complex* A = new _complex[len];
+    int32 B,F,Q,BF;
+
     _complex* Z = new _complex[len];
     _complex *Y, *C ;
-    for(int32 i=0; i < len; ++i){
-        A[i] = i+1;
-    }
-    int32 fac[]={1,3,2,2};
+    std::vector<int32> fac ;
+    factorizeN(len, fac);
+    printf("factors: \n");
+    for(int32 t=0; t< fac.size(); ++t)
+        printf("%d ", fac.at(t));
+    printf("\n");
+
+    double pi_x2 = M_PI * 2;
     double theta;
     _complex WBF, z, zf, Yp;
-    int32 l, r;
+    int32 l, r, v;
     bool pt_sw = false;
-    for(int32 v=0; v < 3; ++v){
-        B *= fac[v];
-        F = fac[v+1];
+    B = 1;
+    for( v=0; v < fac.size() ; ++v){
+        F = fac[v];
         BF = B*F;
         Q = len/BF;
-        theta = 2*M_PI/BF;
-        C = pt_sw ? Z : A;
-        Y = pt_sw ? A : Z;
+        theta = pi_x2/BF;
+        C = pt_sw ? Z   : dat;
+        Y = pt_sw ? dat : Z;
         WBF = backward ? _complex(cos(theta), sin(theta)) : _complex(cos(theta), -sin(theta));
         z = 1;
         for(int32 ff=0; ff < F; ++ff){
@@ -961,36 +962,61 @@ void fft_compositN(_complex *dat, int32 len, bool backward){
             }
         }
         pt_sw = !pt_sw;
+        B *= F;
     }
 
     for(int32 i=0; i < len; ++i)
         printf("%3d : % 8.4f %+8.4fj \n",i, Y[i].re, Y[i].im);
 
-    delete [] A;
+    if( Y == dat){
+        for(v=0; v < len; ++v)
+            dat[v] = Y[v];
+    }
     delete [] Z;
 }
 
-std::vector<int32> factorizeN(int32 N){
-        std::vector<int32> factorization;
-        for (int d : {2, 3, 5}) {
-            while (N % d == 0) {
-                factorization.push_back(d);
-                N /= d;
-            }
+void factorizeN(int32 N, std::vector<int32>& fac){
+/* reference : https://cp-algorithms.com/algebra/factorization.html  */
+
+    int32 somePrm[169] = {
+               3,     5,     7,    11,    13,    17,    19,    23,    29,
+       31,    37,    41,    43,    47,    53,    59,    61,    67,    71,
+       73,    79,    83,    89,    97,   101,   103,   107,   109,   113,
+      127,   131,   137,   139,   149,   151,   157,   163,   167,   173,
+      179,   181,   191,   193,   197,   199,   211,   223,   227,   229,
+      233,   239,   241,   251,   257,   263,   269,   271,   277,   281,
+      283,   293,   307,   311,   313,   317,   331,   337,   347,   349,
+      353,   359,   367,   373,   379,   383,   389,   397,   401,   409,
+      419,   421,   431,   433,   439,   443,   449,   457,   461,   463,
+      467,   479,   487,   491,   499,   503,   509,   521,   523,   541,
+      547,   557,   563,   569,   571,   577,   587,   593,   599,   601,
+      607,   613,   617,   619,   631,   641,   643,   647,   653,   659,
+      661,   673,   677,   683,   691,   701,   709,   719,   727,   733,
+      739,   743,   751,   757,   761,   769,   773,   787,   797,   809,
+      811,   821,   823,   827,   829,   839,   853,   857,   859,   863,
+      877,   881,   883,   887,   907,   911,   919,   929,   937,   941,
+      947,   953,   967,   971,   977,   983,   991,   997,  1009,  1013
+    };
+    while( (N & 0x00000001) == 0){ // find factor 2
+            fac.push_back(2);
+            N >>= 1;
+    }
+    for (int32 d : somePrm ) {
+        if(d*d > N) break;
+        while(N % d == 0){
+            fac.push_back(d);
+            N /= d;
         }
-        int32 increments[] = {4, 2, 4, 2, 4, 6, 2, 6};
-        int i = 0;
-        for (int32 d = 7; d * d <= N; d += increments[i++]) {
-            while (N % d == 0) {
-                factorization.push_back(d);
-                N /= d;
-            }
-            if (i == 8)
-                i = 0;
+    }
+    for (int32 d = somePrm[168]+2; ; d += 2) {
+        if(d*d > N) break;
+        while (N % d == 0) {
+            fac.push_back(d);
+            N /= d;
         }
-        if (N > 1)
-            factorization.push_back(N);
-        return factorization;
+    }
+    if (N > 1)
+        fac.push_back(N);
 }
 
 } // end of imgproc namespace
