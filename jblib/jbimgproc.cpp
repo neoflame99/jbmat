@@ -773,6 +773,11 @@ void permute_radix4(_complex *a, int32 len){
     }
 }
 void fftdif4(_complex *dat, int32 len, bool backward){
+/* referece :
+ *  1) FFTs for programmers: alorithms and source code. Jorg Arndt
+ *  2) Radix-4 DIF FFT Algorithm, https://hackmd.io/@akshayk07/ryn-yR7qr
+ */
+
 // len has to be a number of power of 4
     assert( dat != nullptr);
     assert( len > 0 );
