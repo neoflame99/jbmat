@@ -631,8 +631,14 @@ void  fft(_complex* dat, int32 len){
     i = 1 << i;
     if( i == len ) // N is a power of 2
         fft_dit2(dat, len, false);
-    else
-        fft_czt(dat, len, false);
+    else{
+        std::vector<int32> fac;
+        factorizeN(len,fac);
+        if( !fac.empty() && fac.at(fac.size()-1) <= 61 )
+            fft_compositN(dat,len,fac,false);
+        else
+            fft_czt(dat, len, false);
+    }
 
 }
 void  ifft(_complex* dat, int32 len){
@@ -646,8 +652,14 @@ void  ifft(_complex* dat, int32 len){
     i = 1 << i;
     if( i == len ) // N is a power of 2
         fft_dit2(dat, len, true);
-    else
-        fft_czt(dat, len, true);
+    else{
+        std::vector<int32> fac;
+        factorizeN(len,fac);
+        if( !fac.empty() && fac.at(fac.size()-1) <= 61 )
+            fft_compositN(dat,len,fac, true);
+        else
+            fft_czt(dat, len, true);
+    }
 }
 
 void fft2d(_complex* dat, int32 r_len, int32 c_len){
@@ -772,7 +784,7 @@ void permute_radix4(_complex *a, int32 len){
             std::swap(a[x], a[r]);
     }
 }
-void fftdif4(_complex *dat, int32 len, bool backward){
+void fft_dif4(_complex *dat, int32 len, bool backward){
 /* referece :
  *  1) FFTs for programmers: alorithms and source code. Jorg Arndt
  *  2) Radix-4 DIF FFT Algorithm, https://hackmd.io/@akshayk07/ryn-yR7qr
@@ -976,6 +988,11 @@ void fft_compositN(_complex *dat, int32 len, std::vector<int32>& fac, bool backw
     if( Y == dat){
         for(v=0; v < len; ++v)
             dat[v] = Y[v];
+    }
+
+    if( backward){
+        for(v=0; v < len; ++v)
+            dat[v] /= len;
     }
 
     delete [] buf;
