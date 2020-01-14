@@ -921,63 +921,64 @@ void fftdif4(_complex *dat, int32 len, bool backward){
 #endif
 }
 
-void fft_compositN(_complex *dat, int32 len, bool backward){
+void fft_compositN(_complex *dat, int32 len, std::vector<int32>& fac, bool backward){
 /* reference : Inside The Fft Black Box- Serial And Parallel Fast Fourier Transform Algorithms, chapter 15*/
 
-    int32 B,F,Q,BF;
+    int32 B,F,Q,BF,QB;
 
-    _complex* Z = new _complex[len];
-    _complex *Y, *C ;
-    std::vector<int32> fac ;
-    factorizeN(len, fac);
-    printf("factors: \n");
-    for(int32 t=0; t< fac.size(); ++t)
-        printf("%d ", fac.at(t));
-    printf("\n");
+    _complex *buf = new _complex[len];
+    _complex *Y, *C , *X;
+    //printf("factors: \n");
+    //for(int32 t=0; t< fac.size(); ++t)
+    //    printf("%d ", fac.at(t));
+    //printf("\n");
 
     double pi_x2 = M_PI * 2;
     double theta;
     _complex WBF, z, zf, Yp;
     int32 l, r, v;
-    bool pt_sw = false;
+    int32 qB, ffB;
+    int32 ff, bb, q, f;
+
     B = 1;
+    Y = dat; C = buf;
     for( v=0; v < fac.size() ; ++v){
         F = fac[v];
-        BF = B*F;
+        BF= B*F;
         Q = len/BF;
+        QB= B*Q;
         theta = pi_x2/BF;
-        C = pt_sw ? Z   : dat;
-        Y = pt_sw ? dat : Z;
+        // exchange C and Y unconditionally
+        X = C;
+        C = Y;
+        Y = X;
         WBF = backward ? _complex(cos(theta), sin(theta)) : _complex(cos(theta), -sin(theta));
         z = 1;
-        for(int32 ff=0; ff < F; ++ff){
-            for(int32 bb=0; bb < B; ++bb){
-                for(int32 q=0; q < Q; ++q){
+        for( ff=0, ffB=0; ff < F; ++ff, ffB+=B){
+            for( bb=0; bb < B; ++bb){
+                for( q=0, qB=0, r=ffB+bb; q < Q; ++q, qB+=B, r+=BF){
                     zf = 1;
                     Yp = 0;
-                    for(int32 f=0; f < F; ++f){
-                        l = (f*Q+q)*B+bb;
+                    for( f=0, l=qB+bb; f < F; ++f, l+=QB ){
+                        //l = (f*Q+q)*B+bb; l = f*Q*B+q*B+bb
                         Yp += C[l]*zf;
                         zf *= z ;
                     }
-                    r  = (q*F+ff)*B+bb;
+                    //r = (q*F+ff)*B+bb; r = q*F*B+ff*B+bb
                     Y[r] = Yp;
                 }
-                z = z*WBF;
+                z*=WBF;
             }
         }
-        pt_sw = !pt_sw;
         B *= F;
     }
-
-    for(int32 i=0; i < len; ++i)
-        printf("%3d : % 8.4f %+8.4fj \n",i, Y[i].re, Y[i].im);
 
     if( Y == dat){
         for(v=0; v < len; ++v)
             dat[v] = Y[v];
     }
-    delete [] Z;
+
+    delete [] buf;
 }
 
 void factorizeN(int32 N, std::vector<int32>& fac){
