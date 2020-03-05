@@ -19,6 +19,11 @@
 
 namespace jmat {
 
+typedef struct _matRect{
+    int32 sR, eR;
+    int32 sC, eC;
+}matRect;
+
 class Mat;
 
 class Mat{
@@ -140,6 +145,7 @@ public : // static methods
     static Mat zeros(uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
     static int32 instant_count;
     static Mat repeat(const Mat& src, const uint32 rp_r, const uint32 rp_c, const uint32 rp_ch);
+    static int32 sliceCopyMat(const Mat& src, const matRect& srcSlice, Mat& des, const matRect& desSlice );
 
 public : // public template methods
     template <typename _T> _T& at(uint32 i=0) const;

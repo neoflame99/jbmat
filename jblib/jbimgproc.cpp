@@ -1042,5 +1042,40 @@ void factorizeN(int32 N, std::vector<int32>& fac){
         fac.push_back(N);
 }
 
+float cubic1d(float a_1, float a0, float a1, float a2, float t){
+    float A= a2 -a_1 + 3*(a0- a1);
+    float B= (2*a_1+4*a1)-(5*a0+a2); //2*a_1 -5*a0 + 4*a1 -a2;
+    float C= a1 -a_1 ;
+    float D= 2*a0;
+    float r= A*t*t*t + B*t*t + C*t + D;
+    return r/2.0f;
+}
+
+Mat bicubicIntp(const Mat& m,const int32 s){
+    int32 r  = m.getRow();
+    int32 c  = m.getCol();
+    int32 ch = m.getChannel();
+    int32 nw = c*s;
+    int32 nh = r*s;
+    DTYP  dt = m.getDatType();
+
+    //Mat for boundary padding
+    int32 xR = r+3;
+    int32 xC = c+3;
+    Mat B(dt, xR, xC, ch);
+    matRect srcRec , desRec;
+    srcRec.sR=0;
+    srcRec.eR=r-1;
+    srcRec.sC=0;
+    srcRec.eC=c-1;
+    desRec.sR=1;
+    desRec.sC=1;
+    desRec.eR=r;
+    desRec.eC=c;
+    Mat::sliceCopyMat(m,srcRec,B,desRec);
+    Mat A(m.getDatType(),nw,nh,m.getChannel());
+    return A;
+}
+
 } // end of imgproc namespace
 } // end of jmat namespace

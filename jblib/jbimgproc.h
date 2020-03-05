@@ -69,6 +69,10 @@ namespace imgproc {
     inline int32 digit4_rev(int x, int32 ldn, int32 radbit, int32 andBit);
     void fft_compositN(_complex *dat, int32 len, std::vector<int32>&fac, bool backward=false);
     void factorizeN(int32 N, std::vector<int32>& fac );
+
+    // image resizing
+    float cubic1d(float ma1, float a0, float a1, float a2, float t);
+    Mat  bicubicIntp(const Mat& src,const int32 s);
 }
 
 

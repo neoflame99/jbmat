@@ -679,6 +679,90 @@ Mat Mat::copySubMat(const uint32 startRow, const uint32 endRow, const uint32 sta
     return A;
 }
 
+int32 sliceCopyMat(const Mat& src, const matRect& srcSlice, Mat& des, const matRect& desSlice ){
+    int32 srcR = src.getRow();
+    int32 srcC = src.getCol();
+    int32 desR = des.getRow();
+    int32 desC = des.getCol();
+
+
+    if( srcSlice.sR > srcR || srcSlice.eR > srcR || srcSlice.sC > srcC || srcSlice.eC > srcC){
+        fprintf(stderr,"SliceCopyMat() : one or more arguments are out of bound from \'src mat\' \n");
+        return -1;
+    }else if( desSlice.sR > desR || desSlice.eR > desR || desSlice.sC > desC || desSlice.eC > desC){
+        fprintf(stderr,"SliceCopyMat() : one or more arguments are out of bound from \'des mat\' \n");
+        return -1;
+    }else if( srcSlice.eR < srcSlice.sR || srcSlice.eC < srcSlice.sC){
+        fprintf(stderr,"SliceCopyMat() : eR(or eC)of srcSlice has to be larger than sR(or sC) \n");
+        return -1;
+    }else if( desSlice.eR < desSlice.sR || desSlice.eC < desSlice.sC){
+        fprintf(stderr,"SliceCopyMat() : eR(or eC)of desSlice has to be larger than sR(or sC) \n");
+        return -1;
+    }else if( (desSlice.eR-desSlice.sR != srcSlice.eR-srcSlice.sR) || (desSlice.eC-desSlice.sC != srcSlice.eC-srcSlice.sC)) {
+        fprintf(stderr,"SliceCopyMat() : The sizes between srcSlice and desSlice are not matched! \n");
+        return -1;
+    }else if( des.getDatType() != src.getDatType()){
+        fprintf(stderr,"SliceCopyMat() : The data types of srcSlice and desSlice are not matched! \n");
+        return -1;
+    }else if( des.getChannel() != src.getChannel()){
+        fprintf(stderr,"SliceCopyMat() : The channels of srcSlice and desSlice are not matched! \n");
+        return -1;
+    }else if( src.isEmpty() || des.isEmpty()){
+        fprintf(stderr,"SliceCopyMat() : At least one of src and des mat is empty! \n");
+        return -1;
+    }
+
+    uint32 src_lenRowCol = srcR * srcC;
+    uint32 des_lenRowCol = desR * desC;
+    uint32 byteStep  = src.getByteStep();
+
+    uchar *des_dat_ptr = des.getMat().get();
+    uchar *src_dat_ptr = src.getMat().get();
+
+    uint32 src_ch_offset, des_ch_offset ;
+    uint32 src_r, des_r;
+    uint32 ch;
+    uint32 src_offset, des_offset;
+    uint32 src_lenRCByteStep = src_lenRowCol*byteStep;
+    uint32 src_rowByteStep   = srcC*byteStep;
+    uint32 src_startColByte  = srcSlice.sC*byteStep;
+    uint32 src_endColByte    = (srcSlice.eC+1)*byteStep;
+    uint32 src_rowstart      = srcSlice.sR*src_rowByteStep;
+    uint32 src_rowend        = (srcSlice.eR+1)*src_rowByteStep;
+    uchar* src_colstart_p;
+    uchar* src_colend_p;
+
+    uint32 des_lenRCByteStep = des_lenRowCol*byteStep;
+    uint32 des_rowByteStep   = desC*byteStep;
+    uint32 des_startColByte  = desSlice.sC*byteStep;
+    //uint32 des_endColByte    = (desSlice.eC+1)*byteStep;
+    uint32 des_rowstart      = desSlice.sR*des_rowByteStep;
+    //uint32 des_rowend        = (desSlice.eR+1)*des_rowByteStep;
+    //uint32 des_colBytes      = des_endColByte - des_startColByte;
+    uchar* des_colstart_p;
+    src_ch_offset = 0;
+    des_ch_offset = 0;
+    for( ch=0; ch < src.getChannel(); ++ch){
+        for( src_r = src_rowstart, des_r = des_rowstart; src_r < src_rowend; src_r+=src_rowByteStep, des_r+=des_rowByteStep ){
+            src_offset     = src_ch_offset + src_r;
+            src_colstart_p = src_dat_ptr + src_offset + src_startColByte;
+            src_colend_p   = src_colstart_p + src_endColByte;
+
+            des_offset     = des_ch_offset + des_r;
+            des_colstart_p = des_dat_ptr + des_offset + des_startColByte;
+            /*
+            for( c = colstart; c < colend ; c++){
+                tardat_ptr[k++] = dat_ptr[ c ];
+            } */
+            // =>
+            std::copy(src_colstart_p, src_colend_p, des_colstart_p);
+        }
+        src_ch_offset += src_lenRCByteStep;
+        des_ch_offset += des_lenRCByteStep;
+    }
+    return 1;
+}
+
 Mat& Mat::plusMat(const Mat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "plusMat method : either of this or other is empty\n");
