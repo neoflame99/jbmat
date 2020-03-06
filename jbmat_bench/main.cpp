@@ -9,6 +9,7 @@
 #include <QDir>
 #include <QDebug>
 #include <stdlib.h>
+#include <sys/time.h>
 #ifdef _MACOS_
     #include <string>
 #else
@@ -17,8 +18,22 @@
 
 using namespace jmat;
 
+void fft_test();
+void jbMat_test();
+void tonemap_test();
+void imagerw_test();
+void imgproc_test();
+void math_test();
+void bicubic_test();
 int32 main(int32 argc, char *argv[])
 {
+    jbMat_test();
+    return 0;
+}
+void bicubic_test(){
+
+}
+void jbMat_test(){
 
     uint32 row = 7;
     uint32 col = 7;
@@ -96,27 +111,6 @@ int32 main(int32 argc, char *argv[])
     man._min<double>().printMat("man min");
 
 
-    //-- conv
-    k=0;
-    Mat mb(DTYP::DOUBLE,5,5,2,"mb");
-    Mat mc(DTYP::DOUBLE,5,5,2,"mc");
-    double* b = mb.getDataPtr<double>();
-    for(uint32 c=0; c < mb.getChannel(); c++){
-        for(uint32 i=0; i < 5; i++){
-            for (uint32 j=0; j < 5; j++){
-                b[i*5+j+c*25] = 100+k++;
-                mc.at<double>(i,j,c) = k;
-            }
-        }
-    }
-    ma.printMat("ma");
-    mb.printMat("mb");
-    fprintf(stdout,"1) full\n");
-    Mat convO = conv2d(ma,mb,"zero","full");
-    convO.printMat("conv0: full");
-    fprintf(stdout,"2) same\n");
-    convO = conv2d(ma,mb,"zero","same");
-    convO.printMat("conv0: same");
 
     Mat me = ma.copy();
     Mat mf = ma;
@@ -136,8 +130,6 @@ int32 main(int32 argc, char *argv[])
     QImage cvim = qimmat::mat2qim(FiltIm);
     //QImage cvim = QimMat::jbmat2qim(matIm);
     cvim.save(fname2);
-
-
 
     Mat mg(DTYP::DOUBLE,1,7,3) ;
     mg.at<double>(0,0,0) = 1;
@@ -170,26 +162,9 @@ int32 main(int32 argc, char *argv[])
     Mat mj = imgproc::rgb2gray(mg);
     mj.printMat();
 
-    /*dot product */
-
-    Mat mdps1({1,2,3});
-    Mat mdps2({4,5,6});
-    //mdps2.transpose();
-    Mat mdp1 = dot(mdps1, mdps2);
-    mdp1.printMat("vector dot product");
 
     Mat mdps3({1,2,3,4,5,6});
     Mat mdps4({7,8,9,10,11,12});
-    mdps3.reshape(3,2,1);
-    mdps4.reshape(3,2,1);
-    Mat mdp2 = dot(mdps3, mdps4, 0);
-    Mat mdp3 = dot(mdps3, mdps4, 1);
-    mdps3.printMat("mdps3");
-    mdps4.printMat("mdps4");
-    mdp2.printMat("dim=0 dot product");
-    mdp3.printMat("dim=1 dot product");
-
-
     mdps3 *= 1000;
     mdps3.printMat("mdps3 transpose input");
     mdps3.transpose();
@@ -207,40 +182,6 @@ int32 main(int32 argc, char *argv[])
     mdps3rp.printMat("mdps3 repeat (2,3,2)");
     Mat mdps3rp2 = Mat::repeat(mdps3,1,1,3);
     mdps3rp2.printMat("mdps3 repeat 2nd (1,1,3)");
-    /* hdrfile reading and writing to bmp */
-
-    QString hdrfile_path = QString("/Users/neoflame99/Workspace/Qt5/readhdrfile/readhdrfile/memorial.hdr");
-    Mat hdrimg = qimmat::read_hdr(hdrfile_path);
-    Mat hdrimg_sub = hdrimg.copySubMat(0,1,0,1);
-    hdrimg_sub.printMat("hdrimg_sub");
-    QImage hdr_bmp = qimmat::mat2qim(hdrimg);
-    hdr_bmp.save("../jbmat_bench/hdr_bmp.bmp");
-    /* ----- */
-
-    /*--- gauss mask / box mask gen ---*/
-
-    Mat gau = imgproc::gaussMaskGen(1,4);
-    Mat box = imgproc::boxMaskGen(5);
-
-    gau.printMat("gaussian Mat");
-    box.printMat("box Mat");
-
-    /*------------------*/
-
-    /*----- tonemapping ------ */
-    /*
-    imgproc::gamma(hdrimg, 1.0);
-    Mat Yhdrimg    = imgproc::rgb2gray(hdrimg);
-    Mat Yhdrimg_tm = imgproc::nakaSigTonemap(Yhdrimg,gau,0.2);
-    Mat Yhdrimg_tm3c= Mat::repeat(Yhdrimg_tm, 1, 1,3);
-    Mat Yhdrimg_3c  = Mat::repeat(Yhdrimg, 1, 1, 3);
-
-    Mat hdrimg_tm = imgproc::gamma( hdrimg * Yhdrimg_tm3c / Yhdrimg_3c, 0.45);
-    hdrimg_tm = hdrimg_tm / hdrimg_tm.max().max().at<double>(0)*255.0;
-    QImage hdrtm_bmp = qimmat::mat2qim(hdrimg_tm);
-    hdrtm_bmp.save("../jbmat_bench/hdr_tm_0.2.bmp");
-    */
-    /*-------------------------*/
 
     _complex ca(100,5);
     _complex cb(4,-2);
@@ -250,17 +191,47 @@ int32 main(int32 argc, char *argv[])
     _complex dd = ca - cb;
     printf("ca*cb=%f+j%f, ca/cb=%f+j%f, ca+cb=%f+j%f, ca-cb=%f+j%f\n",da.re, da.im, db.re, db.im, dc.re, dc.im, dd.re, dd.im);
 
-    int32 len = 12;
+    /* ---- sliceCopyMat  ----*/
+    printf("slice copy\n");
+    Mat mB = Mat::zeros(8,8,2,ma.getDatType());
+    matRect Ra(0,0,3,4);
+    matRect Rb(2,2,5,6);
+
+    mB.printMat();
+    Mat::sliceCopyMat(ma,Ra,mB,Rb);
+    mB.printMat();
+    ma.printMat();
+
+    /* --- copy_padding -----*/
+    Mat mC = imgproc::copy_padding(ma,2);
+    mC.printMat();
+}
+void fft_test(){
+
+    int32 len = 16;
     _complex *dat1 = new _complex[len];
-    _complex *dat2 = new _complex[len];   
+    _complex *dat2 = new _complex[len];
 
     for(int32 i=0; i < len; ++i){
-        printf("%3d : %f %+fj\n",i, dat1[i].re, dat1[i].im);
         dat1[i] = _complex(i+1, len-i);
         dat2[i] = dat1[i];
+        printf("%3d : %f %+fj\n",i, dat1[i].re, dat1[i].im);
     }
-    imgproc::fft(dat1, len); // fft
+    imgproc::fft(dat1, len);  // fft
     imgproc::ifft(dat2, len);  // ifft
+
+    FILE *fft_fd;
+    fft_fd = fopen("../fft_result.txt","w");
+
+    fprintf(fft_fd, "FFT: DIT \n");
+    for(int32 i=0; i < len; ++i){
+        fprintf(fft_fd, "%3d : % 8.6f %+8.6fj \n",i, dat1[i].re, dat1[i].im);
+    }
+    fprintf(fft_fd, "IFFT: DIT \n");
+    for(int32 i=0; i < len; ++i){
+        fprintf(fft_fd, "%3d : % 8.6f %+8.6fj \n",i, dat2[i].re, dat2[i].im);
+    }
+    fclose(fft_fd);
 
     double max_d1, max_d2, min_d1, min_d2;
     max_d1 = abs(dat1[0].re) > abs(dat1[0].im) ? abs(dat1[0].re) : abs(dat1[0].im);
@@ -351,33 +322,177 @@ int32 main(int32 argc, char *argv[])
     delete [] dat1;
     delete [] dat2;
 
-
+    printf("FFT DIF4\n");
     len = 16;
     _complex *dat3 = new _complex[len];
 
+    printf(" DATA:\n");
     for(int32 i=0; i < len; ++i){
         dat3[i] = _complex(i, len-i);
         printf("%3d : %f %+fj\n",i, dat3[i].re, dat3[i].im);
     }
-    imgproc::fftdif4(dat3, len, false); // fft
-    //imgproc::revdig_permute(dat3, len);
+    imgproc::fft_dif4(dat3, len, false); // fft
 
+    printf(" FFT:\n");
+    for(int32 i=0; i < len; ++i)
+        printf("%3d : % 8.4f %+8.4fj \n",i, dat3[i].re, dat3[i].im);
+
+    imgproc::fft_dif4(dat3, len, true); // ifft
+    printf(" IFFT:\n");
     for(int32 i=0; i < len; ++i)
         printf("%3d : % 8.4f %+8.4fj \n",i, dat3[i].re, dat3[i].im);
 
     delete [] dat3;
 
+    std::vector<int32> ff;
+    imgproc::factorizeN(187, ff);
+    printf(" factorizing:\n");
+    for(int32 i=0; i < ff.size(); ++i)
+        printf("%3d \n",ff.at(i));
+
+
+    len = 64;
+    struct timeval  tv1, tv2;
+
+    _complex *dat4 = new _complex[len];
+    _complex *dat5 = new _complex[len];
+
+    printf(" DATA:\n");
+    for(int32 i=0; i < len; ++i){
+        dat4[i] = _complex(i+1, 0); //len-i);
+        dat5[i] = _complex(i+1, 0); //len-i);
+        printf("%3d : %f %+fj\n",i, dat4[i].re, dat4[i].im);
+    }
+    ff.clear();
+
+    gettimeofday(&tv1, NULL);
+    imgproc::factorizeN(len, ff);
+    imgproc::fft_compositN(dat4, len, ff, false); // fft
+    gettimeofday(&tv2, NULL);
+
+    printf ("Total time = %f seconds\n",
+             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+             (double) (tv2.tv_sec - tv1.tv_sec));
+
+    gettimeofday(&tv1, NULL);
+    imgproc::fft_czt(dat5,len,false);
+    gettimeofday(&tv2, NULL);
+
+    printf ("Total time = %f seconds\n",
+             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+             (double) (tv2.tv_sec - tv1.tv_sec));
+
+    gettimeofday(&tv1, NULL);
+    imgproc::fft_dif4(dat5,len,false);
+    gettimeofday(&tv2, NULL);
+
+    printf ("Total time = %f seconds\n",
+             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+             (double) (tv2.tv_sec - tv1.tv_sec));
+    gettimeofday(&tv1, NULL);
+    imgproc::fft_dit2(dat5,len,false);
+    gettimeofday(&tv2, NULL);
+
+    printf ("Total time = %f seconds\n",
+             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+             (double) (tv2.tv_sec - tv1.tv_sec));
+
+
+    imgproc::fft_compositN(dat4, len, ff, true); // fft
+    for(int32 i=0; i < len; ++i)
+        printf("%3d : % 8.4f %+8.4fj \n",i, dat4[i].re, dat4[i].im);
+
+    delete [] dat4;
+    delete [] dat5;
+}
+
+void tonemap_test(){
+    /* ----- */
+
+    /*--- gauss mask / box mask gen ---*/
+
+    Mat gau = imgproc::gaussMaskGen(1,4);
+    Mat box = imgproc::boxMaskGen(5);
+
+    gau.printMat("gaussian Mat");
+    box.printMat("box Mat");
+
+    /*------------------*/
+
+    /*----- tonemapping ------ */
     /*
+    imgproc::gamma(hdrimg, 1.0);
+    Mat Yhdrimg    = imgproc::rgb2gray(hdrimg);
+    Mat Yhdrimg_tm = imgproc::nakaSigTonemap(Yhdrimg,gau,0.2);
+    Mat Yhdrimg_tm3c= Mat::repeat(Yhdrimg_tm, 1, 1,3);
+    Mat Yhdrimg_3c  = Mat::repeat(Yhdrimg, 1, 1, 3);
+
+    Mat hdrimg_tm = imgproc::gamma( hdrimg * Yhdrimg_tm3c / Yhdrimg_3c, 0.45);
+    hdrimg_tm = hdrimg_tm / hdrimg_tm.max().max().at<double>(0)*255.0;
+    QImage hdrtm_bmp = qimmat::mat2qim(hdrimg_tm);
+    hdrtm_bmp.save("../jbmat_bench/hdr_tm_0.2.bmp");
+    */
+    /*-------------------------*/
+}
+
+void imagerw_test(){
+    /* hdrfile reading and writing to bmp */
+    QString hdrfile_path = QString("/Users/neoflame99/Workspace/Qt5/readhdrfile/readhdrfile/memorial.hdr");
+    Mat hdrimg = qimmat::read_hdr(hdrfile_path);
+    Mat hdrimg_sub = hdrimg.copySubMat(0,1,0,1);
+    hdrimg_sub.printMat("hdrimg_sub");
+    QImage hdr_bmp = qimmat::mat2qim(hdrimg);
+    hdr_bmp.save("../jbmat_bench/hdr_bmp.bmp");
+
+}
+void imgproc_test(){
+   /*
+    qDebug() << QDir::currentPath();
+    QString fname1 = QString("../jbmat_bench/test.jpg");
+    QString fname2 = QString("../jbmat_bench/test_filt.bmp");
+    QImage img(fname1);
+    Mat matIm = qimmat::qim2mat(img);
+    Mat filt  =  Mat::ones(5,5,matIm.getChannel())/25;
+    Mat FiltIm = conv2d(matIm, filt,"zero","same");
+    Mat Y  = imgproc::rgb2gray(matIm);
+    Mat yccIm = imgproc::rgb2ycc(matIm);
+    Mat ms = imgproc::clip_HistoCmf(Y, 1000, 256, 1);
+    ms /= ms[255];
+    ms *= 255;
+    Mat mv = imgproc::clip_HistoEqual(Y,ms);
+    yccIm.setChannelN(mv,0,1,0);
+    Mat mvv;
+    mvv.setName("mvv");
+    mvv.setChannelN(Y,0,1,0);
+    //for(int32 i=0; i < Y.getRow()*Y.getCol(); i++)
+    //    yccIm[i] = mv[i] ;
+    Mat histEqIm = imgproc::ycc2rgb(yccIm);
+    QImage cvim2 = QimMat::mat2qim(histEqIm);
+    //QImage cvim = QimMat::jbmat2qim(matIm);
+    cvim2.save(QString("../jbmat_bench/test_histEq.bmp"));
+    QImage cvim3 = QimMat::mat2qim(mvv);
+    cvim3.save(QString("../jbmat_bench/test_y.bmp"));
+    Mat mx = matIm.copySubMat(1,4,100,104);
+    mx.setName("mx_subMat");
+    mx.printMat();
+    Mat my = matIm.copyChannelN(0);
+    Mat mz = my.copySubMat(1,4,100,104);
+    mz.printMat();
+    */
+}
+void math_test(){
+
+
     Mat mk(DTYP::DOUBLE,3,4,2,"mk");
     Mat ml(DTYP::DOUBLE,4,3,2,"ml");
     Mat mn(DTYP::DOUBLE,4,4,1,"mn");
     for(int32 i=0; i < 24; i++){
-        mk[i] = rand() % 50;
-        ml[i] = rand() % 80;
+        mk.at<double>(i) = rand() % 50;
+        ml.at<double>(i) = rand() % 80;
         if(i < 16)
-            mn[i] = rand() % 100;
+            mn.at<double>(i) = rand() % 100;
     }
-     Mat mm = mulMatrix(mk,ml);
+    Mat mm = mul(mk,ml);
     mk.printMat(); //std::string("mk"));
     ml.printMat(); //std::string("ml"));
     mm.printMat(); //std::string("mm"));
@@ -388,30 +503,52 @@ int32 main(int32 argc, char *argv[])
     mn.printMat(std::string("mn"));
     //mn = jbMath::inverse(mn);
     //mn.printMat(std::string("mn inverse"));
-     Mat Y  = imgproc::rgb2gray(matIm);
-     Mat yccIm = imgproc::rgb2ycc(matIm);
-     Mat ms = imgproc::clip_HistoCmf(Y, 1000);
-    ms /= ms[255];
-    ms *= 255;
-     Mat mv = imgproc::clip_HistoEqual(Y,ms);
-    yccIm.setChannelN(mv,0,1,0);
-     Mat mvv;
-    mvv.setName("mvv");
-    mvv.setChannelN(Y,0,1,0);
-    //for(int32 i=0; i < Y.getRow()*Y.getCol(); i++)
-    //    yccIm[i] = mv[i] ;
-     Mat histEqIm = imgproc::ycc2rgb(yccIm);
-    QImage cvim2 = QimMat::mat2qim(histEqIm);
-    //QImage cvim = QimMat::jbmat2qim(matIm);
-    cvim2.save(QString("../jbmat_bench/test_histEq.bmp"));
-    QImage cvim3 = QimMat::mat2qim(mvv);
-    cvim3.save(QString("../jbmat_bench/test_y.bmp"));
-     Mat mx = matIm.copySubMat(1,4,100,104);
-    mx.setName("mx_subMat");
-    mx.printMat();
-     Mat my = matIm.copyChannelN(0);
-     Mat mz = my.copySubMat(1,4,100,104);
-    mz.printMat();
-*/
-    return 0;
+
+    /*dot product */
+
+    Mat mdps1({1,2,3});
+    Mat mdps2({4,5,6});
+    //mdps2.transpose();
+    Mat mdp1 = dot(mdps1, mdps2);
+    mdp1.printMat("vector dot product");
+
+    Mat mdps3({1,2,3,4,5,6});
+    Mat mdps4({7,8,9,10,11,12});
+    mdps3.reshape(3,2,1);
+    mdps4.reshape(3,2,1);
+    Mat mdp2 = dot(mdps3, mdps4, 0);
+    Mat mdp3 = dot(mdps3, mdps4, 1);
+    mdps3.printMat("mdps3");
+    mdps4.printMat("mdps4");
+    mdp2.printMat("dim=0 dot product");
+    mdp3.printMat("dim=1 dot product");
+
+    //-- conv
+    int32 k=0;
+    Mat mb(DTYP::DOUBLE,5,5,2,"mb");
+    Mat mc(DTYP::DOUBLE,5,5,2,"mc");
+    double* b = mb.getDataPtr<double>();
+    for(uint32 c=0; c < mb.getChannel(); c++){
+        for(uint32 i=0; i < 5; i++){
+            for (uint32 j=0; j < 5; j++){
+                b[i*5+j+c*25] = 100+k++;
+                mc.at<double>(i,j,c) = k;
+            }
+        }
+    }
+
+    uint32 row = 7;
+    uint32 col = 7;
+    uint32 ch = 2;
+    uint32 rowcol = row*col;
+    Mat ma(DTYP::DOUBLE, row,col,ch,"ma");
+
+    ma.printMat("ma");
+    mb.printMat("mb");
+    fprintf(stdout,"1) full\n");
+    Mat convO = conv2d(ma,mb,"zero","full");
+    convO.printMat("conv0: full");
+    fprintf(stdout,"2) same\n");
+    convO = conv2d(ma,mb,"zero","same");
+    convO.printMat("conv0: same");
 }

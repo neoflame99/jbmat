@@ -1050,32 +1050,123 @@ float cubic1d(float a_1, float a0, float a1, float a2, float t){
     float r= A*t*t*t + B*t*t + C*t + D;
     return r/2.0f;
 }
+Mat copy_padding(const Mat& src, int32 pad_size){
+    int32 r  = src.getRow();
+    int32 c  = src.getCol();
+    int32 xR = r+pad_size*2;
+    int32 xC = c+pad_size*2;
+    Mat des(src.getDatType(),xR,xC,src.getChannel());
+    matRect srcRec, desRec;
+    int32 pd = pad_size-1;
+    int32 i,k,m;
+    int32 rm1 = r-1;
+    int32 cm1 = c-1;
+    //copy main data
+    srcRec.set(0,0,rm1,cm1);
+    desRec.set(pad_size,pad_size,r+pd,c+pd);
+    Mat::sliceCopyMat(src,srcRec,des,desRec);
 
-Mat bicubicIntp(const Mat& m,const int32 s){
-    int32 r  = m.getRow();
-    int32 c  = m.getCol();
-    int32 ch = m.getChannel();
-    int32 nw = c*s;
-    int32 nh = r*s;
-    DTYP  dt = m.getDatType();
-
-    //Mat for boundary padding
-    int32 xR = r+3;
-    int32 xC = c+3;
-    Mat B(dt, xR, xC, ch);
-    matRect srcRec , desRec;
-    srcRec.sR=0;
-    srcRec.eR=r-1;
-    srcRec.sC=0;
-    srcRec.eC=c-1;
-    desRec.sR=1;
-    desRec.sC=1;
-    desRec.eR=r;
-    desRec.eC=c;
-    Mat::sliceCopyMat(m,srcRec,B,desRec);
-    Mat A(m.getDatType(),nw,nh,m.getChannel());
-    return A;
+    for(i=0,k=r+pad_size,m=c+pad_size; i < pad_size; ++i){
+        //top
+        srcRec.set(i   ,0       ,i   ,cm1 );
+        desRec.set(pd-i,pad_size,pd-i,c+pd);
+        Mat::sliceCopyMat(src,srcRec,des,desRec);
+        //left
+        srcRec.set(0       ,i   ,rm1 ,i   );
+        desRec.set(pad_size,pd-i,r+pd,pd-i);
+        Mat::sliceCopyMat(src,srcRec,des,desRec);
+        //bottom
+        srcRec.set(rm1-i,0       ,rm1-i,cm1 );
+        desRec.set(k+i  ,pad_size,k+i  ,c+pd);
+        Mat::sliceCopyMat(src,srcRec,des,desRec);
+        //right
+        srcRec.set(0       ,cm1-i,rm1 ,cm1-i);
+        desRec.set(pad_size,m+i  ,r+pd,m+i  );
+        Mat::sliceCopyMat(src,srcRec,des,desRec);
+    }
+    for(i=0; i< pad_size; ++i){
+        //top left corner
+        srcRec.set(0 ,pad_size+i,pd ,pad_size+i);
+        desRec.set(0 ,pd-i      ,pd ,pd-i      );
+        Mat::sliceCopyMat(des,srcRec,des,desRec);
+        //top right corner
+        srcRec.set(0 ,c+pd-i      ,pd ,c+pd-i      );
+        desRec.set(0 ,c+pad_size+i,pd ,c+pad_size+i);
+        Mat::sliceCopyMat(des,srcRec,des,desRec);
+        //bottom left corner
+        srcRec.set(r+pad_size ,pad_size+i,xR-1 ,pad_size+i);
+        desRec.set(r+pad_size ,pd-i      ,xR-1 ,pd-i      );
+        Mat::sliceCopyMat(des,srcRec,des,desRec);
+        //bottom right corner
+        srcRec.set(r+pad_size ,c+pd-i      ,xR-1 ,c+pd-i      );
+        desRec.set(r+pad_size ,c+pad_size+i,xR-1 ,c+pad_size+i);
+        Mat::sliceCopyMat(des,srcRec,des,desRec);
+    }
+    return des;
 }
+//Mat bicubicIntp(const Mat& m,const int32 s){
+//    int32 mr = m.getRow();
+//    int32 mc = m.getCol();
+//    int32 mch = m.getChannel();
+//    DTYP  mdt = m.getDatType();
+//
+//    int32 dr = mr<<1;
+//    int32 dc = mc<<1;
+//    //Mat for boundary padding
+//	Mat A =	copy_padding(m,2);
+//    int32 ar = A.getRow();
+//    int32 ac = A.getCol();
+//    int32 nc = ac*s;
+//    int32 nr = ar*s;
+//    Mat B(mdt,nr,nc,m.getChannel());
+//
+//    int32 y,x;
+//    for(y=2 ; y < nr-2*s; ++y){
+//        for(x=2; x < nc-2*s; ++x){
+//
+//        }
+//    }
+//    for y in np.arange(3,sz2[0]-6):
+//        oy = int(y/R)
+//        for x in np.arange(3, sz2[1]-6):
+//            ox = int(x/R)
+//            t = (x-int(ox*R))/R
+//            t = [t,t,t]
+//            f = I1[oy-1:oy+3,ox-1:ox+3,:]
+//            b = f[:,1,:] + ((f[:,2,:]-f[:,0,:]) + ((2*f[:,0,:]-5*f[:,1,:]+4*f[:,2,:]-f[:,3,:]) + (-f[:,0,:]+3*f[:,1,:]-3*f[:,2,:]+f[:,3,:])*t)*t)*t/2
+//            #fm1 = I1[oy-1,ox-1,:]
+//            #f_0 = I1[oy-1,ox  ,:]
+//            #f_1 = I1[oy-1,ox+1,:]
+//            #f_2 = I1[oy-1,ox+2,:]
+//            #bm1 = f_0 + ((f_1-fm1) + ((2*fm1-5*f_0+4*f_1-f_2) + (-fm1+3*f_0-3*f_1+f_2)*t)*t)*t/2
+//
+//            #fm1 = I1[oy,ox-1,:]
+//            #f_0 = I1[oy,ox  ,:]
+//            #f_1 = I1[oy,ox+1,:]
+//            #f_2 = I1[oy,ox+2,:]
+//            #b_0 = f_0 + ((f_1-fm1) + ((2*fm1-5*f_0+4*f_1-f_2) + (-fm1+3*f_0-3*f_1+f_2)*t)*t)*t/2
+//
+//            #fm1 = I1[oy+1,ox-1,:]
+//            #f_0 = I1[oy+1,ox  ,:]
+//            #f_1 = I1[oy+1,ox+1,:]
+//            #f_2 = I1[oy+1,ox+2,:]
+//            #b_1 = f_0 + ((f_1-fm1) + ((2*fm1-5*f_0+4*f_1-f_2) + (-fm1+3*f_0-3*f_1+f_2)*t)*t)*t/2
+//
+//            #fm1 = I1[oy+2,ox-1,:]
+//            #f_0 = I1[oy+2,ox  ,:]
+//            #f_1 = I1[oy+2,ox+1,:]
+//            #f_2 = I1[oy+2,ox+2,:]
+//            #b_2 = f_0 + ((f_1-fm1) + ((2*fm1-5*f_0+4*f_1-f_2) + (-fm1+3*f_0-3*f_1+f_2)*t)*t)*t/2
+//
+//            t = (y-int(oy*R))/R
+//            t = [t, t, t]
+//            fm1 = b[0,:]
+//            f_0 = b[1,:]
+//            f_1 = b[2,:]
+//            f_2 = b[3,:]
+//            pxy = f_0 + ((f_1-fm1) + ((2*fm1-5*f_0+4*f_1-f_2) + (-fm1+3*f_0-3*f_1+f_2)*t)*t)*t/2
+//    return A;
+//}
 
 } // end of imgproc namespace
 } // end of jmat namespace

@@ -20,8 +20,24 @@
 namespace jmat {
 
 typedef struct _matRect{
-    int32 sR, eR;
-    int32 sC, eC;
+    int32 sR, sC;
+    int32 eR, eC;
+    _matRect(int32 sr=0, int32 sc=0, int32 er=0, int32 ec=0 ):sR(sr),sC(sc),eR(er),eC(ec){};
+    _matRect(std::initializer_list<int32> list){
+        std::vector<int32> v;
+        v.push_back(0);
+        v.push_back(0);
+        v.push_back(0);
+        v.push_back(0);
+        v.insert(v.begin(),list.begin(),list.end());
+        sR = v.at(0);
+        sC = v.at(1);
+        eR = v.at(2);
+        eC = v.at(3);
+     };
+    inline void set(int32 sr=0, int32 sc=0, int32 er=0, int32 ec=0){
+       sR= sr; sC=sc; eR= er; eC=ec;
+    }
 }matRect;
 
 class Mat;
@@ -145,7 +161,7 @@ public : // static methods
     static Mat zeros(uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
     static int32 instant_count;
     static Mat repeat(const Mat& src, const uint32 rp_r, const uint32 rp_c, const uint32 rp_ch);
-    static int32 sliceCopyMat(const Mat& src, const matRect& srcSlice, Mat& des, const matRect& desSlice );
+    static int32 sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, const matRect& desSlice );
 
 public : // public template methods
     template <typename _T> _T& at(uint32 i=0) const;

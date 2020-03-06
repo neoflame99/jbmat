@@ -72,7 +72,9 @@ namespace imgproc {
 
     // image resizing
     float cubic1d(float ma1, float a0, float a1, float a2, float t);
-    Mat  bicubicIntp(const Mat& src,const int32 s);
+    Mat bicubicIntp(const Mat& src,const int32 s);
+    Mat copy_padding(const Mat& src, int32 pad_size=2);
+    template <typename _T> inline Mat _bicubicIntp(const Mat& src, int32 s);
 }
 
 
@@ -104,18 +106,22 @@ namespace  imgproc{
         uint32 ch_offset1 = imsize;
         uint32 ch_offset2 = imsize << 1;
 
-        uint32 x;
+        uint32 x,x2,x3;
         if( sel_eq == 0){
             for(x= 0 ; x < imsize; x++ ){
-                tarDat_pt[x           ] = bt601_r2y[0][0] * srcDat_pt[x  ] + bt601_r2y[0][1] * srcDat_pt[x+ch_offset1] + bt601_r2y[0][2] * srcDat_pt[x+ch_offset2];
-                tarDat_pt[x+ch_offset1] = bt601_r2y[1][0] * srcDat_pt[x  ] + bt601_r2y[1][1] * srcDat_pt[x+ch_offset1] + bt601_r2y[1][2] * srcDat_pt[x+ch_offset2];
-                tarDat_pt[x+ch_offset2] = bt601_r2y[2][0] * srcDat_pt[x  ] + bt601_r2y[2][1] * srcDat_pt[x+ch_offset1] + bt601_r2y[2][2] * srcDat_pt[x+ch_offset2];
+                x2 = x+ch_offset1;
+                x3 = x+ch_offset2;
+                tarDat_pt[x ] = bt601_r2y[0][0] * srcDat_pt[x  ] + bt601_r2y[0][1] * srcDat_pt[x2] + bt601_r2y[0][2] * srcDat_pt[x3];
+                tarDat_pt[x2] = bt601_r2y[1][0] * srcDat_pt[x  ] + bt601_r2y[1][1] * srcDat_pt[x2] + bt601_r2y[1][2] * srcDat_pt[x3];
+                tarDat_pt[x3] = bt601_r2y[2][0] * srcDat_pt[x  ] + bt601_r2y[2][1] * srcDat_pt[x2] + bt601_r2y[2][2] * srcDat_pt[x3];
             }
         }else if( sel_eq == 1){
             for(x= 0 ; x < imsize; x++ ){
-                tarDat_pt[x           ] = bt709_r2y[0][0] * srcDat_pt[x  ] + bt709_r2y[0][1] * srcDat_pt[x+ch_offset1] + bt709_r2y[0][2] * srcDat_pt[x+ch_offset2];
-                tarDat_pt[x+ch_offset1] = bt709_r2y[1][0] * srcDat_pt[x  ] + bt709_r2y[1][1] * srcDat_pt[x+ch_offset1] + bt709_r2y[1][2] * srcDat_pt[x+ch_offset2];
-                tarDat_pt[x+ch_offset2] = bt709_r2y[2][0] * srcDat_pt[x  ] + bt709_r2y[2][1] * srcDat_pt[x+ch_offset1] + bt709_r2y[2][2] * srcDat_pt[x+ch_offset2];
+                x2 = x+ch_offset1;
+                x3 = x+ch_offset2;
+                tarDat_pt[x ] = bt709_r2y[0][0] * srcDat_pt[x  ] + bt709_r2y[0][1] * srcDat_pt[x2] + bt709_r2y[0][2] * srcDat_pt[x3];
+                tarDat_pt[x2] = bt709_r2y[1][0] * srcDat_pt[x  ] + bt709_r2y[1][1] * srcDat_pt[x2] + bt709_r2y[1][2] * srcDat_pt[x3];
+                tarDat_pt[x3] = bt709_r2y[2][0] * srcDat_pt[x  ] + bt709_r2y[2][1] * srcDat_pt[x2] + bt709_r2y[2][2] * srcDat_pt[x3];
             }
         }
         return A;
@@ -146,27 +152,31 @@ namespace  imgproc{
 
          uint32 ch_offset1 = imsize ;
          uint32 ch_offset2 = imsize << 1;
-         uint32 x;
+         uint32 x,x2,x3;
          _T tmp1, tmp2, tmp3;
          if( sel_eq == 0){
              for(x= 0 ; x < imsize; x++){
-                 tmp1 = bt601_y2r[0][0] * srcDat_pt[x  ] + bt601_y2r[0][1] * srcDat_pt[x+ch_offset1] + bt601_y2r[0][2] * srcDat_pt[x+ch_offset2];
-                 tmp2 = bt601_y2r[1][0] * srcDat_pt[x  ] + bt601_y2r[1][1] * srcDat_pt[x+ch_offset1] + bt601_y2r[1][2] * srcDat_pt[x+ch_offset2];
-                 tmp3 = bt601_y2r[2][0] * srcDat_pt[x  ] + bt601_y2r[2][1] * srcDat_pt[x+ch_offset1] + bt601_y2r[2][2] * srcDat_pt[x+ch_offset2];
+                 x2 = x+ch_offset1;
+                 x3 = x+ch_offset2;
+                 tmp1 = bt601_y2r[0][0] * srcDat_pt[x  ] + bt601_y2r[0][1] * srcDat_pt[x2] + bt601_y2r[0][2] * srcDat_pt[x3];
+                 tmp2 = bt601_y2r[1][0] * srcDat_pt[x  ] + bt601_y2r[1][1] * srcDat_pt[x2] + bt601_y2r[1][2] * srcDat_pt[x3];
+                 tmp3 = bt601_y2r[2][0] * srcDat_pt[x  ] + bt601_y2r[2][1] * srcDat_pt[x2] + bt601_y2r[2][2] * srcDat_pt[x3];
 
-                 tarDat_pt[x           ] = (tmp1 < 0 ) ? 0 : tmp1;
-                 tarDat_pt[x+ch_offset1] = (tmp2 < 0 ) ? 0 : tmp2;
-                 tarDat_pt[x+ch_offset2] = (tmp3 < 0 ) ? 0 : tmp3;
+                 tarDat_pt[x ] = (tmp1 < 0 ) ? 0 : tmp1;
+                 tarDat_pt[x2] = (tmp2 < 0 ) ? 0 : tmp2;
+                 tarDat_pt[x3] = (tmp3 < 0 ) ? 0 : tmp3;
              }
          }else if( sel_eq == 1){
              for(x= 0 ; x < imsize; x++){
-                 tmp1 = bt709_y2r[0][0] * srcDat_pt[x  ] + bt709_y2r[0][1] * srcDat_pt[x+ch_offset1] + bt709_y2r[0][2] * srcDat_pt[x+ch_offset2];
-                 tmp2 = bt709_y2r[1][0] * srcDat_pt[x  ] + bt709_y2r[1][1] * srcDat_pt[x+ch_offset1] + bt709_y2r[1][2] * srcDat_pt[x+ch_offset2];
-                 tmp3 = bt709_y2r[2][0] * srcDat_pt[x  ] + bt709_y2r[2][1] * srcDat_pt[x+ch_offset1] + bt709_y2r[2][2] * srcDat_pt[x+ch_offset2];
+                 x2 = x+ch_offset1;
+                 x3 = x+ch_offset2;
+                 tmp1 = bt709_y2r[0][0] * srcDat_pt[x  ] + bt709_y2r[0][1] * srcDat_pt[x2] + bt709_y2r[0][2] * srcDat_pt[x3];
+                 tmp2 = bt709_y2r[1][0] * srcDat_pt[x  ] + bt709_y2r[1][1] * srcDat_pt[x2] + bt709_y2r[1][2] * srcDat_pt[x3];
+                 tmp3 = bt709_y2r[2][0] * srcDat_pt[x  ] + bt709_y2r[2][1] * srcDat_pt[x2] + bt709_y2r[2][2] * srcDat_pt[x3];
 
-                 tarDat_pt[x           ] = (tmp1 < 0 ) ? 0 : tmp1;
-                 tarDat_pt[x+ch_offset1] = (tmp2 < 0 ) ? 0 : tmp2;
-                 tarDat_pt[x+ch_offset2] = (tmp3 < 0 ) ? 0 : tmp3;
+                 tarDat_pt[x ] = (tmp1 < 0 ) ? 0 : tmp1;
+                 tarDat_pt[x2] = (tmp2 < 0 ) ? 0 : tmp2;
+                 tarDat_pt[x3] = (tmp3 < 0 ) ? 0 : tmp3;
 
              }
          }
@@ -226,13 +236,16 @@ namespace  imgproc{
         Mat A(rgbIm.getDatType(), row, col, chsize);
         _T* dat64f = A.getDataPtr<_T>();
         _T x, y, z;
+        int32 i2, i3;
         for(uint32 i=0; i < rcsize ; i++ ){
-            x = rgb2xyz_bt709[0][0] * dat64f[i] + rgb2xyz_bt709[0][1] *dat64f[i+ch2] + rgb2xyz_bt709[0][2] *dat64f[i+ch3];
-            y = rgb2xyz_bt709[1][0] * dat64f[i] + rgb2xyz_bt709[1][1] *dat64f[i+ch2] + rgb2xyz_bt709[1][2] *dat64f[i+ch3];
-            z = rgb2xyz_bt709[2][0] * dat64f[i] + rgb2xyz_bt709[2][1] *dat64f[i+ch2] + rgb2xyz_bt709[2][2] *dat64f[i+ch3];
-            dat64f[i    ]= x;
-            dat64f[i+ch2]= y;
-            dat64f[i+ch3]= z;
+            i2 = i+ch2;
+            i3 = i+ch3;
+            x = rgb2xyz_bt709[0][0] * dat64f[i] + rgb2xyz_bt709[0][1] *dat64f[i2] + rgb2xyz_bt709[0][2] *dat64f[i3];
+            y = rgb2xyz_bt709[1][0] * dat64f[i] + rgb2xyz_bt709[1][1] *dat64f[i2] + rgb2xyz_bt709[1][2] *dat64f[i3];
+            z = rgb2xyz_bt709[2][0] * dat64f[i] + rgb2xyz_bt709[2][1] *dat64f[i2] + rgb2xyz_bt709[2][2] *dat64f[i3];
+            dat64f[i ]= x;
+            dat64f[i2]= y;
+            dat64f[i3]= z;
         }
 
         return A;
@@ -250,13 +263,16 @@ namespace  imgproc{
         Mat A(xyzIm.getDatType(), row, col, chsize);
         _T* dat64f = A.getDataPtr<_T>();
         _T r, g, b;
+        int32 i2, i3;
         for(size_t i=0; i < rcsize; i++){
-            r = xyz2rgb_bt709[0][0] * dat64f[i] + xyz2rgb_bt709[0][1] *dat64f[i+ch2] + xyz2rgb_bt709[0][2] *dat64f[i+ch3];
-            g = xyz2rgb_bt709[1][0] * dat64f[i] + xyz2rgb_bt709[1][1] *dat64f[i+ch2] + xyz2rgb_bt709[1][2] *dat64f[i+ch3];
-            b = xyz2rgb_bt709[2][0] * dat64f[i] + xyz2rgb_bt709[2][1] *dat64f[i+ch2] + xyz2rgb_bt709[2][2] *dat64f[i+ch3];
-            dat64f[i    ]= r;
-            dat64f[i+ch2]= g;
-            dat64f[i+ch3]= b;
+            i2 = i+ch2;
+            i3 = i+ch3;
+            r = xyz2rgb_bt709[0][0] * dat64f[i] + xyz2rgb_bt709[0][1] *dat64f[i2] + xyz2rgb_bt709[0][2] *dat64f[i3];
+            g = xyz2rgb_bt709[1][0] * dat64f[i] + xyz2rgb_bt709[1][1] *dat64f[i2] + xyz2rgb_bt709[1][2] *dat64f[i3];
+            b = xyz2rgb_bt709[2][0] * dat64f[i] + xyz2rgb_bt709[2][1] *dat64f[i2] + xyz2rgb_bt709[2][2] *dat64f[i3];
+            dat64f[i ]= r;
+            dat64f[i2]= g;
+            dat64f[i3]= b;
         }
 
         return A;
@@ -277,13 +293,16 @@ namespace  imgproc{
 
         _T X, Y, Z, W, x, y;
         //_T r,g,b;
+        uint32 i2, i3;
         for(uint32 i=0; i < rcsize; i++){
             //r = dat64f[i    ];
             //g = dat64f[i+ch2];
             //b = dat64f[i+ch3];
-            X = rgb2xyz_bt709[0][0] * dat64f[i] + rgb2xyz_bt709[0][1] *dat64f[i+ch2] + rgb2xyz_bt709[0][2] *dat64f[i+ch3];
-            Y = rgb2xyz_bt709[1][0] * dat64f[i] + rgb2xyz_bt709[1][1] *dat64f[i+ch2] + rgb2xyz_bt709[1][2] *dat64f[i+ch3];
-            Z = rgb2xyz_bt709[2][0] * dat64f[i] + rgb2xyz_bt709[2][1] *dat64f[i+ch2] + rgb2xyz_bt709[2][2] *dat64f[i+ch3];
+            i2 = i+ch2;
+            i3 = i+ch3;
+            X = rgb2xyz_bt709[0][0] * dat64f[i] + rgb2xyz_bt709[0][1] *dat64f[i2] + rgb2xyz_bt709[0][2] *dat64f[i3];
+            Y = rgb2xyz_bt709[1][0] * dat64f[i] + rgb2xyz_bt709[1][1] *dat64f[i2] + rgb2xyz_bt709[1][2] *dat64f[i3];
+            Z = rgb2xyz_bt709[2][0] * dat64f[i] + rgb2xyz_bt709[2][1] *dat64f[i2] + rgb2xyz_bt709[2][2] *dat64f[i3];
             W = X + Y + Z;
             if( W <= 0.0) {
                 x = 0.0;
@@ -293,9 +312,9 @@ namespace  imgproc{
                 y = Y/W;
             }
 
-            dat64f[i    ]= Y;
-            dat64f[i+ch2]= x;
-            dat64f[i+ch3]= y;
+            dat64f[i ]= Y;
+            dat64f[i2]= x;
+            dat64f[i3]= y;
         }
 
         return A;
@@ -316,19 +335,22 @@ namespace  imgproc{
 
         _T  r, g, b;
         _T  X,Y,Z,x,y,W;
+        uint32 i2, i3;
         for(uint32 i=0; i < rcsize; i++){
-            Y = dat64f[i    ];
-            x = dat64f[i+ch2];
-            y = dat64f[i+ch3];
+            i2 = i+ch2;
+            i3 = i+ch3;
+            Y = dat64f[i ];
+            x = dat64f[i2];
+            y = dat64f[i3];
             W = Y/y;
             X = x * W;
             Z = W-Y-X;
             r = xyz2rgb_bt709[0][0] *X + xyz2rgb_bt709[0][1] *Y + xyz2rgb_bt709[0][2] *Z;
             g = xyz2rgb_bt709[1][0] *X + xyz2rgb_bt709[1][1] *Y + xyz2rgb_bt709[1][2] *Z;
             b = xyz2rgb_bt709[2][0] *X + xyz2rgb_bt709[2][1] *Y + xyz2rgb_bt709[2][2] *Z;
-            dat64f[i    ]= r;
-            dat64f[i+ch2]= g;
-            dat64f[i+ch3]= b;
+            dat64f[i ]= r;
+            dat64f[i2]= g;
+            dat64f[i3]= b;
         }
 
         return A;
@@ -527,6 +549,90 @@ template <typename _T> inline Mat _logRetinexTm(const Mat& Im, const Mat& surrou
     return Imt;
 }
 
+template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
+    int32 mr = src.getRow();
+    int32 mc = src.getCol();
+    int32 mch = src.getChannel();
+    DTYP  mdt = src.getDatType();
+
+    int32 dr = mr*s;
+    int32 dc = mc*s;
+    //Mat for boundary padding
+    Mat A =	copy_padding(src,2);
+    int32 ar = A.getRow();
+    int32 ac = A.getCol();
+    int32 nc = ac*s;
+    int32 nr = ar*s;
+    Mat B(mdt,nr,nc,mch);
+
+    // bicubic interpolation
+    int32 y,x, oy, ox;
+    _T *srcDat_p= A.getDataPtr<_T>();
+    _T *desDat_p= B.getDataPtr<_T>();
+    float xt,yt;
+    float a_1[3],a0[3],a1[3],a2[3],a3[3];
+    float b_1[3],b0[3],b1[3],b2[3],b3[3];
+    int32 och_offset1 = ar*ac;
+    int32 desCh_offset1 = nr*nc;
+    int32 bytestep    = B.getByteStep();
+    int32 RowByteStep = A.getByteStep()*ac;
+    int32 desRowByteStep = bytestep*nc;
+    int32 stp,k, orow;
+    int32 yRowByteStep;
+    int32 xStep;
+    for(y=2, yRowByteStep=desRowByteStep<<1 ; y < nr-2*s; ++y, yRowByteStep+=desRowByteStep){
+        oy   = y/s;
+        orow = oy * RowByteStep;
+        for(x=2, xStep=B.getByteStep()<<1; x < nc-2*s; ++x, xStep+=bytestep){
+            ox = x/s;
+            xt = (x-ox*s)/s;
+            // f(x,-1)
+            for( k=0, stp=orow-RowByteStep+ox; k < mch;++k, stp+= och_offset1){
+                a_1[k]= srcDat_p[stp-1];
+                a0[k] = srcDat_p[stp  ];
+                a1[k] = srcDat_p[stp+1];
+                a2[k] = srcDat_p[stp+2];
+                b_1[k] = cubic1d(a_1[k],a0[k],a1[k],a2[k],xt);
+            }
+            // f(x,0)
+            for( k=0, stp=orow+ox; k < mch;++k, stp+= och_offset1){
+                a_1[k]= srcDat_p[stp-1];
+                a0[k] = srcDat_p[stp  ];
+                a1[k] = srcDat_p[stp+1];
+                a2[k] = srcDat_p[stp+2];
+                b0[k] = cubic1d(a_1[k],a0[k],a1[k],a2[k],xt);
+            }
+            // f(x,1)
+            for( k=0, stp=orow+RowByteStep+ox; k < mch;++k, stp+= och_offset1){
+                a_1[k]= srcDat_p[stp-1];
+                a0[k] = srcDat_p[stp  ];
+                a1[k] = srcDat_p[stp+1];
+                a2[k] = srcDat_p[stp+2];
+                b1[k] = cubic1d(a_1[k],a0[k],a1[k],a2[k],xt);
+            }
+            // f(x,2)
+            for( k=0, stp=orow+RowByteStep*2+ox; k < mch;++k, stp+= och_offset1){
+                a_1[k]= srcDat_p[stp-1];
+                a0[k] = srcDat_p[stp  ];
+                a1[k] = srcDat_p[stp+1];
+                a2[k] = srcDat_p[stp+2];
+                b2[k] = cubic1d(a_1[k],a0[k],a1[k],a2[k],xt);
+            }
+
+            yt = (y-oy*s)/s;
+            // f(x,y)
+            for( k=0, stp=yRowByteStep+xStep; k < mch;++k, stp+=desCh_offset1 ){
+                desDat_p[stp] = cubic1d(b_1[k],b0[k],b1[k],b2[k],yt);
+            }
+        }
+    }
+
+    Mat C(mdt,dr,dc,mch);
+    matRect srcR(2,2,dr+1,dc+1);
+    matRect tarR(0,0,dr-1,dc-1);
+    Mat::sliceCopyMat(B,srcR,C,tarR);
+    return C;
+}
 
 } // end of imgproc namespace
 } // end of jmat namespace

@@ -679,12 +679,11 @@ Mat Mat::copySubMat(const uint32 startRow, const uint32 endRow, const uint32 sta
     return A;
 }
 
-int32 sliceCopyMat(const Mat& src, const matRect& srcSlice, Mat& des, const matRect& desSlice ){
+int32 Mat::sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, const matRect& desSlice ){
     int32 srcR = src.getRow();
     int32 srcC = src.getCol();
     int32 desR = des.getRow();
     int32 desC = des.getCol();
-
 
     if( srcSlice.sR > srcR || srcSlice.eR > srcR || srcSlice.sC > srcC || srcSlice.eC > srcC){
         fprintf(stderr,"SliceCopyMat() : one or more arguments are out of bound from \'src mat\' \n");
@@ -729,24 +728,21 @@ int32 sliceCopyMat(const Mat& src, const matRect& srcSlice, Mat& des, const matR
     uint32 src_endColByte    = (srcSlice.eC+1)*byteStep;
     uint32 src_rowstart      = srcSlice.sR*src_rowByteStep;
     uint32 src_rowend        = (srcSlice.eR+1)*src_rowByteStep;
-    uchar* src_colstart_p;
-    uchar* src_colend_p;
+    uchar *src_colstart_p;
+    uchar *src_colend_p;
 
     uint32 des_lenRCByteStep = des_lenRowCol*byteStep;
     uint32 des_rowByteStep   = desC*byteStep;
     uint32 des_startColByte  = desSlice.sC*byteStep;
-    //uint32 des_endColByte    = (desSlice.eC+1)*byteStep;
     uint32 des_rowstart      = desSlice.sR*des_rowByteStep;
-    //uint32 des_rowend        = (desSlice.eR+1)*des_rowByteStep;
-    //uint32 des_colBytes      = des_endColByte - des_startColByte;
-    uchar* des_colstart_p;
+    uchar *des_colstart_p;
     src_ch_offset = 0;
     des_ch_offset = 0;
     for( ch=0; ch < src.getChannel(); ++ch){
         for( src_r = src_rowstart, des_r = des_rowstart; src_r < src_rowend; src_r+=src_rowByteStep, des_r+=des_rowByteStep ){
             src_offset     = src_ch_offset + src_r;
-            src_colstart_p = src_dat_ptr + src_offset + src_startColByte;
-            src_colend_p   = src_colstart_p + src_endColByte;
+            src_colstart_p = src_dat_ptr + (src_offset + src_startColByte);
+            src_colend_p   = src_dat_ptr + (src_offset + src_endColByte);
 
             des_offset     = des_ch_offset + des_r;
             des_colstart_p = des_dat_ptr + des_offset + des_startColByte;
@@ -756,6 +752,7 @@ int32 sliceCopyMat(const Mat& src, const matRect& srcSlice, Mat& des, const matR
             } */
             // =>
             std::copy(src_colstart_p, src_colend_p, des_colstart_p);
+            //printf("%p, %p, %p\n",src_colstart_p, src_colend_p, des_colstart_p );
         }
         src_ch_offset += src_lenRCByteStep;
         des_ch_offset += des_lenRCByteStep;
