@@ -557,37 +557,35 @@ template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
 
     int32 dr = mr*s;
     int32 dc = mc*s;
+    int32 padw = 2;
     //Mat for boundary padding
-    Mat A =	copy_padding(src,2);
+    Mat A =	copy_padding(src,padw);
     int32 ar = A.getRow();
     int32 ac = A.getCol();
     int32 nc = ac*s;
     int32 nr = ar*s;
-    Mat B(mdt,nr,nc,mch);
+    Mat B = Mat::zeros(nr,nc,mch,mdt);
 
     // bicubic interpolation
     int32 y,x, oy, ox;
     _T *srcDat_p= A.getDataPtr<_T>();
     _T *desDat_p= B.getDataPtr<_T>();
     float xt,yt;
-    float a_1[3],a0[3],a1[3],a2[3],a3[3];
-    float b_1[3],b0[3],b1[3],b2[3],b3[3];
+    float a_1[3],a0[3],a1[3],a2[3];
+    float b_1[3],b0[3],b1[3],b2[3];
     int32 och_offset1 = ar*ac;
     int32 desCh_offset1 = nr*nc;
-    int32 bytestep    = B.getByteStep();
-    int32 RowByteStep = A.getByteStep()*ac;
-    int32 desRowByteStep = bytestep*nc;
     int32 stp,k, orow;
     int32 yRowByteStep;
-    int32 xStep;
-    for(y=2, yRowByteStep=desRowByteStep<<1 ; y < nr-2*s; ++y, yRowByteStep+=desRowByteStep){
+    int32 xOff = padw*s, yOff = padw*s;
+    for(y=yOff, yRowByteStep=nc*yOff ; y < nr-yOff; ++y, yRowByteStep+=nc){
         oy   = y/s;
-        orow = oy * RowByteStep;
-        for(x=2, xStep=B.getByteStep()<<1; x < nc-2*s; ++x, xStep+=bytestep){
+        orow = oy * ac;
+        for(x=xOff ; x < nc-xOff; ++x){
             ox = x/s;
-            xt = (x-ox*s)/s;
+            xt = (float)(x-ox*s)/s;
             // f(x,-1)
-            for( k=0, stp=orow-RowByteStep+ox; k < mch;++k, stp+= och_offset1){
+            for( k=0, stp=orow-ac+ox; k < mch; ++k, stp+= och_offset1){
                 a_1[k]= srcDat_p[stp-1];
                 a0[k] = srcDat_p[stp  ];
                 a1[k] = srcDat_p[stp+1];
@@ -595,7 +593,7 @@ template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
                 b_1[k] = cubic1d(a_1[k],a0[k],a1[k],a2[k],xt);
             }
             // f(x,0)
-            for( k=0, stp=orow+ox; k < mch;++k, stp+= och_offset1){
+            for( k=0, stp=orow+ox; k < mch; ++k, stp+= och_offset1){
                 a_1[k]= srcDat_p[stp-1];
                 a0[k] = srcDat_p[stp  ];
                 a1[k] = srcDat_p[stp+1];
@@ -603,7 +601,7 @@ template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
                 b0[k] = cubic1d(a_1[k],a0[k],a1[k],a2[k],xt);
             }
             // f(x,1)
-            for( k=0, stp=orow+RowByteStep+ox; k < mch;++k, stp+= och_offset1){
+            for( k=0, stp=orow+ac+ox; k < mch; ++k, stp+= och_offset1){
                 a_1[k]= srcDat_p[stp-1];
                 a0[k] = srcDat_p[stp  ];
                 a1[k] = srcDat_p[stp+1];
@@ -611,7 +609,7 @@ template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
                 b1[k] = cubic1d(a_1[k],a0[k],a1[k],a2[k],xt);
             }
             // f(x,2)
-            for( k=0, stp=orow+RowByteStep*2+ox; k < mch;++k, stp+= och_offset1){
+            for( k=0, stp=orow+ac*2+ox; k < mch; ++k, stp+= och_offset1){
                 a_1[k]= srcDat_p[stp-1];
                 a0[k] = srcDat_p[stp  ];
                 a1[k] = srcDat_p[stp+1];
@@ -619,16 +617,16 @@ template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
                 b2[k] = cubic1d(a_1[k],a0[k],a1[k],a2[k],xt);
             }
 
-            yt = (y-oy*s)/s;
+            yt =(float)(y-oy*s)/s;
             // f(x,y)
-            for( k=0, stp=yRowByteStep+xStep; k < mch;++k, stp+=desCh_offset1 ){
-                desDat_p[stp] = cubic1d(b_1[k],b0[k],b1[k],b2[k],yt);
+            for( k=0, stp=yRowByteStep+x; k < mch;++k, stp+=desCh_offset1 ){
+                desDat_p[stp] =(_T) cubic1d(b_1[k],b0[k],b1[k],b2[k],yt);
             }
         }
     }
 
     Mat C(mdt,dr,dc,mch);
-    matRect srcR(2,2,dr+1,dc+1);
+    matRect srcR(yOff,xOff,dr+yOff-1,dc+xOff-1);
     matRect tarR(0,0,dr-1,dc-1);
     Mat::sliceCopyMat(B,srcR,C,tarR);
     return C;

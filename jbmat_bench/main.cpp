@@ -27,12 +27,29 @@ void math_test();
 void bicubic_test();
 int32 main(int32 argc, char *argv[])
 {
-    jbMat_test();
+    //jbMat_test();
+    bicubic_test();
     return 0;
 }
 void bicubic_test(){
+    int rc=7;
+    Mat ma(DTYP::INT,rc,rc,1);
+    for(int32 i=0; i < rc*rc; ++i)
+       ma.at<int>(i) = rand()%100;
+    ma.printMat();
+    Mat mb = imgproc::bicubicIntp(ma,2);
+    mb.printMat();
+
+    QString fname1 = QString("../jbmat_bench/test.jpg");
+    QString fname2 = QString("../jbmat_bench/test_scale2.bmp");
+    QImage img(fname1);
+    Mat matIm = qimmat::qim2mat(img);
+    Mat imScale = imgproc::bicubicIntp(matIm,2);
+    QImage cvim = qimmat::mat2qim(imScale);
+    cvim.save(fname2);
 
 }
+
 void jbMat_test(){
 
     uint32 row = 7;

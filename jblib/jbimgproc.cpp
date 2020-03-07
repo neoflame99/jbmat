@@ -1104,69 +1104,21 @@ Mat copy_padding(const Mat& src, int32 pad_size){
     }
     return des;
 }
-//Mat bicubicIntp(const Mat& m,const int32 s){
-//    int32 mr = m.getRow();
-//    int32 mc = m.getCol();
-//    int32 mch = m.getChannel();
-//    DTYP  mdt = m.getDatType();
-//
-//    int32 dr = mr<<1;
-//    int32 dc = mc<<1;
-//    //Mat for boundary padding
-//	Mat A =	copy_padding(m,2);
-//    int32 ar = A.getRow();
-//    int32 ac = A.getCol();
-//    int32 nc = ac*s;
-//    int32 nr = ar*s;
-//    Mat B(mdt,nr,nc,m.getChannel());
-//
-//    int32 y,x;
-//    for(y=2 ; y < nr-2*s; ++y){
-//        for(x=2; x < nc-2*s; ++x){
-//
-//        }
-//    }
-//    for y in np.arange(3,sz2[0]-6):
-//        oy = int(y/R)
-//        for x in np.arange(3, sz2[1]-6):
-//            ox = int(x/R)
-//            t = (x-int(ox*R))/R
-//            t = [t,t,t]
-//            f = I1[oy-1:oy+3,ox-1:ox+3,:]
-//            b = f[:,1,:] + ((f[:,2,:]-f[:,0,:]) + ((2*f[:,0,:]-5*f[:,1,:]+4*f[:,2,:]-f[:,3,:]) + (-f[:,0,:]+3*f[:,1,:]-3*f[:,2,:]+f[:,3,:])*t)*t)*t/2
-//            #fm1 = I1[oy-1,ox-1,:]
-//            #f_0 = I1[oy-1,ox  ,:]
-//            #f_1 = I1[oy-1,ox+1,:]
-//            #f_2 = I1[oy-1,ox+2,:]
-//            #bm1 = f_0 + ((f_1-fm1) + ((2*fm1-5*f_0+4*f_1-f_2) + (-fm1+3*f_0-3*f_1+f_2)*t)*t)*t/2
-//
-//            #fm1 = I1[oy,ox-1,:]
-//            #f_0 = I1[oy,ox  ,:]
-//            #f_1 = I1[oy,ox+1,:]
-//            #f_2 = I1[oy,ox+2,:]
-//            #b_0 = f_0 + ((f_1-fm1) + ((2*fm1-5*f_0+4*f_1-f_2) + (-fm1+3*f_0-3*f_1+f_2)*t)*t)*t/2
-//
-//            #fm1 = I1[oy+1,ox-1,:]
-//            #f_0 = I1[oy+1,ox  ,:]
-//            #f_1 = I1[oy+1,ox+1,:]
-//            #f_2 = I1[oy+1,ox+2,:]
-//            #b_1 = f_0 + ((f_1-fm1) + ((2*fm1-5*f_0+4*f_1-f_2) + (-fm1+3*f_0-3*f_1+f_2)*t)*t)*t/2
-//
-//            #fm1 = I1[oy+2,ox-1,:]
-//            #f_0 = I1[oy+2,ox  ,:]
-//            #f_1 = I1[oy+2,ox+1,:]
-//            #f_2 = I1[oy+2,ox+2,:]
-//            #b_2 = f_0 + ((f_1-fm1) + ((2*fm1-5*f_0+4*f_1-f_2) + (-fm1+3*f_0-3*f_1+f_2)*t)*t)*t/2
-//
-//            t = (y-int(oy*R))/R
-//            t = [t, t, t]
-//            fm1 = b[0,:]
-//            f_0 = b[1,:]
-//            f_1 = b[2,:]
-//            f_2 = b[3,:]
-//            pxy = f_0 + ((f_1-fm1) + ((2*fm1-5*f_0+4*f_1-f_2) + (-fm1+3*f_0-3*f_1+f_2)*t)*t)*t/2
-//    return A;
-//}
+
+Mat bicubicIntp(const Mat& src,const int32 s){
+
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _bicubicIntp<double>(src, s);
+    case DTYP::FLOAT  : return _bicubicIntp<float >(src, s);
+    case DTYP::INT    : return _bicubicIntp<int32 >(src, s);
+    case DTYP::UCHAR  : return _bicubicIntp<uchar >(src, s);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in bicubicIntp func.\n");
+        return Mat();
+        }
+    }
+}
+
 
 } // end of imgproc namespace
 } // end of jmat namespace
