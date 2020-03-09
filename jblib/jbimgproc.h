@@ -72,9 +72,14 @@ namespace imgproc {
 
     // image resizing
     float cubic1d(float ma1, float a0, float a1, float a2, float t);
-    Mat bicubicIntp(const Mat& src,const int32 s);
+    Mat bicubicIntp(const Mat& src,const int32 sw, const int32 sh);
+    Mat bilinearIntp(const Mat& src,const int32 sw, const int32 sh);
+    Mat nearestIntp(const Mat& src,const int32 sw, const int32 sh);
+    Mat decimate(const Mat& src,const int32 sw, const int32 sh);
     Mat copy_padding(const Mat& src, int32 pad_size=2);
-    template <typename _T> inline Mat _bicubicIntp(const Mat& src, int32 s);
+    template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 sw, const int32 sh);
+    template <typename _T> inline Mat _nearestIntp(const Mat& src, const int32 sw, const int32 sh);
+    template <typename _T> inline Mat _decimate(const Mat& src, const int32 sw, const int32 sh);
 }
 
 
@@ -549,21 +554,20 @@ template <typename _T> inline Mat _logRetinexTm(const Mat& Im, const Mat& surrou
     return Imt;
 }
 
-template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
+template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 sw, const int32 sh){
     int32 mr = src.getRow();
     int32 mc = src.getCol();
     int32 mch = src.getChannel();
     DTYP  mdt = src.getDatType();
-
-    int32 dr = mr*s;
-    int32 dc = mc*s;
+    int32 dr = mr*sh;
+    int32 dc = mc*sw;
     int32 padw = 2;
     //Mat for boundary padding
     Mat A =	copy_padding(src,padw);
     int32 ar = A.getRow();
     int32 ac = A.getCol();
-    int32 nc = ac*s;
-    int32 nr = ar*s;
+    int32 nc = ac*sw;
+    int32 nr = ar*sh;
     Mat B = Mat::zeros(nr,nc,mch,mdt);
 
     // bicubic interpolation
@@ -571,21 +575,25 @@ template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
     _T *srcDat_p= A.getDataPtr<_T>();
     _T *desDat_p= B.getDataPtr<_T>();
     float xt,yt;
-    float a_1[3],a0[3],a1[3],a2[3];
+    float a_1[3],a0[3],a1[3],a2[3];  // the range 3 is for color channels
     float b_1[3],b0[3],b1[3],b2[3];
     int32 och_offset1 = ar*ac;
     int32 desCh_offset1 = nr*nc;
-    int32 stp,k, orow;
+    int32 stp,k;
+    int32 orow,pr_orow, n1_orow, n2_orow;
     int32 yRowByteStep;
-    int32 xOff = padw*s, yOff = padw*s;
+    int32 xOff = padw*sw, yOff = padw*sh;
     for(y=yOff, yRowByteStep=nc*yOff ; y < nr-yOff; ++y, yRowByteStep+=nc){
-        oy   = y/s;
+        oy   = y/sh;
         orow = oy * ac;
+        pr_orow = orow-ac;
+        n1_orow = orow+ac;
+        n2_orow = n1_orow+ac;
         for(x=xOff ; x < nc-xOff; ++x){
-            ox = x/s;
-            xt = (float)(x-ox*s)/s;
+            ox = x/sw;
+            xt = (float)(x-ox*sw)/sw;
             // f(x,-1)
-            for( k=0, stp=orow-ac+ox; k < mch; ++k, stp+= och_offset1){
+            for( k=0, stp=pr_orow+ox; k < mch; ++k, stp+= och_offset1){
                 a_1[k]= srcDat_p[stp-1];
                 a0[k] = srcDat_p[stp  ];
                 a1[k] = srcDat_p[stp+1];
@@ -601,7 +609,7 @@ template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
                 b0[k] = cubic1d(a_1[k],a0[k],a1[k],a2[k],xt);
             }
             // f(x,1)
-            for( k=0, stp=orow+ac+ox; k < mch; ++k, stp+= och_offset1){
+            for( k=0, stp=n1_orow+ox; k < mch; ++k, stp+= och_offset1){
                 a_1[k]= srcDat_p[stp-1];
                 a0[k] = srcDat_p[stp  ];
                 a1[k] = srcDat_p[stp+1];
@@ -609,7 +617,7 @@ template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
                 b1[k] = cubic1d(a_1[k],a0[k],a1[k],a2[k],xt);
             }
             // f(x,2)
-            for( k=0, stp=orow+ac*2+ox; k < mch; ++k, stp+= och_offset1){
+            for( k=0, stp=n2_orow+ox; k < mch; ++k, stp+= och_offset1){
                 a_1[k]= srcDat_p[stp-1];
                 a0[k] = srcDat_p[stp  ];
                 a1[k] = srcDat_p[stp+1];
@@ -617,7 +625,7 @@ template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
                 b2[k] = cubic1d(a_1[k],a0[k],a1[k],a2[k],xt);
             }
 
-            yt =(float)(y-oy*s)/s;
+            yt =(float)(y-oy*sh)/sh;
             // f(x,y)
             for( k=0, stp=yRowByteStep+x; k < mch;++k, stp+=desCh_offset1 ){
                 desDat_p[stp] =(_T) cubic1d(b_1[k],b0[k],b1[k],b2[k],yt);
@@ -632,6 +640,136 @@ template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 s){
     return C;
 }
 
+template <typename _T> inline Mat _bilinearIntp(const Mat& src, const int32 sw, const int32 sh){
+    int32 mr = src.getRow();
+    int32 mc = src.getCol();
+    int32 mch = src.getChannel();
+    DTYP  mdt = src.getDatType();
+    int32 dr = mr*sh;
+    int32 dc = mc*sw;
+    int32 padw = 2;
+    //Mat for boundary padding
+    Mat A =	copy_padding(src,padw);
+    int32 ar = A.getRow();
+    int32 ac = A.getCol();
+    int32 nc = ac*sw;
+    int32 nr = ar*sh;
+    Mat B = Mat::zeros(nr,nc,mch,mdt);
+
+    // bilinear interpolation
+    int32 y,x, oy, ox;
+    _T *srcDat_p= A.getDataPtr<_T>();
+    _T *desDat_p= B.getDataPtr<_T>();
+    int32 pxt, pyt;
+    double xt, yt;
+    double a0[3],a1[3]; // 3 is for the color channel
+    int32 och_offset = ar*ac;
+    int32 desCh_offset = nr*nc;
+    int32 stp,dstp,k;
+    int32 orow, n1_orow;
+    int32 yRowByteStep;
+    int32 xOff = padw*sw, yOff = padw*sh;
+    for(y=yOff, yRowByteStep=nc*yOff ; y < nr-yOff; ++y, yRowByteStep+=nc){
+        oy   = y/sh;
+        pyt  = y-oy*sh;
+        orow = oy * ac;
+        n1_orow = orow+ac;
+        for(x=xOff ; x < nc-xOff; ++x){
+            ox = x/sw;
+            pxt = x-ox*sw;
+            if(pxt==0 && pyt==0){
+                for( k=0, dstp=yRowByteStep+x, stp=orow+ox; k < mch; ++k, stp+= och_offset, dstp+=desCh_offset)
+                    desDat_p[dstp] = srcDat_p[stp];
+            }else{
+                xt = (double)pxt/sw;
+                // f(x,0)
+                for( k=0, stp=orow+ox; k < mch; ++k, stp+= och_offset){
+                    a0[k] = ((double)srcDat_p[stp+1] -(double)srcDat_p[stp])*xt+(double)srcDat_p[stp];
+                }
+                // f(x,1)
+                for( k=0, stp=n1_orow+ox; k < mch; ++k, stp+= och_offset){
+                    a1[k] = ((double)srcDat_p[stp+1] -(double)srcDat_p[stp])*xt+(double)srcDat_p[stp];
+                }
+
+                yt =(double)pyt/sh;
+                // f(x,y)
+                for( k=0, dstp=yRowByteStep+x; k < mch;++k, dstp+=desCh_offset ){
+                    desDat_p[dstp] = (_T)((a1[k]-a0[k])*yt+a0[k]);
+                }
+            }
+        }
+    }
+
+    Mat C(mdt,dr,dc,mch);
+    matRect srcR(yOff,xOff,dr+yOff-1,dc+xOff-1);
+    matRect tarR(0,0,dr-1,dc-1);
+    Mat::sliceCopyMat(B,srcR,C,tarR);
+    return C;
+}
+template <typename _T> inline Mat _nearestIntp(const Mat& src, const int32 sw, const int32 sh){
+    int32 mr = src.getRow();
+    int32 mc = src.getCol();
+    int32 mch = src.getChannel();
+    DTYP  mdt = src.getDatType();
+    int32 nr = mr*sh;
+    int32 nc = mc*sw;
+    Mat A = Mat::zeros(nr,nc,mch,mdt);
+
+    // nearest interpolation
+    int32 y,x, oy, ox;
+    _T *srcDat_p= src.getDataPtr<_T>();
+    _T *desDat_p= A.getDataPtr<_T>();
+    int32 och_offset1   = mr*mc;
+    int32 desCh_offset1 = nr*nc;
+    int32 stp,k, orow, ostp;
+    int32 yRowByteStep;
+    for(y=0, yRowByteStep=0 ; y < nr; ++y, yRowByteStep+=nc){
+        oy   = y/sh;
+        orow = oy * mc;
+        for(x=0 ; x < nc; ++x){
+            ox = x/sw;
+            ostp = orow;
+            for(k=0, stp=yRowByteStep+x; k < mch; ++k, stp+=desCh_offset1){
+                desDat_p[stp] =srcDat_p[ostp+ox];
+                ostp += och_offset1;
+            }
+        }
+    }
+
+    return A;
+}
+
+template <typename _T> inline Mat _decimate(const Mat& src, const int32 sw, const int32 sh){
+    int32 mr = src.getRow();
+    int32 mc = src.getCol();
+    int32 mch = src.getChannel();
+    DTYP  mdt = src.getDatType();
+    int32 nr = mr/sh;
+    int32 nc = mc/sw;
+    Mat A = Mat::zeros(nr,nc,mch,mdt);
+
+    // nearest interpolation
+    int32 y,x, oy, ox;
+    _T *srcDat_p= src.getDataPtr<_T>();
+    _T *desDat_p= A.getDataPtr<_T>();
+    int32 och_offset   = mr*mc;
+    int32 desCh_offset = nr*nc;
+    int32 stp,k, orow, ostp;
+    int32 yRowByteStep;
+    for(y=0, yRowByteStep=0 ; y < nr; ++y, yRowByteStep+=nc){
+        oy   = y*sh;
+        orow = oy * mc;
+        for(x=0 ; x < nc; ++x){
+            ox = x*sw;
+            ostp = orow;
+            for(k=0, stp=yRowByteStep+x; k < mch; ++k, stp+=desCh_offset){
+                desDat_p[stp] =srcDat_p[ostp+ox];
+                ostp += och_offset;
+            }
+        }
+    }
+    return A;
+}
 } // end of imgproc namespace
 } // end of jmat namespace
 #endif // JBIMGPROC_H

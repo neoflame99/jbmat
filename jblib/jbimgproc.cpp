@@ -1105,13 +1105,12 @@ Mat copy_padding(const Mat& src, int32 pad_size){
     return des;
 }
 
-Mat bicubicIntp(const Mat& src,const int32 s){
-
+Mat bicubicIntp(const Mat& src,const int32 sw, const int32 sh){
     switch(src.getDatType()){
-    case DTYP::DOUBLE : return _bicubicIntp<double>(src, s);
-    case DTYP::FLOAT  : return _bicubicIntp<float >(src, s);
-    case DTYP::INT    : return _bicubicIntp<int32 >(src, s);
-    case DTYP::UCHAR  : return _bicubicIntp<uchar >(src, s);
+    case DTYP::DOUBLE : return _bicubicIntp<double>(src, sw, sh);
+    case DTYP::FLOAT  : return _bicubicIntp<float >(src, sw, sh);
+    case DTYP::INT    : return _bicubicIntp<int32 >(src, sw, sh);
+    case DTYP::UCHAR  : return _bicubicIntp<uchar >(src, sw, sh);
     default           : {
         fprintf(stderr, " Unsupported DTYP in bicubicIntp func.\n");
         return Mat();
@@ -1119,6 +1118,43 @@ Mat bicubicIntp(const Mat& src,const int32 s){
     }
 }
 
+Mat bilinearIntp(const Mat& src,const int32 sw, const int32 sh){
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _bilinearIntp<double>(src, sw, sh);
+    case DTYP::FLOAT  : return _bilinearIntp<float >(src, sw, sh);
+    case DTYP::INT    : return _bilinearIntp<int32 >(src, sw, sh);
+    case DTYP::UCHAR  : return _bilinearIntp<uchar >(src, sw, sh);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in bilinearIntp func.\n");
+        return Mat();
+        }
+    }
+}
 
+Mat nearestIntp(const Mat& src,const int32 sw, const int32 sh){
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _nearestIntp<double>(src, sw, sh);
+    case DTYP::FLOAT  : return _nearestIntp<float >(src, sw, sh);
+    case DTYP::INT    : return _nearestIntp<int32 >(src, sw, sh);
+    case DTYP::UCHAR  : return _nearestIntp<uchar >(src, sw, sh);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in nearestIntp func.\n");
+        return Mat();
+        }
+    }
+}
+
+Mat decimate(const Mat& src,const int32 sw, const int32 sh){
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _decimate<double>(src, sw, sh);
+    case DTYP::FLOAT  : return _decimate<float >(src, sw, sh);
+    case DTYP::INT    : return _decimate<int32 >(src, sw, sh);
+    case DTYP::UCHAR  : return _decimate<uchar >(src, sw, sh);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in nearestIntp func.\n");
+        return Mat();
+        }
+    }
+}
 } // end of imgproc namespace
 } // end of jmat namespace

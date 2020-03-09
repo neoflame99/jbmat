@@ -37,16 +37,43 @@ void bicubic_test(){
     for(int32 i=0; i < rc*rc; ++i)
        ma.at<int>(i) = rand()%100;
     ma.printMat();
-    Mat mb = imgproc::bicubicIntp(ma,2);
+    Mat mb = imgproc::bicubicIntp(ma,2,2);
     mb.printMat();
+    Mat mc = imgproc::nearestIntp(ma,2,2);
+    Mat md = imgproc::bilinearIntp(ma,2,2);
+    mc.printMat();
+    md.printMat();
 
     QString fname1 = QString("../jbmat_bench/test.jpg");
-    QString fname2 = QString("../jbmat_bench/test_scale2.bmp");
+    QString fname2 = QString("../jbmat_bench/test_scale22.bmp");
+    QString fname3 = QString("../jbmat_bench/test_scale21.bmp");
+    QString fname4 = QString("../jbmat_bench/test_scale12.bmp");
+    QString fname5 = QString("../jbmat_bench/test_scaleNear.bmp");
+    QString fname6 = QString("../jbmat_bench/test_scale22Bilinear.bmp");
+    QString fname7 = QString("../jbmat_bench/test_scale22_decimate22.bmp");
     QImage img(fname1);
     Mat matIm = qimmat::qim2mat(img);
-    Mat imScale = imgproc::bicubicIntp(matIm,2);
-    QImage cvim = qimmat::mat2qim(imScale);
-    cvim.save(fname2);
+    Mat imScale1 = imgproc::bicubicIntp(matIm,2,2);
+    Mat imScale2 = imgproc::bicubicIntp(matIm,2,1);
+    Mat imScale3 = imgproc::bicubicIntp(matIm,1,2);
+    Mat imScale4 = imgproc::nearestIntp(matIm,2,2);
+    Mat imScale5 = imgproc::bilinearIntp(matIm,2,2);
+    QImage cvim1 = qimmat::mat2qim(imScale1);
+    QImage cvim2 = qimmat::mat2qim(imScale2);
+    QImage cvim3 = qimmat::mat2qim(imScale3);
+    QImage cvim4 = qimmat::mat2qim(imScale4);
+    QImage cvim5 = qimmat::mat2qim(imScale5);
+    cvim1.save(fname2);
+    cvim2.save(fname3);
+    cvim3.save(fname4);
+    cvim4.save(fname5);
+    cvim5.save(fname6);
+    Mat decim1 = imgproc::decimate(imScale1,2,2);
+
+    QImage cvim6 = qimmat::mat2qim(decim1);
+    cvim6.save(fname7);
+    Mat dif = matIm - decim1;
+    dif.mean().printMat();
 
 }
 
