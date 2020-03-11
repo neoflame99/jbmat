@@ -1042,7 +1042,7 @@ void factorizeN(int32 N, std::vector<int32>& fac){
         fac.push_back(N);
 }
 
-float cubic1d(float a_1, float a0, float a1, float a2, float t){
+inline float cubic1d(float a_1, float a0, float a1, float a2, float t){
     float A= a2 -a_1 + 3*(a0- a1);
     float B= (2*a_1+4*a1)-(5*a0+a2); //2*a_1 -5*a0 + 4*a1 -a2;
     float C= a1 -a_1 ;
@@ -1151,7 +1151,34 @@ Mat decimate(const Mat& src,const int32 sw, const int32 sh){
     case DTYP::INT    : return _decimate<int32 >(src, sw, sh);
     case DTYP::UCHAR  : return _decimate<uchar >(src, sw, sh);
     default           : {
-        fprintf(stderr, " Unsupported DTYP in nearestIntp func.\n");
+        fprintf(stderr, " Unsupported DTYP in decimate func.\n");
+        return Mat();
+        }
+    }
+}
+
+Mat gaussPyramid(const Mat& src,const int32 level){
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _gaussPyramid<double>(src, level);
+    case DTYP::FLOAT  : return _gaussPyramid<float >(src, level);
+    case DTYP::INT    : return _gaussPyramid<int32 >(src, level);
+    case DTYP::UCHAR  : return _gaussPyramid<uchar >(src, level);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in gaussPyramid func.\n");
+        return Mat();
+        }
+    }
+}
+
+//Mat laplPyramid(const Mat& src,const int32 level){
+Mat laplPyramid( Mat& src,const int32 level){
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _laplPyramid<double>(src, level);
+    case DTYP::FLOAT  : return _laplPyramid<float >(src, level);
+    case DTYP::INT    : return _laplPyramid<int32 >(src, level);
+    case DTYP::UCHAR  : return _laplPyramid<uchar >(src, level);
+    default           : {
+        fprintf(stderr, " Unsupported DTYP in laplPyramid func.\n");
         return Mat();
         }
     }

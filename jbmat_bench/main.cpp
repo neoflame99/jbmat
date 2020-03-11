@@ -25,11 +25,25 @@ void imagerw_test();
 void imgproc_test();
 void math_test();
 void bicubic_test();
+void gaussPyramid_test();
 int32 main(int32 argc, char *argv[])
 {
     //jbMat_test();
-    bicubic_test();
+    //bicubic_test();
+    gaussPyramid_test();
     return 0;
+}
+void gaussPyramid_test(){
+
+    QString fname1 = QString("../jbmat_bench/board.jpg");
+    //QString fname2 = QString("../jbmat_bench/gaussPyramid.bmp");
+    QString fname2 = QString("../jbmat_bench/laplPyramid.bmp");
+    QImage img(fname1);
+    Mat matIm = qimmat::qim2mat(img);
+    //Mat imPyramid = imgproc::gaussPyramid(matIm,4);
+    Mat imPyramid = imgproc::laplPyramid(matIm,4);
+    QImage cvim1 = qimmat::mat2qim(imPyramid);
+    cvim1.save(fname2);
 }
 void bicubic_test(){
     int rc=7;
@@ -44,7 +58,7 @@ void bicubic_test(){
     mc.printMat();
     md.printMat();
 
-    QString fname1 = QString("../jbmat_bench/test.jpg");
+    QString fname1 = QString("../jbmat_bench/board.jpg");
     QString fname2 = QString("../jbmat_bench/test_scale22.bmp");
     QString fname3 = QString("../jbmat_bench/test_scale21.bmp");
     QString fname4 = QString("../jbmat_bench/test_scale12.bmp");

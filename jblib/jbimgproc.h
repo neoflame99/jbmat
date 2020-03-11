@@ -71,7 +71,7 @@ namespace imgproc {
     void factorizeN(int32 N, std::vector<int32>& fac );
 
     // image resizing
-    float cubic1d(float ma1, float a0, float a1, float a2, float t);
+    inline float cubic1d(float ma1, float a0, float a1, float a2, float t);
     Mat bicubicIntp(const Mat& src,const int32 sw, const int32 sh);
     Mat bilinearIntp(const Mat& src,const int32 sw, const int32 sh);
     Mat nearestIntp(const Mat& src,const int32 sw, const int32 sh);
@@ -80,6 +80,12 @@ namespace imgproc {
     template <typename _T> inline Mat _bicubicIntp(const Mat& src, const int32 sw, const int32 sh);
     template <typename _T> inline Mat _nearestIntp(const Mat& src, const int32 sw, const int32 sh);
     template <typename _T> inline Mat _decimate(const Mat& src, const int32 sw, const int32 sh);
+
+    // Image pyramid
+    template <typename _T> inline Mat _gaussPyramid(const Mat& src, const int32 level);
+    template <typename _T> inline Mat _laplPyramid( Mat& src, const int32 level);
+    Mat gaussPyramid(const Mat& src, const int32 level=4);
+    Mat laplPyramid( Mat& src, const int32 level=4);
 }
 
 
@@ -752,8 +758,8 @@ template <typename _T> inline Mat _decimate(const Mat& src, const int32 sw, cons
     int32 y,x, oy, ox;
     _T *srcDat_p= src.getDataPtr<_T>();
     _T *desDat_p= A.getDataPtr<_T>();
-    int32 och_offset   = mr*mc;
-    int32 desCh_offset = nr*nc;
+    int32 och_offset   = src.getRowColSize(); // mr*mc
+    int32 desCh_offset = A.getRowColSize(); //nr*nc;
     int32 stp,k, orow, ostp;
     int32 yRowByteStep;
     for(y=0, yRowByteStep=0 ; y < nr; ++y, yRowByteStep+=nc){
@@ -768,6 +774,81 @@ template <typename _T> inline Mat _decimate(const Mat& src, const int32 sw, cons
             }
         }
     }
+    return A;
+}
+
+template <typename _T> inline Mat _gaussPyramid(const Mat& src, const int32 level){
+    int32 r=src.getRow();
+    int32 c=src.getCol();
+    int32 ch=src.getChannel();
+
+    Mat A=Mat::zeros(r,c+c/2,ch,src.getDatType());
+    _T *srcDat_p = src.getDataPtr<_T>();
+    _T *desDat_p = A.getDataPtr<_T>();
+
+    int32 k;
+    int32 sr, sc, lr, lc;
+    Mat flt = boxMaskGen(3,ch);
+    Mat B = src;
+    Mat C ;
+    matRect srcR(0,0,r-1,c-1);
+    matRect tarR(0,0,r-1,c-1);
+    Mat::sliceCopyMat(src,srcR,A,tarR);
+    lr = r; lc = c;
+    sr = 0;
+    sc = 0;
+    for(k=0; k< level; ++k){
+        C = jmat::conv2d(B,flt,"symm");
+        B = decimate(C,2,2);
+        if( k & 0x00000001 ) sr +=lr;
+        else                 sc +=lc;
+        lr = B.getRow();
+        lc = B.getCol();
+        srcR.set(0,0,lr-1,lc-1);
+        tarR.set(sr,sc,sr+lr-1,sc+lc-1);
+        Mat::sliceCopyMat(B,srcR,A,tarR);
+    }
+    return A;
+}
+
+template <typename _T> inline Mat _laplPyramid(Mat& src, const int32 level){
+    int32 r=src.getRow();
+    int32 c=src.getCol();
+    int32 ch=src.getChannel();
+
+    Mat A=Mat::zeros(r,c+c/2,ch,src.getDatType());
+    _T *srcDat_p = src.getDataPtr<_T>();
+    _T *desDat_p = A.getDataPtr<_T>();
+
+    int32 k;
+    int32 sr, sc, lr, lc;
+    Mat flt = boxMaskGen(3,ch);
+    Mat B = src;
+    Mat C, D, E, F;
+    matRect srcR(0,0,r-1,c-1);
+    matRect tarR(0,0,r-1,c-1);
+    sr = 0;
+    sc = 0;
+    for(k=0; k< level; ++k){
+        C = jmat::conv2d(B,flt,"symm");
+        D = decimate(C,2,2);
+        E = bilinearIntp(D,2,2);
+        F = B - E + 128;
+        lr = F.getRow();
+        lc = F.getCol();
+        srcR.set(0,0,lr-1,lc-1);
+        tarR.set(sr,sc,sr+lr-1,sc+lc-1);
+        Mat::sliceCopyMat(F,srcR,A,tarR);
+        if( k & 0x00000001 ) sr +=lr;
+        else                 sc +=lc;
+        B = D.copy();
+    }
+
+    lr = D.getRow();
+    lc = D.getCol();
+    srcR.set(0,0,lr-1,lc-1);
+    tarR.set(sr,sc,sr+lr-1,sc+lc-1);
+    Mat::sliceCopyMat(D,srcR,A,tarR);
     return A;
 }
 } // end of imgproc namespace
