@@ -96,7 +96,8 @@ public:
     friend Mat operator*(const double scalar, const Mat& A);
     friend Mat operator/(const double scalar, const Mat& A);
 
-    Mat& operator= (Mat&& other );
+    Mat& operator= (const Mat& other ); // copy assignment for lvalue of right-hand side
+    Mat& operator= (Mat&& other );      // move assignment for rvalue of right-hand side
     Mat& operator+=(const Mat& other );
     Mat& operator+=(const double scalar);
     Mat& operator-=(const Mat& other );

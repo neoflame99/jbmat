@@ -171,33 +171,33 @@ void Mat::setRowCol(uint32 r, uint32 c, uint32 ch){
     sync_data_ptr();
 }
 
-/*
-//-- overloading operators : it calls copy constructor
-Mat& Mat::operator=( Mat other){
-
+// for assigning lvalue of right-hand side
+Mat& Mat::operator=(const Mat& other){
 //The parameter to the ‘operator=()’ is passed by value which calls copy constructor
 //to create an object local to the ‘operator=()’.
 //Than the value of the temp object is swapped with ‘*this’ object
-//
-    std::swap(row,other.row);
-    std::swap(col,other.col);
-    std::swap(Nch,other.Nch);
-
-    std::swap(length,other.length);
-    std::swap(lenRowCol,other.lenRowCol);
-    std::swap(mA,other.mA); // swapping mA pointer
-
+    if( &other == this) return *this;
+    row      = other.row;
+    col      = other.col;
+    Nch      = other.Nch;
+    length   = other.length;
+    lenRowCol= other.lenRowCol;
+    byteStep = other.byteStep;
+    byteLen  = other.byteLen;
+    datT     = other.datT;
+    mA       = other.mA;
+    sync_data_ptr();
     return *this;
 }
-*/
 
-// rvalue reference
+
+// for rvalue assignment of right-hand side
 Mat& Mat::operator=(Mat&& other){
 
 #ifdef _DEBUG_MODE_
     fprintf(stdout,"rvalue referance Assign operator\n");
 #endif
-
+    if( &other == this) return *this;
     std::swap(row,other.row);
     std::swap(col,other.col);
     std::swap(Nch,other.Nch);
