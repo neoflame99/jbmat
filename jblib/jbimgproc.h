@@ -841,7 +841,6 @@ template <typename _T> inline Mat _laplPyramid(Mat& src, const int32 level){
         Mat::sliceCopyMat(F,srcR,A,tarR);
         if( k & 0x00000001 ) sr +=lr;
         else                 sc +=lc;
-        //B = D.copy();
         B = D;
     }
 

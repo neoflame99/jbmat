@@ -74,6 +74,7 @@ public: // constructors and destructor
     Mat(DTYP dt, uint32 rc);
     Mat(shr_ptr ma, DTYP dt, uint32 r, uint32 c, uint32 ch );
     Mat(const Mat& mat);
+    Mat( Mat&& mat);
     Mat( std::initializer_list<double> list );
     Mat( std::initializer_list<int32> list );
     Mat( std::initializer_list<float> list );

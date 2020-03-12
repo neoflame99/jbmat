@@ -110,6 +110,24 @@ Mat::Mat(const Mat& mat){
 #endif
 }
 
+Mat::Mat( Mat&& mat){
+    row = mat.row;
+    col = mat.col;
+    Nch = mat.Nch;
+    length    = mat.length;
+    lenRowCol = mat.lenRowCol;
+    mA        = mat.mA;
+    datT      = mat.datT;
+    byteStep  = mat.byteStep;
+    byteLen   = mat.byteLen;
+    sync_data_ptr();
+    initName();
+
+#ifdef _DEBUG_MODE_
+    fprintf(stdout,"move constructor\n");
+#endif
+}
+
 Mat::Mat( std::initializer_list<double> list ){
     //-- Making a vector by column vector type    
     init(list.size(),1,1,DTYP::DOUBLE);
@@ -176,6 +194,9 @@ Mat& Mat::operator=(const Mat& other){
 //The parameter to the ‘operator=()’ is passed by value which calls copy constructor
 //to create an object local to the ‘operator=()’.
 //Than the value of the temp object is swapped with ‘*this’ object
+#ifdef _DEBUG_MODE_
+    fprintf(stdout,"rvalue referance Assign operator\n");
+#endif
     if( &other == this) return *this;
     row      = other.row;
     col      = other.col;
