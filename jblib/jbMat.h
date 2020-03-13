@@ -10,6 +10,7 @@
 #include "types.h"
 #include <math.h>
 #include <string.h>
+#include <atomic>
 
 #ifdef _MACOS_
     #include <string>
@@ -161,7 +162,6 @@ public:
 public : // static methods
     static Mat ones (uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
     static Mat zeros(uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
-    static int32 instant_count;
     static Mat repeat(const Mat& src, const uint32 rp_r, const uint32 rp_c, const uint32 rp_ch);
     static int32 sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, const matRect& desSlice );
 

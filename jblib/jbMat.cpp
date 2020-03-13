@@ -6,7 +6,7 @@
 namespace jmat {
 
 
-int32 Mat::instant_count = 0;
+static std::atomic_uint instant_count(0);
 
 //-- shallow copy version & using shared_ptr
 void Mat::alloc(uint32 len){
@@ -45,8 +45,9 @@ void Mat::init(uint32 r, uint32 c, uint32 ch, DTYP dt){
     alloc(byteLen);
 }
 void Mat::initName(){
-    obj_name =std::string( "Mat_") + std::to_string (instant_count);
-    instant_count++;
+    int32 icnt = jmat::instant_count;
+    ++instant_count;
+    obj_name =std::string( "Mat_") + std::to_string (icnt) ; //instant_count);
 }
 
 Mat::Mat(DTYP dt):mA(nullptr){
