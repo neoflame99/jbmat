@@ -19,6 +19,14 @@
 
 namespace jmat {
 
+typedef union _elemptr{
+    uchar*  uch_ptr;
+    int*    int_ptr;
+    float*  f32_ptr;
+    double* f64_ptr;
+    cmplx*  clx_ptr;
+}elemptr;
+
 typedef struct _matRect{
     int32 sR, sC;
     int32 eR, eC;
@@ -106,10 +114,10 @@ public:
     Mat& operator/=(const Mat& other );
     Mat& operator/=(const double scalar);
 
-    Mat& plusMat    (const Mat& other);
-    Mat& minusMat   (const Mat& other);
-    Mat& multiplyMat(const Mat& other);
-    Mat& divideMat  (const Mat& other);
+    Mat& plusMat (const Mat& other);
+    Mat& minusMat(const Mat& other);
+    Mat& mulMat  (const Mat& other);
+    Mat& divMat  (const Mat& other);
 
     Mat& plusScalar(const double scalar);
     Mat& plusScalar(const  float scalar);
@@ -119,18 +127,18 @@ public:
     Mat& minusScalar(const  float scalar);
     Mat& minusScalar(const  int32 scalar);
     Mat& minusScalar(const  uchar scalar);
-    Mat& multiplyScalar(const double scalar);
-    Mat& multiplyScalar(const  float scalar);
-    Mat& multiplyScalar(const  int32 scalar);
-    Mat& multiplyScalar(const  uchar scalar);
-    Mat& dividedByScalar(const double scalar);
-    Mat& dividedByScalar(const  float scalar);
-    Mat& dividedByScalar(const  int32 scalar);
-    Mat& dividedByScalar(const  uchar scalar);
-    Mat& dividingScalar(const double scalar);
-    Mat& dividingScalar(const  float scalar);
-    Mat& dividingScalar(const  int32 scalar);
-    Mat& dividingScalar(const  uchar scalar);
+    Mat& mulScalar(const double scalar);
+    Mat& mulScalar(const  float scalar);
+    Mat& mulScalar(const  int32 scalar);
+    Mat& mulScalar(const  uchar scalar);
+    Mat& divByScalar(const double scalar);
+    Mat& divByScalar(const  float scalar);
+    Mat& divByScalar(const  int32 scalar);
+    Mat& divByScalar(const  uchar scalar);
+    Mat& divScalar(const double scalar);
+    Mat& divScalar(const  float scalar);
+    Mat& divScalar(const  int32 scalar);
+    Mat& divScalar(const  uchar scalar);
 
     void setRowCol(uint32 r, uint32 c, uint32 ch=1);
     void setChannelN(const Mat& src, const uint32 srcfromCh=0,const uint32 Channels=1, const uint32 tarToCh=0);
@@ -166,7 +174,7 @@ public : // static methods
 public : // public template methods
     template <typename _T> _T& at(uint32 i=0) const;
     template <typename _T> _T& at(uint32 r, uint32 c, uint32 nch=0) const;
-    template <typename _T> _T* getDataPtr() const;
+    template <typename _T=uchar> _T* getDataPtr() const;
     template <typename _T> Mat _max() ;
     template <typename _T> Mat _min() ;
     template <typename _T> Mat _mean();
