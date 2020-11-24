@@ -19,6 +19,13 @@
 
 namespace jmat {
 
+typedef union _elemptr{
+    uchar*  uch_ptr;
+    int*    int_ptr;
+    float*  f32_ptr;
+    double* f64_ptr;
+}elemptr;
+
 typedef struct _matRect{
     int32 sR, sC;
     int32 eR, eC;
