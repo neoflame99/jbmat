@@ -28,7 +28,28 @@ void bicubic_test();
 int32 main(int32 argc, char *argv[])
 {
     //jbMat_test();
-    bicubic_test();
+    //bicubic_test();
+
+    uint32 row = 7;
+    uint32 col = 7;
+    uint32 ch = 2;
+    uint32 rowcol = row*col;
+    Mat ma(DTYP::INT, row,col,ch,"ma");
+
+    //double* a = ma.getDataPtr<double>();
+    int* a = ma.getDataPtr<int>();
+    uint32 k = 1;
+    for(uint32 c=0; c < ch; c++){
+        for(uint32 i=0; i < row*col; i++){
+            a[c*rowcol + i] = k++;
+        }
+    }
+
+    ma.printMat();
+    ma = ma + (double)10;
+    ma.setName("ma");
+    ma.printMat();
+
     return 0;
 }
 void bicubic_test(){
