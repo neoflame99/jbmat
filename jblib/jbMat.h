@@ -24,7 +24,7 @@ typedef union _elemptr{
     int*    int_ptr;
     float*  f32_ptr;
     double* f64_ptr;
-    cmplx*  clx_ptr;
+    cmplx*  cmx_ptr;
 }elemptr;
 
 typedef struct _matRect{
@@ -57,11 +57,13 @@ private: // member fields
     DTYP datT;
 
     uint32 length;
-    uint32 lenRowCol;
+    uint32 lenRowCol;   // decprecated
     void alloc(uint32 len);
     uint32 row, col, Nch;
     uint32 byteStep;
     uint32 byteLen;
+    uint32 stepCol;
+    uint32 stepRow;
 
     std::string obj_name;
 
