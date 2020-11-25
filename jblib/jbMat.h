@@ -53,12 +53,12 @@ class Mat;
 class Mat{
 private: // member fields
     shr_ptr mA;
-    uchar *dat_ptr;
-    DTYP datT;
+    uchar   *dat_ptr;
+    elemptr elptr;
+    DTYP    datT;
 
     uint32 length;
     uint32 lenRowCol;   // decprecated
-    void alloc(uint32 len);
     uint32 row, col, Nch;
     uint32 byteStep;
     uint32 byteLen;
@@ -68,16 +68,12 @@ private: // member fields
     std::string obj_name;
 
 private:
-    void sync_data_ptr(){
-        if( mA.get() != dat_ptr)
-            dat_ptr = mA.get();
-    }
+    inline void sync_data_ptr(){ elptr.uch_ptr = dat_ptr = mA.get(); }
+    void alloc(uint32 len);
     void init(uint32 r, uint32 c, uint32 ch, DTYP dt);
     void initName();
 
-
 public: // constructors and destructor
-
     Mat(DTYP dt = DTYP::DOUBLE);
     Mat(DTYP dt, uint32 r, uint32 c, uint32 ch );
     Mat(DTYP dt, uint32 r, uint32 c, uint32 ch, std::string name);
@@ -85,8 +81,10 @@ public: // constructors and destructor
     Mat(shr_ptr ma, DTYP dt, uint32 r, uint32 c, uint32 ch );
     Mat(const Mat& mat);
     Mat( std::initializer_list<double> list );
-    Mat( std::initializer_list<int32> list );
-    Mat( std::initializer_list<float> list );
+    Mat( std::initializer_list<int32 > list );
+    Mat( std::initializer_list<float > list );
+    Mat( std::initializer_list<uchar > list );
+    Mat( std::initializer_list<cmplx > list );
     ~Mat();
 
 public:

@@ -9,10 +9,10 @@ namespace jmat {
 int32 Mat::instant_count = 0;
 
 //-- shallow copy version & using shared_ptr
-void Mat::alloc(uint32 len){
+inline void Mat::alloc(uint32 len){
 
     mA      = len==0 ? nullptr : shr_ptr (new uchar[len], std::default_delete<uchar[]>());
-    dat_ptr = len==0 ? nullptr : mA.get();
+    elptr.uch_ptr = dat_ptr = mA.get();
     /*
     try{
         mA = (len==0)? nullptr : new double[len];
@@ -108,42 +108,85 @@ Mat::Mat( std::initializer_list<double> list ){
     //-- Making a vector by column vector type    
     init(list.size(),1,1,DTYP::DOUBLE);
 
-    double * dat_p = (double *)mA.get();
-    if(mA!=nullptr){
+    if(elptr.f64_ptr !=nullptr){
+        memcpy(elptr.f64_ptr, list.begin(), list.size()*sizeof(double));
+
+        /*
         std::vector<double> v;
         v.insert(v.end(),list.begin(),list.end());
 
-        for(uint32 i=0;i<length;i++){
-            dat_p[i] = v.at(i);
-        }
-    }
-}
-Mat::Mat( std::initializer_list<int32> list ){
-    //-- Making a vector by column vector type
-    init(list.size(),1,1,DTYP::INT);
-
-    int32 *dat_p = (int32 *)mA.get();
-    if(mA!=nullptr){
-        std::vector<int32> v;
-        v.insert(v.end(),list.begin(),list.end());
-
-        for(uint32 i=0;i<length;i++){
-            dat_p[i] = v.at(i);
-        }
+        memcpy(elptr.f64_ptr, v.data(), v.size()*sizeof(double));
+        //for(uint32 i=0;i<length;i++)
+        //    elptr.f64_ptr[i] = v.at(i);
+        */
     }
 }
 Mat::Mat( std::initializer_list<float> list ){
     //-- Making a vector by column vector type
     init(list.size(),1,1,DTYP::FLOAT);
 
-    float *dat_p = (float *)mA.get();
-    if(mA!=nullptr){
+    if(elptr.f32_ptr!=nullptr){
+        memcpy(elptr.f32_ptr, list.begin(), list.size()*sizeof(float));
+
+        /*
         std::vector<float> v;
         v.insert(v.end(),list.begin(),list.end());
 
-        for(uint32 i=0;i<length;i++){
-            dat_p[i] = v.at(i);
-        }
+        memcpy(elptr.f32_ptr, v.data(), v.size()*sizeof(float));
+        //for(uint32 i=0;i<length;i++)
+        //    elptr.f32[i] = v.at(i);
+        */
+    }
+}
+Mat::Mat( std::initializer_list<int32> list ){
+    //-- Making a vector by column vector type
+    init(list.size(),1,1,DTYP::INT);
+
+    if(elptr.int_ptr!=nullptr){
+        memcpy(elptr.int_ptr, list.begin(), list.size()*sizeof(int32));
+
+       /*
+        std::vector<int32> v;
+        v.insert(v.end(),list.begin(),list.end());
+
+        memcpy(elptr.int_ptr, v.data(), v.size()*sizeof(int32));
+        //for(uint32 i=0;i<length;i++)
+        //    elptr.int_ptr[i] = v.at(i);
+       */
+    }
+}
+Mat::Mat( std::initializer_list<uchar> list ){
+    //-- Making a vector by column vector type
+    init(list.size(),1,1,DTYP::UCHAR);
+
+    if(elptr.uch_ptr!=nullptr){
+        memcpy(elptr.uch_ptr, list.begin(), list.size()*sizeof(uchar));
+
+       /*
+        std::vector<uchar> v;
+        v.insert(v.end(),list.begin(),list.end());
+
+        memcpy(elptr.uch_ptr, v.data(), v.size()*sizeof(uchar));
+        //for(uint32 i=0;i<length;i++)
+        //    elptr.uch_ptr[i] = v.at(i);
+       */
+    }
+}
+Mat::Mat( std::initializer_list<cmplx> list ){
+    //-- Making a vector by column vector type
+    init(list.size(),1,1,DTYP::CMPLX);
+
+    if(elptr.cmx_ptr!=nullptr){
+        memcpy(elptr.cmx_ptr, list.begin(), list.size()*sizeof(cmplx));
+
+       /*
+        std::vector<cmplx> v;
+        v.insert(v.end(),list.begin(),list.end());
+
+        memcpy(elptr.cmx_ptr, v.data(), v.size()*sizeof(cmplx));
+        //for(uint32 i=0;i<length;i++)
+        //    elptr.cmx_ptr[i] = v.at(i);
+        */
     }
 }
 
