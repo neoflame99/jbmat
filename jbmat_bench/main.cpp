@@ -34,10 +34,9 @@ int32 main(int32 argc, char *argv[])
     uint32 col = 7;
     uint32 ch = 2;
     uint32 rowcol = row*col;
-    Mat ma(DTYP::INT, row,col,ch,"ma");
+    Mat ma(DTYP::DOUBLE, row,col,ch,"ma");
 
-    //double* a = ma.getDataPtr<double>();
-    int* a = ma.getDataPtr<int>();
+    double* a = ma.getDataPtr<double>();
     uint32 k = 1;
     for(uint32 c=0; c < ch; c++){
         for(uint32 i=0; i < row*col; i++){
@@ -50,6 +49,15 @@ int32 main(int32 argc, char *argv[])
     ma.setName("ma");
     ma.printMat();
 
+    ma.changeDType(DTYP::CMPLX);
+    ma.printMat();
+
+    ma.changeDType(DTYP::INT);
+    ma.printMat();
+
+    Mat mb = {cmplx(1.0,2.0),cmplx(3.0,4.0),cmplx(5.0,6.0),cmplx(7.0,8.0)};
+    mb.printMat("mb");
+    printf("mb data type: %d\n", mb.getDatType());
     return 0;
 }
 void bicubic_test(){
