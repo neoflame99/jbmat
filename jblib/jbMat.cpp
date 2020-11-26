@@ -26,10 +26,10 @@ void Mat::init(uint32 r, uint32 c, uint32 ch, DTYP dt){
     row = r;
     col = c;
     Nch = ch;
-    stepCol   = col*Nch;
-    stepRow   = row*stepCol;
-    lenRowCol = r*c;   // deprecated
-    length    = stepRow;
+    stepCol   = Nch;
+    stepRow   = col*stepCol;
+    length    = row*stepRow;
+    lenRowCol = r*c;   //--> deprecated
 
     datT = dt;
     switch(datT){
@@ -60,9 +60,9 @@ Mat::Mat(DTYP dt, uint32 r, uint32 c, uint32 ch):mA(nullptr){
     initName();
 }
 Mat::Mat(shr_ptr ma, DTYP dt, uint32 r, uint32 c, uint32 ch):mA(ma),datT(dt),row(r),col(c),Nch(ch){
-    stepCol   = col*Nch;
-    stepRow   = row*stepCol;
-    length    = stepRow;
+    stepCol   = Nch;
+    stepRow   = col*stepCol;
+    length    = row*stepRow;
     lenRowCol = r*c;         // --> deprecated
     switch(dt){
     case DTYP::UCHAR  : byteStep = 1; break;
@@ -149,9 +149,9 @@ Mat::~Mat(){}
 
 void Mat::setRowCol(uint32 r, uint32 c, uint32 ch){
     uint32 lenrc = r*c;   // --> deprecated
-    uint32 step_col = c*ch;
-    uint32 step_row = r*step_col;
-    uint32 len      = step_row;
+    uint32 step_col = ch;
+    uint32 step_row = c*step_col;
+    uint32 len      = r*step_row;
 
     if(length != len){
         mA.reset();
@@ -386,7 +386,9 @@ int32 Mat::reshape(uint32 r, uint32 c, uint32 ch){
     row = r;
     col = c;
     Nch = ch;
-    lenRowCol = rc;
+    stepCol = Nch;
+    stepRow = col * stepCol;
+    lenRowCol = rc; //--> deprecated
 
     return 0;
 }
@@ -478,7 +480,7 @@ void Mat::changeDType(const DTYP dt){
 
 void Mat::transpose(){
     if(isEmpty()){
-        fprintf(stderr," Transpose: This Mat is empty\n");
+        fprintf(stderr,"Mat::transpose: This Mat is empty\n");
         return ;
     }
 
@@ -530,69 +532,50 @@ void Mat::printMat(const std::string objname) {
     default           : fprintf(stdout, "datT is not matching with any type\n");
     }
 }
-
 void Mat::printMat()  {
     printMat(obj_name);
 }
 
 Mat Mat::copy() const{
     Mat A(this->datT, row, col, Nch);
+    uchar *pt_matdat  = A.getDataPtr<uchar>();
 
-    uchar *pt_matdat  = A.getMat().get();
-    uchar *pt_thisdat = this->mA.get();
-
-    std::copy(pt_thisdat,pt_thisdat+length*byteStep,pt_matdat);
-
+    std::copy(dat_ptr,dat_ptr + length*byteStep, pt_matdat);
     return A;
 }
 
 Mat Mat::ones(uint32 r, uint32 c, uint32 ch, DTYP dt){
-    if( r <= 0 || c <= 0 || ch <= 0){
-        fprintf(stdout,"In ones method: arguments r , c and ch are to be larger than 0 ");
+    if( r == 0 || c == 0 || ch == 0){
+        fprintf(stdout,"In ones method: arguments r , c or ch are to be larger than 0 ");
         return Mat();
     }
 
     Mat A(dt, r, c, ch);
-    uint32 len = A.getLength();
-    if(dt==DTYP::DOUBLE){
-        double* pt_dat = A.getDataPtr<double>();
-        for(uint32 i=0; i < len; i++)
-            pt_dat[i] = 1.0;
-    }else if(dt==DTYP::FLOAT){
-        float* pt_dat = A.getDataPtr<float >();
-        for(uint32 i=0; i < len; i++)
-            pt_dat[i] = 1.0f;
-    }else if(dt==DTYP::INT){
-        int32* pt_dat = A.getDataPtr<int32 >();
-        for(uint32 i=0; i < len; i++)
-            pt_dat[i] = 1;
-    }else if(dt==DTYP::UCHAR){
-        uchar* pt_dat = A.getDataPtr<uchar >();
-        for(uint32 i=0; i < len; i++)
-            pt_dat[i] = 1;
-    }else if(dt==DTYP::CMPLX){
-        cmplx* pt_dat = A.getDataPtr<cmplx >();
-        for(uint32 i=0; i < len; i++)
-            pt_dat[i] = 1.0;
+    elemptr t_ptrs;
+    t_ptrs.uch_ptr = A.getDataPtr();
+    uint32 len     = A.getLength();
+    uint32 k       = 0;
+    switch(dt){
+    case DTYP::DOUBLE : while( k < len ) { t_ptrs.f64_ptr[k++] = 1.0; } break;
+    case DTYP::FLOAT  : while( k < len ) { t_ptrs.f32_ptr[k++] = 1.f; } break;
+    case DTYP::INT    : while( k < len ) { t_ptrs.int_ptr[k++] = 1  ; } break;
+    case DTYP::UCHAR  : while( k < len ) { t_ptrs.uch_ptr[k++] = 1  ; } break;
+    case DTYP::CMPLX  : while( k < len ) { t_ptrs.cmx_ptr[k++] = cmplx(1.0); }
     }
 
     return A;
 }
 
-
 Mat Mat::zeros(uint32 r, uint32 c, uint32 ch, DTYP dt){
-    if( r <= 0 || c <= 0 || ch <= 0){
-        fprintf(stdout,"In zeros method: arguments r , c and ch are to be larger than 0 ");
+    if( r == 0 || c == 0 || ch == 0){
+        fprintf(stderr,"In zeros method: arguments r , c or ch are to be larger than 0 ");
         return Mat();
     }
 
     Mat A(dt, r, c, ch);
+    uchar* pt_dat = A.getDataPtr();
 
-    uchar* pt_dat = A.getMat().get();
-    for(uint32 i=0; i < r*c*ch*A.getByteStep(); i++){
-        pt_dat[i] = 0;
-    }
-
+    memset(pt_dat, 0, A.getByteLen());
     return A;
 }
 

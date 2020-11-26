@@ -58,6 +58,17 @@ int32 main(int32 argc, char *argv[])
     Mat mb = {cmplx(1.0,2.0),cmplx(3.0,4.0),cmplx(5.0,6.0),cmplx(7.0,8.0)};
     mb.printMat("mb");
     printf("mb data type: %d\n", mb.getDatType());
+
+    Mat mc = Mat::ones(2,2,2, DTYP::CMPLX);
+    mc.printMat("mc cmpx ones");
+    mc = Mat::ones(2,2,2, DTYP::DOUBLE);
+    mc.printMat("mc f64 ones");
+
+    mc = Mat::zeros(2,2,2, DTYP::CMPLX);
+    mc.printMat("mc cmpx zero");
+    mc = Mat::zeros(2,2,2, DTYP::DOUBLE);
+    mc.printMat("mc f64 zero");
+
     return 0;
 }
 void bicubic_test(){

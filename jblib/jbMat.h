@@ -157,6 +157,7 @@ public:
     inline uint32  getChannel() const { return Nch; }
     inline DTYP    getDatType() const { return datT; }
     inline uint32  getByteStep() const { return byteStep; }
+    inline uint32  getByteLen() const { return byteLen; }
 
     int32   reshape(uint32 r, uint32 c, uint32 ch=1);
     void    transpose();
