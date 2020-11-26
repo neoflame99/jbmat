@@ -486,11 +486,12 @@ void Mat::transpose(){
 
     uchar *tmA;
     uchar *mdat;
-
+    //elemptr u_ptrs;
     try{
-        tmA= new uchar[static_cast<unsigned long>(byteLen)];
+        tmA = new uchar[static_cast<unsigned long>(byteLen)];
+        //u_ptrs.uch_ptr = new uchar[static_cast<unsigned long>(byteLen)];
     }catch(std::bad_alloc& ex){
-        fprintf(stderr,"Transpose Error: %s\n",ex.what());
+        fprintf(stderr,"Mat::transpose Error: %s\n",ex.what());
         return;
     }
 

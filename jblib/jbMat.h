@@ -288,48 +288,55 @@ template <typename _T> inline void Mat::_print(_T* mdat){
     const int32 bufsz = 2049;
     char buf[bufsz]="\0";
     char tmp[bufsz];
-    uint32 i,j;
+    uint32 i,j,k;
 
     const double neg_max_double = -DBL_EPSILON ;
     const double pos_min_double =  DBL_EPSILON ;
 
-    uint32 k;
-    uint32 ch_offset;
-
-
     if(datT==DTYP::DOUBLE || datT==DTYP::FLOAT){
         double val;
-        for( k = 0 ; k < Nch; k++){
-            fprintf(stdout,"channel: %d \n",k);
-            ch_offset = k*lenRowCol;
-            for( i = 0; i < lenRowCol; i += col){ // rows
-                snprintf(buf,bufsz,"[");
-                for( j=0; j < col; j++){          // columns
-                    val = mdat[i+j+ch_offset];
+        for( i = 0; i < length; i += stepRow){ // rows
+            snprintf(buf,bufsz,"[");
+            for( j=0; j < stepRow; j+= stepCol ){ // columns
+                snprintf(tmp, bufsz," (");
+                strncat(buf, tmp, bufsz);
+                for( k =0; k < Nch; ++k){
+                    val = mdat[i+j+k];
                     if( val >= neg_max_double && val <= pos_min_double)
                         val = 0.0;
-                    snprintf(tmp,bufsz," %10.4f ",val);
-                    strncat(buf,tmp,bufsz);
+
+                    if( k > 0 && k < Nch-1)
+                        snprintf(tmp, bufsz," %9.3f,",val);
+                    else
+                        snprintf(tmp, bufsz," %9.3f",val);
+                    strncat(buf, tmp, bufsz);
                 }
-                strncat(buf,"]",1);
-                fprintf(stdout,"%s\n",buf);
+                snprintf(tmp, bufsz,") ");
+                strncat(buf, tmp, bufsz);
             }
+            strncat(buf,"]",1);
+            fprintf(stdout,"%s\n",buf);
         }
     }else{        
         int32 val;
-        for( k = 0 ; k < Nch; k++){
-            fprintf(stdout,"channel: %d \n",k);
-            ch_offset = k*lenRowCol;
-            for( i = 0; i < lenRowCol; i += col){ // rows
-                snprintf(buf,bufsz,"[");
-                for( j=0; j < col; j++){          // columns
-                    val = mdat[i+j+ch_offset];
-                    snprintf(tmp,bufsz," %7d ",val);
+        for( i = 0; i < length; i += stepRow){ // rows
+            snprintf(buf,bufsz,"[");
+            for( j=0; j < stepRow; j+= stepCol){ // columns
+                snprintf(tmp,bufsz," (");
+                strncat(buf,tmp,bufsz);
+                for( k = 0 ; k < Nch; k++){
+                    val = mdat[i+j+k];
+                    if( k > 0 && k < Nch-1)
+                        snprintf(tmp,bufsz," %7d,",val);
+                    else
+                        snprintf(tmp,bufsz," %7d ",val);
                     strncat(buf,tmp,bufsz);
                 }
-                strncat(buf,"]",1);
-                fprintf(stdout,"%s\n",buf);
+                snprintf(tmp,bufsz,") ");
+                strncat(buf,tmp,bufsz);
             }
+            strncat(buf,"]",1);
+            fprintf(stdout,"%s\n",buf);
         }
     }
 }
@@ -337,37 +344,39 @@ template <> inline void Mat::_print<cmplx>(cmplx* mdat){
     const int32 bufsz = 2049;
     char buf[bufsz]="\0";
     char tmp[bufsz];
-    uint32 i,j;
-
     const double neg_max_double = -DBL_EPSILON ;
     const double pos_min_double =  DBL_EPSILON ;
-
-    uint32 k;
-    uint32 ch_offset;
-
+    uint32 i,j, k;
 
     if(datT==DTYP::CMPLX){
         cmplx val;
-        for( k = 0 ; k < Nch; k++){
-            fprintf(stdout,"channel: %d \n",k);
-            ch_offset = k*lenRowCol;
             for( i = 0; i < lenRowCol; i += col){ // rows
                 snprintf(buf,bufsz,"[");
                 for( j=0; j < col; j++){          // columns
-                    val = mdat[i+j+ch_offset];
-                    if( val.re >= neg_max_double && val.re <= pos_min_double)
-                        val.re = 0.0;
-                    if( val.im >= neg_max_double && val.im <= pos_min_double)
-                        val.im = 0.0;
-                    snprintf(tmp,bufsz," %10.4f + %10.4f i",val.re, val.im);
+                    snprintf(tmp,bufsz," (");
+                    strncat(buf,tmp,bufsz);
+                    for( k = 0 ; k < Nch; k++){
+                        val = mdat[i+j+k];
+                        if( val.re >= neg_max_double && val.re <= pos_min_double)
+                            val.re = 0.0;
+                        if( val.im >= neg_max_double && val.im <= pos_min_double)
+                            val.im = 0.0;
+
+                        if( k > 0 && k < Nch-1)
+                            snprintf(tmp,bufsz," %9.3f + %9.3f i,",val.re, val.im);
+                        else
+                            snprintf(tmp,bufsz," %9.3f + %9.3f i",val.re, val.im);
+                        strncat(buf,tmp,bufsz);
+                    }
+                    snprintf(tmp,bufsz,") ");
                     strncat(buf,tmp,bufsz);
                 }
                 strncat(buf,"]",1);
                 fprintf(stdout,"%s\n",buf);
             }
-        }
     }
 }
+
 template <typename _T> Mat Mat::_max() {
     _T* datPtr = this->getDataPtr<_T>();
 
