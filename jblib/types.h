@@ -21,7 +21,7 @@ namespace jmat {
     typedef uint64_t      uint64;
     typedef int64_t        int64;
     typedef std::shared_ptr<uchar> shr_ptr;
-    enum    DTYP {UCHAR=0 , INT=1 , FLOAT=2, DOUBLE=3, CMPLX=4};    
+    enum class DTYP {UCHAR=0 , INT=1 , FLOAT=2, DOUBLE=3, CMPLX=4};
     struct _complex;
     typedef _complex  cmplx;
 

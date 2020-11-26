@@ -29,7 +29,6 @@ void Mat::init(uint32 r, uint32 c, uint32 ch, DTYP dt){
     stepCol   = col*Nch;
     stepRow   = row*stepCol;
     lenRowCol = r*c;   // deprecated
-    //length    = lenRowCol * ch;
     length    = stepRow;
 
     datT = dt;
@@ -104,89 +103,45 @@ Mat::Mat(const Mat& mat){
     fprintf(stdout,"copy constructor\n");
 #endif
 }
+
 Mat::Mat( std::initializer_list<double> list ){
-    //-- Making a vector by column vector type    
+    //-- Making a column vector
     init(list.size(),1,1,DTYP::DOUBLE);
 
     if(elptr.f64_ptr !=nullptr){
         memcpy(elptr.f64_ptr, list.begin(), list.size()*sizeof(double));
-
-        /*
-        std::vector<double> v;
-        v.insert(v.end(),list.begin(),list.end());
-
-        memcpy(elptr.f64_ptr, v.data(), v.size()*sizeof(double));
-        //for(uint32 i=0;i<length;i++)
-        //    elptr.f64_ptr[i] = v.at(i);
-        */
     }
 }
 Mat::Mat( std::initializer_list<float> list ){
-    //-- Making a vector by column vector type
+    //-- Making a column vector
     init(list.size(),1,1,DTYP::FLOAT);
 
     if(elptr.f32_ptr!=nullptr){
         memcpy(elptr.f32_ptr, list.begin(), list.size()*sizeof(float));
-
-        /*
-        std::vector<float> v;
-        v.insert(v.end(),list.begin(),list.end());
-
-        memcpy(elptr.f32_ptr, v.data(), v.size()*sizeof(float));
-        //for(uint32 i=0;i<length;i++)
-        //    elptr.f32[i] = v.at(i);
-        */
     }
 }
 Mat::Mat( std::initializer_list<int32> list ){
-    //-- Making a vector by column vector type
+    //-- Making a column vector
     init(list.size(),1,1,DTYP::INT);
 
     if(elptr.int_ptr!=nullptr){
         memcpy(elptr.int_ptr, list.begin(), list.size()*sizeof(int32));
-
-       /*
-        std::vector<int32> v;
-        v.insert(v.end(),list.begin(),list.end());
-
-        memcpy(elptr.int_ptr, v.data(), v.size()*sizeof(int32));
-        //for(uint32 i=0;i<length;i++)
-        //    elptr.int_ptr[i] = v.at(i);
-       */
     }
 }
 Mat::Mat( std::initializer_list<uchar> list ){
-    //-- Making a vector by column vector type
+    //-- Making a column vector
     init(list.size(),1,1,DTYP::UCHAR);
 
     if(elptr.uch_ptr!=nullptr){
         memcpy(elptr.uch_ptr, list.begin(), list.size()*sizeof(uchar));
-
-       /*
-        std::vector<uchar> v;
-        v.insert(v.end(),list.begin(),list.end());
-
-        memcpy(elptr.uch_ptr, v.data(), v.size()*sizeof(uchar));
-        //for(uint32 i=0;i<length;i++)
-        //    elptr.uch_ptr[i] = v.at(i);
-       */
     }
 }
 Mat::Mat( std::initializer_list<cmplx> list ){
-    //-- Making a vector by column vector type
+    //-- Making a column vector
     init(list.size(),1,1,DTYP::CMPLX);
 
     if(elptr.cmx_ptr!=nullptr){
         memcpy(elptr.cmx_ptr, list.begin(), list.size()*sizeof(cmplx));
-
-       /*
-        std::vector<cmplx> v;
-        v.insert(v.end(),list.begin(),list.end());
-
-        memcpy(elptr.cmx_ptr, v.data(), v.size()*sizeof(cmplx));
-        //for(uint32 i=0;i<length;i++)
-        //    elptr.cmx_ptr[i] = v.at(i);
-        */
     }
 }
 
@@ -284,10 +239,10 @@ Mat& Mat::operator/=(const double scalar){
 
 Mat Mat::operator+(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol()|| Nch != other.getChannel() ){
-        fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
+        fprintf(stdout,"Mat::operator+ : Stop adding two operands because the both operands are not same size\n");
         return Mat();
     }else if(this->isEmpty()){
-        fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
+        fprintf(stdout,"Mat::operator+ : Stop adding two operands because the both operands are empty\n");
         return Mat();
     }
 
@@ -298,10 +253,10 @@ Mat Mat::operator+(const Mat& other) const{
 }
 Mat Mat::operator-(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
-        fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
+        fprintf(stdout,"Mat::operator- : Stop adding two operands because the both operands are not same size\n");
         return Mat();
     }else if(this->isEmpty()){
-        fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
+        fprintf(stdout,"Mat::operator- : Stop adding two operands because the both operands are empty\n");
         return Mat();
     }
 
@@ -312,10 +267,10 @@ Mat Mat::operator-(const Mat& other) const{
 }
 Mat Mat::operator*(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
-        fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
+        fprintf(stdout,"Mat::operator* : Stop adding two operands because the both operands are not same size\n");
         return Mat();
     }else if(this->isEmpty()){
-        fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
+        fprintf(stdout,"Mat::operator* : Stop adding two operands because the both operands are empty\n");
         return Mat();
     }
     Mat product = this->copy();
@@ -325,10 +280,10 @@ Mat Mat::operator*(const Mat& other) const{
 }
 Mat Mat::operator/(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol() || Nch != other.getChannel() ){
-        fprintf(stdout,"Stop adding two operands because the both operands are not same size\n");
+        fprintf(stdout,"Mat::operator/ : Stop adding two operands because the both operands are not same size\n");
         return Mat();
     }else if(this->isEmpty()){
-        fprintf(stdout,"Stop adding two operands because the both operands are empty\n");
+        fprintf(stdout,"Mat::operator/ : Stop adding two operands because the both operands are empty\n");
         return Mat();
     }
     Mat div = this->copy();
@@ -339,7 +294,7 @@ Mat Mat::operator/(const Mat& other) const{
 
 Mat operator+(const Mat& A, const double scalar){
     if(A.isEmpty()){
-        fprintf(stderr," operator+ with scalar : Mat A is empty \n");
+        fprintf(stderr,"Mat::operator+ with scalar : Mat A is empty \n");
         return Mat();
     }
     Mat sum = A.copy();
@@ -349,7 +304,7 @@ Mat operator+(const Mat& A, const double scalar){
 }
 Mat operator+(const double scalar , const Mat& A){
     if(A.isEmpty()){
-        fprintf(stderr," operator+ with scalar : Mat A is empty \n");
+        fprintf(stderr,"Mat::operator+ with scalar : Mat A is empty \n");
         return Mat();
     }
     Mat sum = A.copy();
@@ -360,7 +315,7 @@ Mat operator+(const double scalar , const Mat& A){
 
 Mat operator-(const Mat& A, const double scalar) {
     if(A.isEmpty()){
-        fprintf(stderr," operator- with scalar : this mat is empty \n");
+        fprintf(stderr,"Mat::operator- with scalar : this mat is empty \n");
         return Mat();
     }
     Mat subtract = A.copy();
@@ -370,7 +325,7 @@ Mat operator-(const Mat& A, const double scalar) {
 }
 Mat operator-(const double scalar,const Mat& A) {
     if(A.isEmpty()){
-        fprintf(stderr," operator- with scalar : this mat is empty \n");
+        fprintf(stderr,"Mat::operator- with scalar : this mat is empty \n");
         return Mat();
     }
     Mat subtract = A.copy();
@@ -381,7 +336,7 @@ Mat operator-(const double scalar,const Mat& A) {
 
 Mat operator*(const Mat& A, const double scalar){
     if(A.isEmpty()){
-        fprintf(stderr," operator* with scalar : this mat is empty \n");
+        fprintf(stderr,"Mat::operator* with scalar : this mat is empty \n");
         return Mat();
     }
     Mat product = A.copy();
@@ -391,7 +346,7 @@ Mat operator*(const Mat& A, const double scalar){
 }
 Mat operator*(const double scalar, const Mat& A){
     if(A.isEmpty()){
-        fprintf(stderr," operator* with scalar : this mat is empty \n");
+        fprintf(stderr,"Mat::operator* with scalar : this mat is empty \n");
         return Mat();
     }
     Mat product = A.copy();
@@ -402,7 +357,7 @@ Mat operator*(const double scalar, const Mat& A){
 
 Mat operator/(const Mat& lhs, const double scalar){
     if(lhs.isEmpty()){
-        fprintf(stderr," operator/ with scalar : this mat is empty \n");
+        fprintf(stderr,"Mat::operator/ with scalar : this mat is empty \n");
         return Mat();
     }
     Mat div = lhs.copy();
@@ -412,7 +367,7 @@ Mat operator/(const Mat& lhs, const double scalar){
 }
 Mat operator/(const double scalar, const Mat& rhs){
     if(rhs.isEmpty()){
-        fprintf(stderr," operator/ with scalar : this mat is empty \n");
+        fprintf(stderr,"Mat::operator/ with scalar : this mat is empty \n");
         return Mat();
     }
     Mat div = rhs.copy();
@@ -425,7 +380,7 @@ int32 Mat::reshape(uint32 r, uint32 c, uint32 ch){
     uint32 rc   = r*c;
     uint32 tlen = rc*ch;
     if( tlen != length){
-        fprintf(stderr," reshape argument is not correct!\n");
+        fprintf(stderr,"Mat::reshape : reshape argument is not correct!\n");
         return -1;
     }
     row = r;
@@ -437,47 +392,86 @@ int32 Mat::reshape(uint32 r, uint32 c, uint32 ch){
 }
 
 void Mat::changeDType(const DTYP dt){
+
+    assert(static_cast<int>(dt) < 5 && static_cast<int>(datT) < 5 );
+
+    if( dt == datT ) return ;
+
+    elemptr t_elptr;
+    t_elptr.uch_ptr = nullptr;
+    try{
+        switch(dt){
+        case DTYP::UCHAR  : t_elptr.uch_ptr = new uchar[(U64)length * sizeof(uchar )]; break;
+        case DTYP::INT    : t_elptr.uch_ptr = new uchar[(U64)length * sizeof(int32 )]; break;
+        case DTYP::FLOAT  : t_elptr.uch_ptr = new uchar[(U64)length * sizeof(float )]; break;
+        case DTYP::DOUBLE : t_elptr.uch_ptr = new uchar[(U64)length * sizeof(double)]; break;
+        case DTYP::CMPLX  : t_elptr.uch_ptr = new uchar[(U64)length * sizeof(cmplx )];
+        }
+    }catch(std::bad_alloc& ex){
+        fprintf(stderr,"Mat::changeDType : memory allocation error: %s\n",ex.what());
+        return;
+    }
+
+    uint32  k = 0;
     if(dt == DTYP::DOUBLE){
         switch (datT) {
-        case DTYP::FLOAT : _type_change<float,double>(); break;
-        case DTYP::INT   : _type_change<int32,double>(); break;
-        case DTYP::UCHAR : _type_change<uchar,double>(); break;
-        default          : break;
+        case DTYP::FLOAT : for( ; k < length ; ++k ){ t_elptr.f64_ptr[k] = (double) elptr.f32_ptr[k]; } break;
+        case DTYP::INT   : for( ; k < length ; ++k ){ t_elptr.f64_ptr[k] = (double) elptr.int_ptr[k]; } break;
+        case DTYP::UCHAR : for( ; k < length ; ++k ){ t_elptr.f64_ptr[k] = (double) elptr.uch_ptr[k]; } break;
+        case DTYP::CMPLX : for( ; k < length ; ++k ){ t_elptr.f64_ptr[k] =          elptr.cmx_ptr[k].re; } break;
+        case DTYP::DOUBLE: ;
         }
-        datT = dt;
+        byteStep = sizeof(double);
     }else if( dt== DTYP::FLOAT){
         switch (datT) {
-        case DTYP::DOUBLE: _type_change<double,float>(); break;
-        case DTYP::INT   : _type_change<int32 ,float>(); break;
-        case DTYP::UCHAR : _type_change<uchar ,float>(); break;
-        default          : break;
+        case DTYP::DOUBLE: for( ; k < length ; ++k ){ t_elptr.f32_ptr[k] = (float) elptr.f64_ptr[k]; } break;
+        case DTYP::INT   : for( ; k < length ; ++k ){ t_elptr.f32_ptr[k] = (float) elptr.int_ptr[k]; } break;
+        case DTYP::UCHAR : for( ; k < length ; ++k ){ t_elptr.f32_ptr[k] = (float) elptr.uch_ptr[k]; } break;
+        case DTYP::CMPLX : for( ; k < length ; ++k ){ t_elptr.f32_ptr[k] = (float) elptr.cmx_ptr[k].re; } break;
+        case DTYP::FLOAT : ;
         }
-        datT = dt;
+        byteStep = sizeof(float);
     }else if( dt== DTYP::INT){
         switch (datT) {
-        case DTYP::DOUBLE: _type_change<double,int32>(); break;
-        case DTYP::FLOAT : _type_change<float ,int32>(); break;
-        case DTYP::UCHAR : _type_change<uchar ,int32>(); break;
-        default          : break;
+        case DTYP::DOUBLE: for( ; k < length ; ++k ){ t_elptr.int_ptr[k] = (int32) elptr.f64_ptr[k]; } break;
+        case DTYP::FLOAT : for( ; k < length ; ++k ){ t_elptr.int_ptr[k] = (int32) elptr.f32_ptr[k]; } break;
+        case DTYP::UCHAR : for( ; k < length ; ++k ){ t_elptr.int_ptr[k] = (int32) elptr.uch_ptr[k]; } break;
+        case DTYP::CMPLX : for( ; k < length ; ++k ){ t_elptr.int_ptr[k] = (int32) elptr.cmx_ptr[k].re; } break;
+        case DTYP::INT   : ;
         }
-        datT = dt;
+        byteStep = sizeof(int);
     }else if( dt== DTYP::UCHAR){
         switch (datT) {
-        case DTYP::DOUBLE: _type_change<double,uchar>(); break;
-        case DTYP::FLOAT : _type_change<float ,uchar>(); break;
-        case DTYP::INT   : _type_change<int32 ,uchar>(); break;
-        default          : break;
+        case DTYP::DOUBLE: for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] = (uchar) elptr.f64_ptr[k]; } break;
+        case DTYP::FLOAT : for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] = (uchar) elptr.f32_ptr[k]; } break;
+        case DTYP::INT   : for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] = (uchar) elptr.int_ptr[k]; } break;
+        case DTYP::CMPLX : for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] = (uchar) elptr.cmx_ptr[k].re; } break;
+        case DTYP::UCHAR : ;
         }
-        datT = dt;
-    }else{
-        fprintf(stderr, "argument dt of changeDType() is not match with any type\n");
+        byteStep = sizeof(uchar);
+    }else if( dt== DTYP::CMPLX){
+        switch (datT) {
+        case DTYP::DOUBLE: for( ; k < length ; ++k ){ t_elptr.cmx_ptr[k] = cmplx( elptr.f64_ptr[k], 0.0); } break;
+        case DTYP::FLOAT : for( ; k < length ; ++k ){ t_elptr.cmx_ptr[k] = cmplx( elptr.f32_ptr[k], 0.0); } break;
+        case DTYP::INT   : for( ; k < length ; ++k ){ t_elptr.cmx_ptr[k] = cmplx( elptr.int_ptr[k], 0.0); } break;
+        case DTYP::UCHAR : for( ; k < length ; ++k ){ t_elptr.cmx_ptr[k] = cmplx( elptr.uch_ptr[k], 0.0); } break;
+        case DTYP::CMPLX : ;
+        }
+        byteStep = sizeof(cmplx);
     }
+    mA.reset( t_elptr.uch_ptr, std::default_delete<uchar[]>());
+    sync_data_ptr();
+
+    datT    = dt;
+    byteLen = length * byteStep;
+
 #ifdef _DEBUG
     switch(datT){
     case DTYP::DOUBLE: fprintf(stdout,"datT is changed to double\n"); break;
     case DTYP::FLOAT : fprintf(stdout,"datT is changed to float \n"); break;
-    case DTYP::INT   : fprintf(stdout,"datT is changed to int32   \n"); break;
+    case DTYP::INT   : fprintf(stdout,"datT is changed to int32 \n"); break;
     case DTYP::UCHAR : fprintf(stdout,"datT is changed to uchar \n"); break;
+    case DTYP::CMPLX : fprintf(stdout,"datT is changed to uchar \n"); break;
     }
 #endif
 }
@@ -499,7 +493,7 @@ void Mat::transpose(){
     }
 
     mdat = mA.get();
-    uint32 i, j, k, m, ch_offset, lhs_idx, rhs_idx;
+    uint32 i, j, k, ch_offset, lhs_idx, rhs_idx;
     for(k=0; k < Nch; k++){       // channel step
         ch_offset = k* lenRowCol * byteStep;
         for(i=0; i < row; i++){   // row step

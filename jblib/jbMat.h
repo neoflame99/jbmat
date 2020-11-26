@@ -358,7 +358,7 @@ template <> inline void Mat::_print<cmplx>(cmplx* mdat){
                         val.re = 0.0;
                     if( val.im >= neg_max_double && val.im <= pos_min_double)
                         val.im = 0.0;
-                    snprintf(tmp,bufsz," %10.4f + i%10.4f",val.re, val.im);
+                    snprintf(tmp,bufsz," %10.4f + %10.4f i",val.re, val.im);
                     strncat(buf,tmp,bufsz);
                 }
                 strncat(buf,"]",1);
