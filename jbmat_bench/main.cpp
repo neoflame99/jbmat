@@ -40,7 +40,11 @@ int32 main(int32 argc, char *argv[])
     uint32 k = 1;
     for(uint32 c=0; c < ch; c++){
         for(uint32 i=0; i < row*col; i++){
-            a[c*rowcol + i] = k++;
+            if(c == 1)
+                a[c*rowcol + i] = k;
+            else
+                a[c*rowcol + i] = -(int)k;
+            ++k;
         }
     }
 
@@ -68,6 +72,12 @@ int32 main(int32 argc, char *argv[])
     mc.printMat("mc cmpx zero");
     mc = Mat::zeros(2,2,2, DTYP::DOUBLE);
     mc.printMat("mc f64 zero");
+
+    Mat md = { cmplx(1,2),cmplx(3,4),cmplx(5,6),cmplx(7,8),cmplx(9,10),cmplx(11,12),cmplx(13,14),cmplx(15,16),cmplx(17,18),cmplx(19,20),cmplx(21,22),cmplx(23,24)};
+    md.reshape(3,2,2);
+    md.printMat("md reshape");
+    md.transpose();
+    md.printMat("md transpose");
 
     return 0;
 }

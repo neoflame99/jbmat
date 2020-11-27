@@ -305,16 +305,15 @@ template <typename _T> inline void Mat::_print(_T* mdat){
                     if( val >= neg_max_double && val <= pos_min_double)
                         val = 0.0;
 
-                    if( k > 0 && k < Nch-1)
-                        snprintf(tmp, bufsz," %9.3f,",val);
-                    else
-                        snprintf(tmp, bufsz," %9.3f",val);
+                    snprintf(tmp, bufsz,"% 6.3g",val);
                     strncat(buf, tmp, bufsz);
+                    if( k < Nch-1)
+                        strncat(buf, ",", 2);
                 }
                 snprintf(tmp, bufsz,") ");
                 strncat(buf, tmp, bufsz);
             }
-            strncat(buf,"]",1);
+            strncat(buf,"]",2);
             fprintf(stdout,"%s\n",buf);
         }
     }else{        
@@ -326,16 +325,19 @@ template <typename _T> inline void Mat::_print(_T* mdat){
                 strncat(buf,tmp,bufsz);
                 for( k = 0 ; k < Nch; k++){
                     val = mdat[i+j+k];
-                    if( k > 0 && k < Nch-1)
-                        snprintf(tmp,bufsz," %7d,",val);
+                    if(val > 100000)
+                        snprintf(tmp,bufsz,"% 5g",(double)val);
                     else
-                        snprintf(tmp,bufsz," %7d ",val);
+                        snprintf(tmp,bufsz,"% 5d",val);
+
                     strncat(buf,tmp,bufsz);
+                    if( k < Nch-1)
+                        strncat(buf, ",", 2);
                 }
                 snprintf(tmp,bufsz,") ");
                 strncat(buf,tmp,bufsz);
             }
-            strncat(buf,"]",1);
+            strncat(buf,"]",2);
             fprintf(stdout,"%s\n",buf);
         }
     }
@@ -350,30 +352,29 @@ template <> inline void Mat::_print<cmplx>(cmplx* mdat){
 
     if(datT==DTYP::CMPLX){
         cmplx val;
-            for( i = 0; i < lenRowCol; i += col){ // rows
-                snprintf(buf,bufsz,"[");
-                for( j=0; j < col; j++){          // columns
-                    snprintf(tmp,bufsz," (");
-                    strncat(buf,tmp,bufsz);
-                    for( k = 0 ; k < Nch; k++){
-                        val = mdat[i+j+k];
-                        if( val.re >= neg_max_double && val.re <= pos_min_double)
-                            val.re = 0.0;
-                        if( val.im >= neg_max_double && val.im <= pos_min_double)
-                            val.im = 0.0;
+        for( i = 0; i < lenRowCol; i += col){ // rows
+            snprintf(buf,bufsz,"[");
+            for( j=0; j < col; j++){          // columns
+                snprintf(tmp,bufsz," (");
+                strncat(buf,tmp,bufsz);
+                for( k = 0 ; k < Nch; k++){
+                    val = mdat[i+j+k];
+                    if( val.re >= neg_max_double && val.re <= pos_min_double)
+                        val.re = 0.0;
+                    if( val.im >= neg_max_double && val.im <= pos_min_double)
+                        val.im = 0.0;
 
-                        if( k > 0 && k < Nch-1)
-                            snprintf(tmp,bufsz," %9.3f + %9.3f i,",val.re, val.im);
-                        else
-                            snprintf(tmp,bufsz," %9.3f + %9.3f i",val.re, val.im);
-                        strncat(buf,tmp,bufsz);
-                    }
-                    snprintf(tmp,bufsz,") ");
+                    snprintf(tmp,bufsz,"% 5.2g %+5.2gi",val.re, val.im);
                     strncat(buf,tmp,bufsz);
+                    if( k < Nch-1)
+                        strncat(buf, ",", 2);
                 }
-                strncat(buf,"]",1);
-                fprintf(stdout,"%s\n",buf);
+                snprintf(tmp,bufsz,") ");
+                strncat(buf,tmp,bufsz);
             }
+            strncat(buf,"]",2);
+            fprintf(stdout,"%s\n",buf);
+        }
     }
 }
 

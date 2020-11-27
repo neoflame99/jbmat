@@ -141,7 +141,12 @@ Mat::Mat( std::initializer_list<cmplx> list ){
     init(list.size(),1,1,DTYP::CMPLX);
 
     if(elptr.cmx_ptr!=nullptr){
-        memcpy(elptr.cmx_ptr, list.begin(), list.size()*sizeof(cmplx));
+        //memcpy(elptr.cmx_ptr, list.begin(), list.size()*sizeof(cmplx));
+        std::vector<cmplx> v(list);
+        uint32 k = 0;
+        for(std::vector<cmplx>::iterator itr = v.begin(); itr != v.end(); itr++){
+            elptr.cmx_ptr[k++] = *itr;
+        }
     }
 }
 
@@ -485,52 +490,125 @@ void Mat::transpose(){
     }
 
     uchar *tmA;
-    uchar *mdat;
-    //elemptr u_ptrs;
     try{
         tmA = new uchar[static_cast<unsigned long>(byteLen)];
-        //u_ptrs.uch_ptr = new uchar[static_cast<unsigned long>(byteLen)];
     }catch(std::bad_alloc& ex){
         fprintf(stderr,"Mat::transpose Error: %s\n",ex.what());
         return;
     }
 
-    mdat = mA.get();
-    uint32 i, j, k, ch_offset, lhs_idx, rhs_idx;
-    for(k=0; k < Nch; k++){       // channel step
-        ch_offset = k* lenRowCol * byteStep;
-        for(i=0; i < row; i++){   // row step
-            for(j=0; j<col; j++){ // column step
-                lhs_idx = (ch_offset + j*row +i)*byteStep;
-                rhs_idx = (ch_offset + i*col +j)*byteStep;
-                memcpy(&tmA[lhs_idx], &mdat[rhs_idx], byteStep);
-            }
+    uint32 i, j, lhs_idx, rhs_idx;
+    uint32 rr, rf, lf, lr;
+    uint32 byte_step_col= stepCol * byteStep;
+    uint32 rr_step      = col*byte_step_col;  // rough step of right-hand index
+    uint32 lr_step      = row*byte_step_col;  // rough step of left-hand index
+    for(i=0, rr=0, lf=0; i < row; i++, rr+=rr_step, lf+=byte_step_col){     // row step
+        for(j=0, lr=0, rf=0; j < col; j++, lr+=lr_step, rf+=byte_step_col){ // column step
+            lhs_idx = lr + lf;  // (j*row+i)*byteStep*Nch(=stepCol)
+            rhs_idx = rr + rf;  // (i*col+j)*byteStep*Nch(=stepCol)
+
+            memcpy(&tmA[lhs_idx], &dat_ptr[rhs_idx], byte_step_col);
         }
     }
-    mA.reset(tmA,std::default_delete<uchar[]>());
+    mA.reset(tmA, std::default_delete<uchar[]>());
     sync_data_ptr();
 
-    int32 row_tr = col;
+    i   = col;
     col = row;
-    row = row_tr;
+    row = i;
+    stepRow = col*stepCol;
 }
 
 void Mat::printMat(const std::string objname) {
-
     if(!objname.empty())
         fprintf(stdout,"object : %s \n", objname.c_str());
     if(isEmpty()){
         fprintf(stdout,"Empty matrix\n");
         return ;
     }
+    const int32 bufsz = 2049;
+    const int32 bsz   = 32;
+    const double neg_max_double = -DBL_EPSILON ;
+    const double pos_min_double =  DBL_EPSILON ;
+    char buf[bufsz]="\0";
+    char tmp[bsz];
+    uint32 i,j,k, m;
 
-    switch(datT){
-    case DTYP::DOUBLE : _print((double *)dat_ptr); break;
-    case DTYP::FLOAT  : _print((float  *)dat_ptr); break;
-    case DTYP::INT    : _print((int32  *)dat_ptr); break;
-    case DTYP::UCHAR  : _print((uchar  *)dat_ptr); break;
-    case DTYP::CMPLX  : _print((cmplx  *)dat_ptr); break;
-    default           : fprintf(stdout, "datT is not matching with any type\n");
+    m = 0;
+    if(datT==DTYP::CMPLX){
+        cmplx val;
+        for( i = 0; i < lenRowCol; i += col){ // rows
+            snprintf(buf,bufsz,"[");
+            for( j=0; j < col; j++){          // columns
+                strncat(buf," (", 3);
+                for( k = 0 ; k < Nch; k++){
+                    val = elptr.cmx_ptr[m++];
+                    if( val.re >= neg_max_double && val.re <= pos_min_double)
+                        val.re = 0.0;
+                    if( val.im >= neg_max_double && val.im <= pos_min_double)
+                        val.im = 0.0;
+
+                    snprintf(tmp,bsz,"% 6.2g %-+6.2gi",val.re, val.im);
+                    strncat(buf,tmp,bufsz);
+                    if( k < Nch-1)
+                        strncat(buf, ",", 2);
+                }
+                strncat(buf,") ", 3);
+            }
+            strncat(buf,"]",2);
+            fprintf(stdout,"%s\n",buf);
+        }
+    }else if(datT==DTYP::DOUBLE || datT==DTYP::FLOAT){
+        double val;
+        for( i = 0; i < length; i += stepRow){ // rows
+            snprintf(buf,bufsz,"[");
+            for( j=0 ; j < stepRow; j+= stepCol ){ // columns
+                strncat(buf, " (", 3 );
+                for( k =0; k < Nch; ++k){
+                    if(datT == DTYP::FLOAT)
+                        val = elptr.f32_ptr[m++];
+                    else
+                        val = elptr.f64_ptr[m++];
+
+                    if( val >= neg_max_double && val <= pos_min_double)
+                        val = 0.0;
+
+                    snprintf(tmp, bsz,"% 6.3g",val);
+                    strncat(buf, tmp, bsz);
+                    if( k < Nch-1)
+                        strncat(buf, ",", 2);
+                }
+                strncat(buf, ") ", 3);
+            }
+            strncat(buf,"]",2);
+            fprintf(stdout,"%s\n",buf);
+        }
+    }else{
+        int32 val;
+        for( i = 0; i < length; i += stepRow){ // rows
+            snprintf(buf,bufsz,"[");
+            for( j=0; j < stepRow; j+= stepCol){ // columns
+                strncat(buf," (", 3);
+                for( k = 0 ; k < Nch; k++){
+                    if(datT == DTYP::UCHAR)
+                        val = elptr.uch_ptr[m++];
+                    else
+                        val = elptr.int_ptr[m++];
+
+                    if( val > -10000 && val < 10000 )
+                        snprintf(tmp,bsz,"% 5d",val);
+                    else
+                        snprintf(tmp,bsz,"% 5g",(double)val);
+
+                    strncat(buf,tmp,bufsz);
+                    if( k < Nch-1)
+                        strncat(buf, ",", 2);
+                }
+                strncat(buf,") ",3);
+            }
+            strncat(buf,"]",2);
+            fprintf(stdout,"%s\n",buf);
+        }
     }
 }
 void Mat::printMat()  {
@@ -541,7 +619,7 @@ Mat Mat::copy() const{
     Mat A(this->datT, row, col, Nch);
     uchar *pt_matdat  = A.getDataPtr<uchar>();
 
-    std::copy(dat_ptr,dat_ptr + length*byteStep, pt_matdat);
+    std::copy(dat_ptr, dat_ptr + length*byteStep, pt_matdat);
     return A;
 }
 
@@ -563,7 +641,6 @@ Mat Mat::ones(uint32 r, uint32 c, uint32 ch, DTYP dt){
     case DTYP::UCHAR  : while( k < len ) { t_ptrs.uch_ptr[k++] = 1  ; } break;
     case DTYP::CMPLX  : while( k < len ) { t_ptrs.cmx_ptr[k++] = cmplx(1.0); }
     }
-
     return A;
 }
 
@@ -777,9 +854,13 @@ int32 Mat::sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, 
 
 Mat& Mat::plusMat(const Mat& other){
     if(isEmpty() || other.isEmpty()) {
-        fprintf(stderr, "Mat::plusMat method : either of this or other is empty\n");
+        fprintf(stderr, "Mat::plusMat method : Either of this or other is empty\n");
+        return *this;
+    }else if(row != other.getRow() || col != other.getCol() || Nch != other.getChannel()){
+        fprintf(stderr, "Mat::plusMat method : The sizes of this and other are not the same!\n");
         return *this;
     }
+
     DTYP othrdatT = other.getDatType();
     if(othrdatT != datT){
         fprintf(stderr, "Waring, Mat::plusMat method : data types between self and other are different\n");
@@ -837,7 +918,11 @@ Mat& Mat::minusMat(const Mat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "Mat::minusMat method : either of this or other is empty\n");
         return *this;
+    }else if(row != other.getRow() || col != other.getCol() || Nch != other.getChannel()){
+        fprintf(stderr, "Mat::minusMat method : The sizes of this and other are not the same!\n");
+        return *this;
     }
+
     DTYP othrdatT = other.getDatType();
     if(othrdatT != datT){
         fprintf(stderr, "Waring, Mat::minusMat method : data types between self and other are different\n");
@@ -895,7 +980,11 @@ Mat& Mat::mulMat(const Mat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "Mat::mulMat method : either of this or other is empty\n");
         return *this;
+    }else if(row != other.getRow() || col != other.getCol() || Nch != other.getChannel()){
+        fprintf(stderr, "Mat::mulMat method : The sizes of this and other are not the same!\n");
+        return *this;
     }
+
     DTYP othrdatT = other.getDatType();
     if(othrdatT != datT){
         fprintf(stderr, "Waring, Mat::mulMat method : data types between self and other are different\n");
@@ -953,7 +1042,11 @@ Mat& Mat::divMat(const Mat& other){
     if(isEmpty() || other.isEmpty()) {
         fprintf(stdout, "Mat::divMat method : either of this or other is empty\n");
         return *this;
+    }else if(row != other.getRow() || col != other.getCol() || Nch != other.getChannel()){
+        fprintf(stderr, "Mat::divMat method : The sizes of this and other are not the same!\n");
+        return *this;
     }
+
     DTYP othrdatT = other.getDatType();
     if(othrdatT != datT){
         fprintf(stderr, "Waring, Mat::divMat method : data types between self and other are different\n");
