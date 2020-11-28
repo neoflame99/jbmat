@@ -1419,13 +1419,64 @@ Mat& Mat::divScalar(const uchar scalar){
 
 Mat Mat::max(){
     if(isEmpty()) return Mat();
-    switch(datT){
-    case DTYP::DOUBLE : return _max<double>();
-    case DTYP::FLOAT  : return _max<float >();
-    case DTYP::INT    : return _max<int32 >();
-    case DTYP::UCHAR  : return _max<uchar >();
-    default           : return _max<cmplx >(); //case DTYP::CMPLX  : return _max<cmplx >();
+
+    uint32 ch = getChannel();
+    uint32 k, m, n;
+    elemptr Aptrs;
+    Mat  A(getDatType(),1,1,ch);
+    Aptrs.uch_ptr = A.getDataPtr();
+    k=0;
+    if(datT == DTYP::DOUBLE){
+        for(; k<ch; ++k) { Aptrs.f64_ptr[k]= elptr.f64_ptr[k]; }
+        for(m = ch ; m < length; m+=ch ){
+            for(k=0, n=m ; k < ch; ++k, ++n){
+                if( Aptrs.f64_ptr[k] < elptr.f64_ptr[n])
+                    Aptrs.f64_ptr[k] = elptr.f64_ptr[n];
+            }
+        }
+    }else if(datT == DTYP::FLOAT){
+        for(; k<ch; ++k) { Aptrs.f32_ptr[k]= elptr.f32_ptr[k]; }
+        for(m = ch ; m < length; m+=ch ){
+            for(k=0, n=m ; k < ch; ++k, ++n){
+                if( Aptrs.f32_ptr[k] < elptr.f32_ptr[n])
+                    Aptrs.f32_ptr[k] = elptr.f32_ptr[n];
+            }
+        }
+    }else if(datT == DTYP::INT){
+        for(; k<ch; ++k) { Aptrs.int_ptr[k]= elptr.int_ptr[k]; }
+        for(m = ch ; m < length; m+=ch ){
+            for(k=0, n=m ; k < ch; ++k, ++n){
+                if( Aptrs.int_ptr[k] < elptr.int_ptr[n])
+                    Aptrs.int_ptr[k] = elptr.int_ptr[n];
+            }
+        }
+    }else if(datT == DTYP::UCHAR){
+        for(; k<ch; ++k) { Aptrs.uch_ptr[k]= elptr.uch_ptr[k]; }
+        for(m = ch ; m < length; m+=ch ){
+            for(k=0, n=m ; k < ch; ++k, ++n){
+                if( Aptrs.uch_ptr[k] < elptr.uch_ptr[n])
+                    Aptrs.uch_ptr[k] = elptr.uch_ptr[n];
+            }
+        }
+    }else if(datT == DTYP::CMPLX){
+        cmplx   cl, tmp;
+        double *clmag_ch, large_mag, tmp_mag;
+        clmag_ch = new double[ch];
+        for(; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; clmag_ch[k] = cl.re*cl.re+cl.im*cl.im;}
+        for(m = ch ; m < length; m+=ch ){
+            for(k=0, n=m ; k < ch; ++k, ++n){
+                tmp       = elptr.cmx_ptr[n];
+                tmp_mag   = tmp.re*tmp.re + tmp.im*tmp.im;
+                large_mag = clmag_ch[k];
+                if( clmag_ch[k] < tmp_mag){
+                    Aptrs.cmx_ptr[k] = tmp;
+                    clmag_ch[k]      = tmp_mag;
+                }
+            }
+        }
+        delete [] clmag_ch;
     }
+    return A;
 }
 
 Mat Mat::min(){

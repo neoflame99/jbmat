@@ -189,7 +189,6 @@ public : // public template methods
 
 private: // private template methods
     template <typename _T> void _print(_T* mdat);
-    template <typename _Tsrc, typename _Ttar> void _type_change();
     template <typename _Tslf, typename _Totr> void _plus_mat       (_Tslf* self, _Totr* other, uint32 len );
     template <typename _Tslf, typename _Totr> void _minus_mat      (_Tslf* self, _Totr* other, uint32 len );
     template <typename _Tslf, typename _Totr> void _multiply_mat   (_Tslf* self, _Totr* other, uint32 len );
@@ -261,27 +260,6 @@ template <typename _Tslf, typename _Totr> void Mat::_divided_by_scalar(_Tslf* se
 template <typename _Tslf, typename _Totr> void Mat::_dividing_scalar(_Tslf* self, _Totr scalar, uint32 len){
     for(uint32 k=0; k < len ; k++)
         self[k] = scalar / self[k];
-}
-
-template <typename _Tsrc, typename _Ttar> inline void Mat::_type_change(){
-    _Tsrc* src_pt = (_Tsrc *)mA.get();
-    _Ttar* tar_pt;
-    try{
-        tar_pt = new _Ttar[static_cast<unsigned long>(length)];
-    }catch(std::bad_alloc& ex){
-        fprintf(stderr,"Transpose Error: %s\n",ex.what());
-        return;
-    }
-
-    uint32 k;
-    for( k=0; k < length; k++){
-        tar_pt[k] = (_Ttar) (src_pt[k]);
-    }
-    mA.reset((uchar *)tar_pt,std::default_delete<uchar[]>());
-    sync_data_ptr();
-
-    byteStep = sizeof(_Ttar);
-    byteLen  = length * byteStep;
 }
 
 template <typename _T> inline void Mat::_print(_T* mdat){
@@ -381,48 +359,51 @@ template <> inline void Mat::_print<cmplx>(cmplx* mdat){
 template <typename _T> Mat Mat::_max() {
     _T* datPtr = this->getDataPtr<_T>();
 
-    uint32 ch  = getChannel();
-    uint32 rclen = getRowColSize();
-
-    Mat A(getDatType(),1,ch,1);
-    _T large;
+    uint32 ch = getChannel();
     uint32 k, m, n;
-    n=0;
-    for(k=0 ; k < ch; k++){
-        large = datPtr[n++];
-        for(m = 1 ; m < rclen; m++, n++ ){
-            if( large < datPtr[n])
-                large = datPtr[n];
+    Mat A(getDatType(),1,1,ch);
+
+    for(k=0; k < ch; ++k)
+        A.at<_T>(k) = datPtr[k];
+
+    for(m = ch ; m < length; m+=ch ){
+        for(k=0, n=m ; k < ch; ++k, ++n){
+            if( A.at<_T>(k) < datPtr[n])
+                A.at<_T>(k) = datPtr[n];
         }
-        A.at<_T>(k) = large;
     }
     return A;
 }
 template <> inline Mat Mat::_max<cmplx>() {
     cmplx* datPtr = this->getDataPtr<cmplx>();
 
-    uint32 ch    = getChannel();
-    uint32 rclen = getRowColSize();
-
-    Mat A(getDatType(),1,ch,1);
-    cmplx large;
-    cmplx tmp;
-    double large_mag, tmp_mag;
+    uint32 ch = getChannel();
     uint32 k, m, n;
-    n=0;
-    for(k=0 ; k < ch; k++){
-        large = datPtr[n++];
-        large_mag = large.re*large.re + large.im*large.im;
-        for(m = 1 ; m < rclen; m++, n++ ){
-            tmp = datPtr[n];
-            tmp_mag = tmp.re*tmp.re + tmp.im*tmp.im;
-            if( large_mag < tmp_mag){
-                large = datPtr[n];
-                large_mag = tmp_mag;
+    cmplx  large, tmp;
+    double *large_mag_ch;
+    double  large_mag, tmp_mag;
+
+    Mat A(getDatType(),1,1,ch);
+
+    large_mag_ch = new double[ch];
+    for(k=0; k < ch; ++k){
+        A.at<cmplx>(k) = datPtr[k];
+        large_mag_ch[k] = datPtr[k].re*datPtr[k].re + datPtr[k].im*datPtr[k].im;
+    }
+
+    for(m = ch; m < length; m+=ch){
+        for(k=0, n=m; k < ch; ++k, ++n){
+            tmp       = datPtr[n];
+            tmp_mag   = tmp.re*tmp.re + tmp.im*tmp.im;
+            large_mag = large_mag_ch[k];
+            if(large_mag < tmp_mag){
+                A.at<cmplx>(k) = tmp;
+                large_mag_ch[k]= tmp_mag;
             }
         }
-        A.at<cmplx>(k) = large;
     }
+    delete [] large_mag_ch;
+
     return A;
 }
 template <typename _T> Mat Mat::_min() {
