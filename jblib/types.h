@@ -82,7 +82,8 @@ namespace jmat {
         inline void set_val(double r=0, double i=0) { re= r; im = i; }
         inline void zero() {set_val(0,0);}
         //inline void conj() {im=-im; }
-        inline _complex conj(const _complex& A) { return _complex(A.re, -A.im); }
+        static inline _complex conj(const _complex& A) { return _complex(A.re, -A.im); }
+        inline _complex conj() { return _complex(re, -im); }
 
     };
 

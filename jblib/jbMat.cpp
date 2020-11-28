@@ -1482,24 +1482,111 @@ Mat Mat::max(){
 Mat Mat::min(){
     if(isEmpty()) return Mat();
 
-    switch(datT){
-    case DTYP::DOUBLE : return _min<double>();
-    case DTYP::FLOAT  : return _min<float >();
-    case DTYP::INT    : return _min<int32 >();
-    case DTYP::UCHAR  : return _min<uchar >();
-    default           : return _min<cmplx >(); //case DTYP::CMPLX  : return _min<cmplx >();
+    uint32 ch = getChannel();
+    uint32 k, m, n;
+    elemptr Aptrs;
+    Mat  A(getDatType(),1,1,ch);
+    Aptrs.uch_ptr = A.getDataPtr();
+    k=0;
+    if(datT == DTYP::DOUBLE){
+        for(; k<ch; ++k) { Aptrs.f64_ptr[k]= elptr.f64_ptr[k]; }
+        for(m = ch ; m < length; m+=ch ){
+            for(k=0, n=m ; k < ch; ++k, ++n){
+                if( Aptrs.f64_ptr[k] > elptr.f64_ptr[n])
+                    Aptrs.f64_ptr[k] = elptr.f64_ptr[n];
+            }
+        }
+    }else if(datT == DTYP::FLOAT){
+        for(; k<ch; ++k) { Aptrs.f32_ptr[k]= elptr.f32_ptr[k]; }
+        for(m = ch ; m < length; m+=ch ){
+            for(k=0, n=m ; k < ch; ++k, ++n){
+                if( Aptrs.f32_ptr[k] > elptr.f32_ptr[n])
+                    Aptrs.f32_ptr[k] = elptr.f32_ptr[n];
+            }
+        }
+    }else if(datT == DTYP::INT){
+        for(; k<ch; ++k) { Aptrs.int_ptr[k]= elptr.int_ptr[k]; }
+        for(m = ch ; m < length; m+=ch ){
+            for(k=0, n=m ; k < ch; ++k, ++n){
+                if( Aptrs.int_ptr[k] > elptr.int_ptr[n])
+                    Aptrs.int_ptr[k] = elptr.int_ptr[n];
+            }
+        }
+    }else if(datT == DTYP::UCHAR){
+        for(; k<ch; ++k) { Aptrs.uch_ptr[k]= elptr.uch_ptr[k]; }
+        for(m = ch ; m < length; m+=ch ){
+            for(k=0, n=m ; k < ch; ++k, ++n){
+                if( Aptrs.uch_ptr[k] > elptr.uch_ptr[n])
+                    Aptrs.uch_ptr[k] = elptr.uch_ptr[n];
+            }
+        }
+    }else if(datT == DTYP::CMPLX){
+        cmplx   cl, tmp;
+        double *clmag_ch, large_mag, tmp_mag;
+        clmag_ch = new double[ch];
+        for(; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; clmag_ch[k] = cl.re*cl.re + cl.im*cl.im; }
+        for(m = ch ; m < length; m+=ch ){
+            for(k=0, n=m ; k < ch; ++k, ++n){
+                tmp       = elptr.cmx_ptr[n];
+                tmp_mag   = tmp.re*tmp.re + tmp.im*tmp.im;
+                large_mag = clmag_ch[k];
+                if( clmag_ch[k] > tmp_mag){
+                    Aptrs.cmx_ptr[k] = tmp;
+                    clmag_ch[k]      = tmp_mag;
+                }
+            }
+        }
+        delete [] clmag_ch;
     }
+    return A;
 }
 
 Mat Mat::mean(){
     if(isEmpty()) return Mat();
 
-    switch(datT){
-    case DTYP::DOUBLE : return _mean<double>();
-    case DTYP::FLOAT  : return _mean<float >();
-    case DTYP::INT    : return _mean<int32 >();
-    case DTYP::UCHAR  : return _mean<uchar >();
-    default           : return _mean<cmplx >(); //case DTYP::CMPLX  : return _mean<cmplx >();
+    return (sum()/getRowColSize());
+}
+
+Mat Mat::sum(){
+    if(isEmpty()) return Mat();
+    uint32 ch = getChannel();
+    uint32 k, m, n;
+    n=0;
+    if(datT == DTYP::CMPLX){
+        Mat  B = Mat::zeros(1,1,ch,DTYP::CMPLX);
+        cmplx* Bptr = B.getDataPtr<cmplx>();
+
+        for(m = 0 ; m < length; m+=ch ){
+            for(k=0 ; k < ch; ++k, ++n)
+                Bptr[k] += elptr.cmx_ptr[n];
+        }
+        return B;
+    }else{
+        Mat  A = Mat::zeros(1,1,ch,DTYP::DOUBLE);
+        double* Aptr = A.getDataPtr<double>();
+
+        if(datT == DTYP::DOUBLE){
+            for(m = 0 ; m < length; m+=ch ){
+                for( k=0 ; k < ch; ++k, ++n)
+                    Aptr[k] += elptr.f64_ptr[n];
+            }
+        }else if(datT == DTYP::FLOAT){
+            for(m = 0 ; m < length; m+=ch ){
+                for( k=0 ; k < ch; ++k, ++n)
+                    Aptr[k] += double(elptr.f32_ptr[n]);
+            }
+        }else if(datT == DTYP::INT){
+            for(m = 0 ; m < length; m+=ch ){
+                for( k=0 ; k < ch; ++k, ++n)
+                    Aptr[k] += double(elptr.int_ptr[n]);
+            }
+        }else if(datT == DTYP::UCHAR){
+            for(m = 0 ; m < length; m+=ch ){
+                for( k=0 ; k < ch; ++k, ++n)
+                    Aptr[k] += double(elptr.int_ptr[n]);
+            }
+        }
+        return A;
     }
 }
 
@@ -1515,17 +1602,6 @@ Mat Mat::std(){
     }
 }
 
-Mat Mat::sum(){
-    if(isEmpty()) return Mat();
-
-    switch(datT){
-    case DTYP::DOUBLE : return _sum<double>();
-    case DTYP::FLOAT  : return _sum<float >();
-    case DTYP::INT    : return _sum<int32 >();
-    case DTYP::UCHAR  : return _sum<uchar >();
-    default           : return _sum<cmplx >(); //case DTYP::CMPLX  : return _sum<cmplx >();
-    }
-}
 
 Mat Mat::repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
     if(src.isEmpty()) return Mat();

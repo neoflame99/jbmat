@@ -409,86 +409,107 @@ template <> inline Mat Mat::_max<cmplx>() {
 template <typename _T> Mat Mat::_min() {
     _T* datPtr = this->getDataPtr<_T>();
 
-    uint32 ch  = getChannel();
-    uint32 rclen = getRowColSize();
-
-    Mat A(getDatType(),1,ch,1);
-    _T less;
+    uint32 ch = getChannel();
     uint32 k, m, n;
-    n=0;
-    for(k=0 ; k < ch; k++){
-        less = datPtr[n++];
-        for(m = 1 ; m < rclen; m++, n++ ){
-            if( less > datPtr[n])
-                less = datPtr[n];
+    Mat A(getDatType(),1,1,ch);
+
+    for(k=0; k < ch; ++k)
+        A.at<_T>(k) = datPtr[k];
+
+    for(m = ch ; m < length; m+=ch ){
+        for(k=0, n=m ; k < ch; ++k, ++n){
+            if( A.at<_T>(k) > datPtr[n])
+                A.at<_T>(k) = datPtr[n];
         }
-        A.at<_T>(k) = less;
     }
     return A;
 }
 template <> inline Mat Mat::_min<cmplx>() {
     cmplx* datPtr = this->getDataPtr<cmplx>();
 
-    uint32 ch    = getChannel();
-    uint32 rclen = getRowColSize();
-
-    Mat A(getDatType(),1,ch,1);
-    cmplx less;
-    cmplx tmp;
-    double less_mag, tmp_mag;
+    uint32 ch = getChannel();
     uint32 k, m, n;
-    n=0;
-    for(k=0 ; k < ch; k++){
-        less = datPtr[n++];
-        less_mag = less.re*less.re + less.im*less.im;
-        for(m = 1 ; m < rclen; m++, n++ ){
-            tmp = datPtr[n];
-            tmp_mag = tmp.re*tmp.re + tmp.im*tmp.im;
-            if( less_mag > tmp_mag){
-                less     = datPtr[n];
-                less_mag = tmp_mag;
+    cmplx  large, tmp;
+    double *large_mag_ch;
+    double  large_mag, tmp_mag;
+
+    Mat A(getDatType(),1,1,ch);
+
+    large_mag_ch = new double[ch];
+    for(k=0; k < ch; ++k){
+        A.at<cmplx>(k) = datPtr[k];
+        large_mag_ch[k] = datPtr[k].re*datPtr[k].re + datPtr[k].im*datPtr[k].im;
+    }
+
+    for(m = ch; m < length; m+=ch){
+        for(k=0, n=m; k < ch; ++k, ++n){
+            tmp       = datPtr[n];
+            tmp_mag   = tmp.re*tmp.re + tmp.im*tmp.im;
+            large_mag = large_mag_ch[k];
+            if(large_mag > tmp_mag){
+                A.at<cmplx>(k) = tmp;
+                large_mag_ch[k]= tmp_mag;
             }
         }
-        A.at<cmplx>(k) = less;
     }
+    delete [] large_mag_ch;
+
     return A;
 }
 template <typename _T> Mat Mat::_mean() {
     _T* datPtr = this->getDataPtr<_T>();
 
-    uint32 ch    = getChannel();
-    uint32 rclen = getRowColSize();
-
-    Mat A(DTYP::DOUBLE,1,ch,1);
-    double sum;
+    uint32 ch = getChannel();
     uint32 k, m, n;
+    Mat A = Mat::zeros(1,1,ch,DTYP::DOUBLE);
     n = 0;
-    for(k=0 ; k < ch; k++){
-        sum = 0;
-        for(m = 0 ; m < rclen; m++){
-            sum += double(datPtr[n++]);
-        }
-        A.at<double>(k) = sum/rclen;
+    for(m = 0 ; m < length; m+=ch){
+        for(k=0; k < ch; ++k, ++n)
+            A.at<double>(k) += double(datPtr[n]);
     }
+    A /= row*col;
     return A;
 }
 template <> inline Mat Mat::_mean<cmplx>() {
     cmplx* datPtr = this->getDataPtr<cmplx>();
 
     uint32 ch    = getChannel();
-    uint32 rclen = getRowColSize();
 
-    Mat A(DTYP::CMPLX,1,ch,1);
+    Mat A = Mat::zeros(1,1,ch,DTYP::CMPLX);
     cmplx sum;
     cmplx tmp;
     uint32 k, m, n;
     n = 0;
-    for(k=0 ; k < ch; k++){
-        sum.zero();
-        for(m = 0 ; m < rclen; m++){
-            sum += cmplx(datPtr[n++]);
-        }
-        A.at<cmplx>(k) = sum/rclen;
+    for(m = 0 ; m < length; m+=ch){
+        for(k=0; k < ch; ++k, ++n)
+            A.at<cmplx>(k) += cmplx(datPtr[n]);
+    }
+    A /= getRowColSize();
+    return A;
+}
+template <typename _T> Mat Mat::_sum() {
+    _T* datPtr = this->getDataPtr<_T>();
+
+    uint32 ch  = getChannel();
+    Mat A = Mat::zeros(1,1,ch,DTYP::DOUBLE);
+    uint32 k, m, n;
+    n = 0;
+    for(m = 0 ; m < length; m+=ch){
+        for(k=0; k < ch; ++k, ++n)
+            A.at<double>(k) += double(datPtr[n]);
+    }
+    return A;
+}
+template <> inline Mat Mat::_sum<cmplx>() {
+    cmplx* datPtr = this->getDataPtr<cmplx>();
+
+    uint32 ch  = getChannel();
+    Mat A = Mat::zeros(1,1,ch,DTYP::CMPLX);
+    uint32 k, m, n;
+    n = 0;
+    for(m = 0 ; m < length; m+=ch){
+        for(k=0; k < ch; ++k, ++n)
+            A.at<cmplx>(k) += cmplx(datPtr[n]);
     }
     return A;
 }
@@ -497,93 +518,48 @@ template <typename _T> Mat Mat::_std() {
     _T* datPtr = this->getDataPtr<_T>();
 
     uint32 ch    = getChannel();
-    uint32 rclen = getRowColSize();
 
     Mat avg = _mean<_T>();
-    Mat A(DTYP::DOUBLE,1,ch,1);
-    double sqsum;
+    Mat A   = Mat::zeros(1,1,ch,DTYP::DOUBLE);
     double diff;
-    double ch_avg;
     uint32 k, m, n;
     n = 0;
-    uint32 Div = rclen -1;
-    for(k=0 ; k < ch; k++){
-        sqsum  = 0;
-        ch_avg = avg.at<double>(k);
-        for(m = 0 ; m < rclen; m++){
-           diff = double(datPtr[n++]) - ch_avg;
-           sqsum += diff*diff;
+    uint32 Div = getRowColSize() -1;
+    for(m = 0 ; m < length; m+=ch){
+        for(k=0; k < ch; ++k, ++n){
+            diff = double(datPtr[n]) - avg.at<double>(k);
+            A.at<double>(k) += diff*diff;
         }
-        A.at<double>(k) = sqrt(sqsum / Div);
     }
+    for(k=0; k < ch; ++k)
+        A.at<double>(k) = sqrt(A.at<double>(k) / Div);
     return A;
 }
 template <> inline Mat Mat::_std<cmplx>() {
     cmplx* datPtr = this->getDataPtr<cmplx>();
 
     uint32 ch    = getChannel();
-    uint32 rclen = getRowColSize();
 
     Mat avg = _mean<cmplx>();
-    Mat A(DTYP::CMPLX,1,ch,1);
+    Mat A   = Mat::zeros(1,1,ch,DTYP::CMPLX);
     cmplx sqsum;
     cmplx diff;
     cmplx ch_avg;
     uint32 k, m, n;
     n = 0;
-    uint32 Div = rclen -1;
-    for(k=0 ; k < ch; k++){
-        sqsum  = 0;
-        ch_avg = avg.at<cmplx>(k);
-        for(m = 0 ; m < rclen; m++){
-           diff = cmplx(datPtr[n++]) - ch_avg;
-           sqsum += diff*diff;
+    uint32 Div = getRowColSize() -1;
+    for(m = 0 ; m < length; m+=ch){
+        for(k=0; k < ch; ++k, ++n){
+            diff = datPtr[n] - avg.at<cmplx>(k);
+            A.at<cmplx>(k) += diff*diff.conj();
         }
-        sqsum /= Div;
-        A.at<cmplx>(k) = sqsum;
     }
+    for(k=0; k < ch; ++k)
+        A.at<cmplx>(k) /= Div;
+    //--> need to correct it.
     return A;
 }
 
-template <typename _T> Mat Mat::_sum() {
-    _T* datPtr = this->getDataPtr<_T>();
-
-    uint32 ch    = getChannel();
-    uint32 rclen = getRowColSize();
-
-    Mat A(DTYP::DOUBLE,1,ch,1);
-    double sum;
-    uint32 k, m, n;
-    n = 0;
-    for(k=0 ; k < ch; k++){
-        sum = 0;
-        for(m = 0 ; m < rclen; m++){
-            sum += double(datPtr[n++]);
-        }
-        A.at<double>(k) = sum;
-    }
-    return A;
-}
-template <> inline Mat Mat::_sum<cmplx>() {
-    cmplx* datPtr = this->getDataPtr<cmplx>();
-
-    uint32 ch    = getChannel();
-    uint32 rclen = getRowColSize();
-
-    Mat A(DTYP::CMPLX,1,ch,1);
-    cmplx sum;
-    cmplx tmp;
-    uint32 k, m, n;
-    n = 0;
-    for(k=0 ; k < ch; k++){
-        sum.zero();
-        for(m = 0 ; m < rclen; m++){
-            sum += cmplx(datPtr[n++]);
-        }
-        A.at<cmplx>(k) = sum;
-    }
-    return A;
-}
 
 template <typename _T> Mat Mat::_repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
     // src must have only 1 channel
