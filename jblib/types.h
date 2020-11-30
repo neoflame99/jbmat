@@ -3,6 +3,7 @@
 #include <memory>
 #include <cstdint>
 #include <float.h>
+#include <math.h>
 
 #define U08 uint8_t
 #define I32 int32_t
@@ -44,6 +45,7 @@ namespace jmat {
         friend inline _complex operator-(_complex& lhs, double rhs);
         friend inline _complex operator-(double lhs, _complex& rhs);
         inline _complex operator-(const _complex& rhs);
+        inline _complex operator-(){ return _complex( -re, -im); } // unary minus operator overload
 
         friend inline _complex operator*(_complex& lhs, double rhs);
         friend inline _complex operator*(double lhs, _complex& rhs);
@@ -85,6 +87,17 @@ namespace jmat {
         static inline _complex conj(const _complex& A) { return _complex(A.re, -A.im); }
         inline _complex conj() { return _complex(re, -im); }
 
+        inline double square() { return (re*re + im*im);}
+        inline double abs() { return std::sqrt(re*re + im*im);}
+        inline _complex sqrt(){
+            double sr, si;
+            sr = std::sqrt( (this->abs() + this->re)/2.0 );
+            si = std::sqrt( (this->abs() - this->re)/2.0 );
+            if( this->im < 0.0 )
+                si = -si;
+
+            return _complex(sr, si);
+        }
     };
 
     inline _complex operator +(_complex& lhs, double rhs){
@@ -220,6 +233,7 @@ namespace jmat {
     inline bool operator==(const double lhs, const _complex& rhs){
         return (rhs.re <= lhs+DBL_EPSILON && rhs.re >= lhs-DBL_EPSILON && rhs.im == 0.0) ? true : false;
     }
+
 
 }
 

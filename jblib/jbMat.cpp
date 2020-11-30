@@ -29,7 +29,7 @@ void Mat::init(uint32 r, uint32 c, uint32 ch, DTYP dt){
     stepCol   = Nch;
     stepRow   = col*stepCol;
     length    = row*stepRow;
-    lenRowCol = r*c;   //--> deprecated
+    lenRowCol = row*col;
 
     datT = dt;
     switch(datT){
@@ -63,7 +63,7 @@ Mat::Mat(shr_ptr ma, DTYP dt, uint32 r, uint32 c, uint32 ch):mA(ma),datT(dt),row
     stepCol   = Nch;
     stepRow   = col*stepCol;
     length    = row*stepRow;
-    lenRowCol = r*c;         // --> deprecated
+    lenRowCol = row*col;
     switch(dt){
     case DTYP::UCHAR  : byteStep = 1; break;
     case DTYP::INT    : byteStep = 4; break;
@@ -85,7 +85,7 @@ Mat::Mat(const Mat& mat){
     length    = mat.length;
     stepCol   = mat.stepCol;
     stepRow   = mat.stepRow;
-    lenRowCol = mat.lenRowCol; // --> deprecated
+    lenRowCol = mat.lenRowCol;
     mA        = mat.mA;
     datT      = mat.datT;
     byteStep  = mat.byteStep;
@@ -165,7 +165,7 @@ void Mat::setRowCol(uint32 r, uint32 c, uint32 ch){
     row = r;
     col = c;
     Nch = ch;
-    lenRowCol = lenrc; // --> deprecated
+    lenRowCol = lenrc;
     stepCol   = step_col;
     stepRow   = step_row;
     length    = len;
@@ -203,7 +203,7 @@ Mat& Mat::operator=(Mat&& other){
     std::swap(length,other.length);
     std::swap(stepCol,other.stepCol);
     std::swap(stepRow,other.stepRow);
-    std::swap(lenRowCol,other.lenRowCol); //--> deprecated
+    std::swap(lenRowCol,other.lenRowCol);
     std::swap(byteStep,other.byteStep);
     std::swap(byteLen,other.byteLen);
     std::swap(datT,other.datT);
@@ -393,7 +393,7 @@ int32 Mat::reshape(uint32 r, uint32 c, uint32 ch){
     Nch = ch;
     stepCol = Nch;
     stepRow = col * stepCol;
-    lenRowCol = rc; //--> deprecated
+    lenRowCol = rc;
 
     return 0;
 }
@@ -1289,7 +1289,7 @@ Mat& Mat::mulScalar(const uchar scalar){
 
 Mat& Mat::divByScalar(const double scalar){
     if(isEmpty()) return *this;
-    assert(scalar == 0.0);
+    assert(scalar != 0.0);
 
     uint32 k = 0;
     elemptr ptr;
@@ -1462,11 +1462,11 @@ Mat Mat::max(){
         cmplx   cl, tmp;
         double *clmag_ch, large_mag, tmp_mag;
         clmag_ch = new double[ch];
-        for(; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; clmag_ch[k] = cl.re*cl.re+cl.im*cl.im;}
+        for(; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; clmag_ch[k] = cl.square();}
         for(m = ch ; m < length; m+=ch ){
             for(k=0, n=m ; k < ch; ++k, ++n){
                 tmp       = elptr.cmx_ptr[n];
-                tmp_mag   = tmp.re*tmp.re + tmp.im*tmp.im;
+                tmp_mag   = tmp.square();
                 large_mag = clmag_ch[k];
                 if( clmag_ch[k] < tmp_mag){
                     Aptrs.cmx_ptr[k] = tmp;
@@ -1524,11 +1524,11 @@ Mat Mat::min(){
         cmplx   cl, tmp;
         double *clmag_ch, large_mag, tmp_mag;
         clmag_ch = new double[ch];
-        for(; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; clmag_ch[k] = cl.re*cl.re + cl.im*cl.im; }
+        for(; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; clmag_ch[k] = cl.square(); }
         for(m = ch ; m < length; m+=ch ){
             for(k=0, n=m ; k < ch; ++k, ++n){
                 tmp       = elptr.cmx_ptr[n];
-                tmp_mag   = tmp.re*tmp.re + tmp.im*tmp.im;
+                tmp_mag   = tmp.square();
                 large_mag = clmag_ch[k];
                 if( clmag_ch[k] > tmp_mag){
                     Aptrs.cmx_ptr[k] = tmp;
@@ -1593,15 +1593,61 @@ Mat Mat::sum(){
 Mat Mat::std(){
     if(isEmpty()) return Mat();
 
-    switch(datT){
-    case DTYP::DOUBLE : return _std<double>();
-    case DTYP::FLOAT  : return _std<float >();
-    case DTYP::INT    : return _std<int32 >();
-    case DTYP::UCHAR  : return _std<uchar >();
-    default           : return _std<cmplx >(); //case DTYP::CMPLX  : return _std<cmplx >();
+    uint32 k, m, n;
+    uint32 ch = getChannel();
+    Mat avg   = mean();
+    Mat A     = Mat::zeros(1,1,ch,DTYP::DOUBLE);
+    uint32 Div= getRowColSize() -1;
+    n = 0;
+    if(datT==DTYP::CMPLX){
+        // STD of complex numbers
+        // E[ |Z - E[Z]|^2 ] = E[|Z|^2] - |E[Z]|^2 --> real valued Mat
+        // https://en.wikipedia.org/wiki/Complex_random_variable#Expectation
+        cmplx diff;
+        for(m = 0 ; m < length; m+=ch){
+            for(k=0; k < ch; ++k, ++n){
+                diff = elptr.cmx_ptr[n] - avg.elptr.cmx_ptr[k];
+                A.at<double>(k) += diff.square();
+            }
+        }
+    }else{
+        double diff;
+        if(datT == DTYP::DOUBLE){
+            for(m = 0 ; m < length; m+=ch){
+                for(k=0; k < ch; ++k, ++n){
+                    diff = double(elptr.f64_ptr[n]) - avg.at<double>(k);
+                    A.at<double>(k) += diff*diff;
+                }
+            }
+        }else if(datT == DTYP::FLOAT){
+            for(m = 0 ; m < length; m+=ch){
+                for(k=0; k < ch; ++k, ++n){
+                    diff = double(elptr.f32_ptr[n]) - avg.at<double>(k);
+                    A.at<double>(k) += diff*diff;
+                }
+            }
+        }else if(datT == DTYP::INT){
+            for(m = 0 ; m < length; m+=ch){
+                for(k=0; k < ch; ++k, ++n){
+                    diff = double(elptr.int_ptr[n]) - avg.at<double>(k);
+                    A.at<double>(k) += diff*diff;
+                }
+            }
+        }else if(datT == DTYP::UCHAR){
+            for(m = 0 ; m < length; m+=ch){
+                for(k=0; k < ch; ++k, ++n){
+                    diff = double(elptr.uch_ptr[n]) - avg.at<double>(k);
+                    A.at<double>(k) += diff*diff;
+                }
+            }
+        }
     }
-}
+    A /= Div; // Varaince
+    for(k=0; k < ch; ++k)  // standard deviation
+        A.at<double>(k) = std::sqrt(A.at<double>(k));
 
+    return A;
+}
 
 Mat Mat::repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
     if(src.isEmpty()) return Mat();

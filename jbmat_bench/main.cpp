@@ -44,9 +44,13 @@ int32 main(int32 argc, char *argv[])
                 a[c*rowcol + i] = k;
             else
                 a[c*rowcol + i] = -(int)k;
+            a[c*rowcol + i] = k;
             ++k;
         }
     }
+
+    Mat ma_std = ma.std();
+    ma_std.printMat("ma's std");
 
     ma.printMat();
     ma = ma + (double)10;
@@ -78,7 +82,21 @@ int32 main(int32 argc, char *argv[])
     md.printMat("md reshape");
     md.transpose();
     md.printMat("md transpose");
+    md.reshape(12,1,1);
+    Mat md_std = md._std<cmplx>();
+    md_std.printMat("md's std1");
+    Mat md_std2= md.std();
+    md_std.printMat("md's std2");
 
+    cmplx cA = cmplx(2,1);
+    cmplx cB = -cA;
+    cmplx cC = cA.sqrt();
+    cmplx cD = cB.sqrt();
+    cmplx cE = cmplx(2,-1).sqrt();
+    cmplx cF = cmplx(-2,1).sqrt();
+    printf("%f + %fi, %f +%fi\n", cA.re, cA.im, cB.re, cB.im );
+    printf("%f + %fi, %f +%fi\n", cC.re, cC.im, cD.re, cD.im );
+    printf("%f + %fi, %f +%fi\n", cE.re, cE.im, cF.re, cF.im );
     return 0;
 }
 void bicubic_test(){

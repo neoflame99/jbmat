@@ -58,7 +58,7 @@ private: // member fields
     DTYP    datT;
 
     uint32 length;
-    uint32 lenRowCol;   // decprecated
+    uint32 lenRowCol;
     uint32 row, col, Nch;
     uint32 byteStep;
     uint32 byteLen;
@@ -388,13 +388,13 @@ template <> inline Mat Mat::_max<cmplx>() {
     large_mag_ch = new double[ch];
     for(k=0; k < ch; ++k){
         A.at<cmplx>(k) = datPtr[k];
-        large_mag_ch[k] = datPtr[k].re*datPtr[k].re + datPtr[k].im*datPtr[k].im;
+        large_mag_ch[k] = datPtr[k].square();
     }
 
     for(m = ch; m < length; m+=ch){
         for(k=0, n=m; k < ch; ++k, ++n){
             tmp       = datPtr[n];
-            tmp_mag   = tmp.re*tmp.re + tmp.im*tmp.im;
+            tmp_mag   = tmp.square();
             large_mag = large_mag_ch[k];
             if(large_mag < tmp_mag){
                 A.at<cmplx>(k) = tmp;
@@ -438,13 +438,13 @@ template <> inline Mat Mat::_min<cmplx>() {
     large_mag_ch = new double[ch];
     for(k=0; k < ch; ++k){
         A.at<cmplx>(k) = datPtr[k];
-        large_mag_ch[k] = datPtr[k].re*datPtr[k].re + datPtr[k].im*datPtr[k].im;
+        large_mag_ch[k] = datPtr[k].square();
     }
 
     for(m = ch; m < length; m+=ch){
         for(k=0, n=m; k < ch; ++k, ++n){
             tmp       = datPtr[n];
-            tmp_mag   = tmp.re*tmp.re + tmp.im*tmp.im;
+            tmp_mag   = tmp.square();
             large_mag = large_mag_ch[k];
             if(large_mag > tmp_mag){
                 A.at<cmplx>(k) = tmp;
@@ -471,6 +471,7 @@ template <typename _T> Mat Mat::_mean() {
     return A;
 }
 template <> inline Mat Mat::_mean<cmplx>() {
+//reference https://en.wikipedia.org/wiki/Complex_random_variable#Expectation
     cmplx* datPtr = this->getDataPtr<cmplx>();
 
     uint32 ch    = getChannel();
@@ -536,27 +537,30 @@ template <typename _T> Mat Mat::_std() {
     return A;
 }
 template <> inline Mat Mat::_std<cmplx>() {
-    cmplx* datPtr = this->getDataPtr<cmplx>();
+//reference https://en.wikipedia.org/wiki/Complex_random_variable#Expectation
 
+    cmplx* datPtr = this->getDataPtr<cmplx>();
     uint32 ch    = getChannel();
 
-    Mat avg = _mean<cmplx>();
-    Mat A   = Mat::zeros(1,1,ch,DTYP::CMPLX);
-    cmplx sqsum;
-    cmplx diff;
-    cmplx ch_avg;
     uint32 k, m, n;
+    Mat avg = _mean<cmplx>();
+    Mat A   = Mat::zeros(1,1,ch,DTYP::DOUBLE);
+    cmplx diff;
     n = 0;
     uint32 Div = getRowColSize() -1;
+    // STD of complex numbers
+    // E[ |Z - E[Z]|^2 ] = E[|Z|^2] - |E[Z]|^2 --> real valued Mat
+
     for(m = 0 ; m < length; m+=ch){
         for(k=0; k < ch; ++k, ++n){
-            diff = datPtr[n] - avg.at<cmplx>(k);
-            A.at<cmplx>(k) += diff*diff.conj();
+            diff = datPtr[n] - avg.elptr.cmx_ptr[k];
+            A.at<double>(k) += diff.square();
         }
     }
-    for(k=0; k < ch; ++k)
-        A.at<cmplx>(k) /= Div;
-    //--> need to correct it.
+    A /= Div; // Varaince
+    for(k=0; k < ch; ++k)  // standard deviation
+        A.at<double>(k) = std::sqrt(A.at<double>(k));
+
     return A;
 }
 
