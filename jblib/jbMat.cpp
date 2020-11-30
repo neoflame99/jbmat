@@ -241,6 +241,24 @@ Mat& Mat::operator/=(const double scalar){
     return divByScalar(scalar);
 }
 
+// unary minus or minus sign op.
+Mat Mat::operator-() const{
+    if(this->isEmpty()){
+        fprintf(stdout,"Mat::operator- (unary): Stop adding two operands because the both operands are empty\n");
+        return Mat();
+    }
+
+    Mat A = this->copy();
+    uint32 k = 0;
+    switch(datT){
+    case DTYP::CMPLX : for(; k < length; ++k) { A.elptr.cmx_ptr[k] = -A.elptr.cmx_ptr[k];} break;
+    case DTYP::DOUBLE: for(; k < length; ++k) { A.elptr.f64_ptr[k] = -A.elptr.f64_ptr[k];} break;
+    case DTYP::FLOAT : for(; k < length; ++k) { A.elptr.f32_ptr[k] = -A.elptr.f32_ptr[k];} break;
+    case DTYP::INT   : for(; k < length; ++k) { A.elptr.int_ptr[k] = -A.elptr.int_ptr[k];} break;
+    case DTYP::UCHAR : for(; k < length; ++k) { A.elptr.uch_ptr[k] = -A.elptr.uch_ptr[k];} break;
+    }
+    return A;
+}
 
 Mat Mat::operator+(const Mat& other) const{
     if( row != other.getRow() || col != other.getCol()|| Nch != other.getChannel() ){
@@ -1652,29 +1670,29 @@ Mat Mat::std(){
 
     Mat V = var();
     for(uint32 k=0; k < V.getChannel(); ++k)  // standard deviation
-        V.at<double>(k) = std::sqrt(V.at<double>(k));
+        V.at<double>(k) = sqrt(V.at<double>(k));
     return V;
 }
 
-Mat Mat::sqrt(){
+Mat Mat::sqrtm(){
     if(isEmpty()) return Mat();
 
     uint32 k=0;
     if( datT == DTYP::CMPLX ){
         Mat V = Mat::zeros(row, col, Nch, DTYP::CMPLX);
         for(; k < V.length; ++k)
-            V.at<cmplx>(k) = elptr.cmx_ptr[k].sqrt();
+            V.at<cmplx>(k) = elptr.cmx_ptr[k].sqrtc();
         return V;
     }else{
         Mat V = Mat::zeros(row, col, Nch, DTYP::DOUBLE);
         if( datT == DTYP::DOUBLE ){
-            for(; k < V.length; ++k)  V.at<double>(k) = std::sqrt(elptr.f64_ptr[k]);
+            for(; k < V.length; ++k)  V.at<double>(k) = sqrt(elptr.f64_ptr[k]);
         }else if( datT == DTYP::FLOAT){
-            for(; k < V.length; ++k)  V.at<double>(k) = std::sqrt(elptr.f32_ptr[k]);
+            for(; k < V.length; ++k)  V.at<double>(k) = sqrt(elptr.f32_ptr[k]);
         }else if( datT == DTYP::INT  ){
-            for(; k < V.length; ++k)  V.at<double>(k) = std::sqrt(elptr.int_ptr[k]);
+            for(; k < V.length; ++k)  V.at<double>(k) = sqrt(elptr.int_ptr[k]);
         }else if( datT == DTYP::UCHAR){
-            for(; k < V.length; ++k)  V.at<double>(k) = std::sqrt(elptr.uch_ptr[k]);
+            for(; k < V.length; ++k)  V.at<double>(k) = sqrt(elptr.uch_ptr[k]);
         }
         return V;
     }

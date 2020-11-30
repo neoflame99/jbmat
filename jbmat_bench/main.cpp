@@ -90,10 +90,10 @@ int32 main(int32 argc, char *argv[])
 
     cmplx cA = cmplx(2,1);
     cmplx cB = -cA;
-    cmplx cC = cA.sqrt();
-    cmplx cD = cB.sqrt();
-    cmplx cE = cmplx(2,-1).sqrt();
-    cmplx cF = cmplx(-2,1).sqrt();
+    cmplx cC = cA.sqrtc();
+    cmplx cD = cB.sqrtc();
+    cmplx cE = cmplx(2,-1).sqrtc();
+    cmplx cF = cmplx(-2,1).sqrtc();
     printf("%f + %fi, %f +%fi\n", cA.re, cA.im, cB.re, cB.im );
     printf("%f + %fi, %f +%fi\n", cC.re, cC.im, cD.re, cD.im );
     printf("%f + %fi, %f +%fi\n", cE.re, cE.im, cF.re, cF.im );

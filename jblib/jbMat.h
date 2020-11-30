@@ -89,6 +89,8 @@ public: // constructors and destructor
 
 public:
     //-- overloading operators
+    Mat  operator-() const;  // unary minus
+
     Mat  operator+(const Mat& other ) const;
     Mat  operator-(const Mat& other ) const;
     Mat  operator*(const Mat& other ) const;
@@ -187,7 +189,7 @@ public : // public template methods
     Mat mean();
     Mat std() ;
     Mat var() ;
-    Mat sqrt();
+    Mat sqrtm();
 
 private: // private template methods
     template <typename _T> void _print(_T* mdat);
@@ -534,8 +536,11 @@ template <typename _T> Mat Mat::_std() {
             A.at<double>(k) += diff*diff;
         }
     }
-    for(k=0; k < ch; ++k)
-        A.at<double>(k) = std::sqrt(A.at<double>(k) / Div);
+
+    for(k=0; k < ch; ++k){
+        double v = A.at<double>(k)/Div;
+        A.at<double>(k) = sqrt( v );
+    }
     return A;
 }
 template <> inline Mat Mat::_std<cmplx>() {
@@ -561,7 +566,7 @@ template <> inline Mat Mat::_std<cmplx>() {
     }
     A /= Div; // Varaince
     for(k=0; k < ch; ++k)  // standard deviation
-        A.at<double>(k) = std::sqrt(A.at<double>(k));
+        A.at<double>(k) = sqrt(A.at<double>(k));
 
     return A;
 }

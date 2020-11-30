@@ -88,11 +88,11 @@ namespace jmat {
         inline _complex conj() { return _complex(re, -im); }
 
         inline double square() { return (re*re + im*im);}
-        inline double abs() { return std::sqrt(re*re + im*im);}
-        inline _complex sqrt(){
+        inline double abs() { return sqrt(re*re + im*im);}
+        inline _complex sqrtc(){
             double sr, si;
-            sr = std::sqrt( (this->abs() + this->re)/2.0 );
-            si = std::sqrt( (this->abs() - this->re)/2.0 );
+            sr = sqrt( (this->abs() + this->re)/2.0 );
+            si = sqrt( (this->abs() - this->re)/2.0 );
             if( this->im < 0.0 )
                 si = -si;
 
