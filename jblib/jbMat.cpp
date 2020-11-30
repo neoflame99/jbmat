@@ -1590,7 +1590,7 @@ Mat Mat::sum(){
     }
 }
 
-Mat Mat::std(){
+Mat Mat::var(){
     if(isEmpty()) return Mat();
 
     uint32 k, m, n;
@@ -1643,10 +1643,41 @@ Mat Mat::std(){
         }
     }
     A /= Div; // Varaince
-    for(k=0; k < ch; ++k)  // standard deviation
-        A.at<double>(k) = std::sqrt(A.at<double>(k));
 
     return A;
+}
+
+Mat Mat::std(){
+    if(isEmpty()) return Mat();
+
+    Mat V = var();
+    for(uint32 k=0; k < V.getChannel(); ++k)  // standard deviation
+        V.at<double>(k) = std::sqrt(V.at<double>(k));
+    return V;
+}
+
+Mat Mat::sqrt(){
+    if(isEmpty()) return Mat();
+
+    uint32 k=0;
+    if( datT == DTYP::CMPLX ){
+        Mat V = Mat::zeros(row, col, Nch, DTYP::CMPLX);
+        for(; k < V.length; ++k)
+            V.at<cmplx>(k) = elptr.cmx_ptr[k].sqrt();
+        return V;
+    }else{
+        Mat V = Mat::zeros(row, col, Nch, DTYP::DOUBLE);
+        if( datT == DTYP::DOUBLE ){
+            for(; k < V.length; ++k)  V.at<double>(k) = std::sqrt(elptr.f64_ptr[k]);
+        }else if( datT == DTYP::FLOAT){
+            for(; k < V.length; ++k)  V.at<double>(k) = std::sqrt(elptr.f32_ptr[k]);
+        }else if( datT == DTYP::INT  ){
+            for(; k < V.length; ++k)  V.at<double>(k) = std::sqrt(elptr.int_ptr[k]);
+        }else if( datT == DTYP::UCHAR){
+            for(; k < V.length; ++k)  V.at<double>(k) = std::sqrt(elptr.uch_ptr[k]);
+        }
+        return V;
+    }
 }
 
 Mat Mat::repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){

@@ -181,11 +181,13 @@ public : // public template methods
     template <typename _T> Mat _mean();
     template <typename _T> Mat _std() ;
     template <typename _T> Mat _sum() ;
-    Mat max();
+    Mat max() ;
     Mat min() ;
+    Mat sum() ;
     Mat mean();
     Mat std() ;
-    Mat sum() ;
+    Mat var() ;
+    Mat sqrt();
 
 private: // private template methods
     template <typename _T> void _print(_T* mdat);
@@ -533,7 +535,7 @@ template <typename _T> Mat Mat::_std() {
         }
     }
     for(k=0; k < ch; ++k)
-        A.at<double>(k) = sqrt(A.at<double>(k) / Div);
+        A.at<double>(k) = std::sqrt(A.at<double>(k) / Div);
     return A;
 }
 template <> inline Mat Mat::_std<cmplx>() {
