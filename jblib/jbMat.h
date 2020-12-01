@@ -178,6 +178,7 @@ public : // public template methods
     template <typename _T> _T& at(uint32 i=0) const;
     template <typename _T> _T& at(uint32 r, uint32 c, uint32 nch=0) const;
     template <typename _T=uchar> _T* getDataPtr() const;
+    template <typename _T=uchar> _T* getRowPtr(const uint32 r=0) const;
     template <typename _T> Mat _max() ;
     template <typename _T> Mat _min() ;
     template <typename _T> Mat _mean();
@@ -207,27 +208,25 @@ private: // private template methods
 
 
 template <typename _T> inline _T& Mat::at(uint32 i) const {
-
     assert(!isEmpty() && i < length);
-
     return ((_T *)dat_ptr)[i];
 }
 template <typename _T> inline _T& Mat::at(uint32 r, uint32 c, uint32 ch) const {
-
-    uint32 i = ch*lenRowCol + r*col + c;
+    uint32 i = r*stepRow + c*stepCol + ch;
     assert(!isEmpty() && i < length);
 
     return ((_T *)dat_ptr)[i];
 }
-
 template <typename _T> inline _T* Mat::getDataPtr() const {
-    //return static_cast<_T*>(dat_ptr);
     return (_T*)dat_ptr;
 }
 template <> inline cmplx* Mat::getDataPtr() const{
     return reinterpret_cast<cmplx*>(dat_ptr);
 }
-
+template <typename _T> inline _T* Mat::getRowPtr(const uint32 r) const{
+    assert( r < row);
+    return ((_T*)dat_ptr)+(r*stepRow*stepCol);
+}
 template <typename _Tslf, typename _Totr> void Mat::_plus_mat(_Tslf* self, _Totr* other, uint32 len){
     for(uint32 k=0; k < len; k++ )
         self[k] += other[k];
@@ -571,60 +570,50 @@ template <> inline Mat Mat::_std<cmplx>() {
     return A;
 }
 
-
 template <typename _T> Mat Mat::_repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
-    // src must have only 1 channel
     uint32 sr = src.getRow();
     uint32 sc = src.getCol();
+    uint32 sch= src.getChannel();
     uint32 nr = sr * rr;
     uint32 nc = sc * rc;
-    uint32 nch= rch;
+    uint32 nch= sch*rch;
     DTYP srcDtype = src.getDatType();
 
-    Mat A(srcDtype, nr, nc, nch);
-    _T* aDat_pt   = A.getDataPtr<_T>();
-    _T* srcDat_pt = src.getDataPtr<_T>();
+    Mat des(srcDtype, nr, nc, nch);
 
-    uint32 x,y,z,i, sx, sy, sy_sc, k;
-    i= 0;
-    for ( z =0 ; z < nch ; ++z){
-        for( y=0, sy=0; y < nr ; ++y, sy = y % sr){
-            sy_sc = sy*sc;
-            for( x=0, sx=0; x < nc ; ++x, sx = x % sc){
-                k = sy_sc + sx;
-                aDat_pt[i++] = srcDat_pt[k];
+    uint32 x, y, z, i, k, n;
+    uint32 ch_xpnd_sz = nch*sc;
+    uint32 cl_xpnd_sz = nch*nc;
+    _T* sRow_ptr, *tRow_ptr;
+    _T *ch_xpnd = new _T[ch_xpnd_sz];
+    for( y=0; y < sr ; ++y){
+        sRow_ptr = src.getRowPtr<_T>(y);
+        tRow_ptr = des.getRowPtr<_T>(y);
+
+        // make channel expanding array
+        for(i=0, n=0; i < rch; ++i){
+            for( x=0, z=i*sch; x < sc ; x+=sch, z+=nch){
+                for(k=0 ; k < sch; ++k, ++n)
+                    ch_xpnd[z+k] = sRow_ptr[n];
             }
         }
-    }
-    return A;
-}
-
-template <> inline Mat Mat::_repeat<cmplx>(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
-    // src must have only 1 channel
-    uint32 sr = src.getRow();
-    uint32 sc = src.getCol();
-    uint32 nr = sr * rr;
-    uint32 nc = sc * rc;
-    uint32 nch= rch;
-    DTYP srcDtype = src.getDatType();
-
-    Mat A(srcDtype, nr, nc, nch);
-    cmplx* aDat_pt   = A.getDataPtr<cmplx>();
-    cmplx* srcDat_pt = src.getDataPtr<cmplx>();
-
-    uint32 x,y,z,i, sx, sy, sy_sc, k;
-    i= 0;
-
-    for ( z =0 ; z < nch ; ++z){
-        for( y=0, sy=0; y < nr ; ++y, sy = y % sr){
-            sy_sc = sy*sc;
-            for( x=0, sx=0; x < nc ; ++x, sx = x % sc){
-                k = sy_sc + sx;
-                aDat_pt[i++] = srcDat_pt[k];
-            }
+        // replicating the expanded channel data into new column of des Mat.
+        for(i=0; i < rc; ++i){
+            memcpy(tRow_ptr,ch_xpnd, sizeof(_T)*ch_xpnd_sz);
+            tRow_ptr += ch_xpnd_sz;   // move the pointer in a new column
         }
     }
-    return A;
+    // replicating the expanded column Mat into remaining rows of des Mat.
+    for( i=1, n=sr; i < rr; ++i, n+=sr){
+        for(y=0; y < sr ; ++y){
+            sRow_ptr = des.getRowPtr<_T>(y);
+            tRow_ptr = des.getRowPtr<_T>(n+y);
+            memcpy(tRow_ptr,sRow_ptr, sizeof(_T)*cl_xpnd_sz);
+        }
+    }
+    delete [] ch_xpnd;
+
+    return des;
 }
 
 } // namespace jmat
