@@ -9,10 +9,14 @@ namespace jmat {
 int32 Mat::instant_count = 0;
 
 //-- shallow copy version & using shared_ptr
-inline void Mat::alloc(uint32 len){
+inline void Mat::alloc(const uint32 len){
 
-    mA      = len==0 ? nullptr : shr_ptr (new uchar[len], std::default_delete<uchar[]>());
-    elptr.uch_ptr = dat_ptr = mA.get();
+    if(len !=0)
+        mA = shr_ptr (new uchar[len], std::default_delete<uchar[]>());
+    else
+        mA = nullptr ;
+
+    //mA = len==0 ? nullptr : shr_ptr (new uchar[len], std::default_delete<uchar[]>());
     /*
     try{
         mA = (len==0)? nullptr : new double[len];
@@ -22,7 +26,7 @@ inline void Mat::alloc(uint32 len){
     }
     */
 }
-void Mat::init(uint32 r, uint32 c, uint32 ch, DTYP dt){
+void Mat::init(uint32 r, uint32 c, uint32 ch, DTYP dt, bool do_alloc){
     row = r;
     col = c;
     Nch = ch;
@@ -40,7 +44,9 @@ void Mat::init(uint32 r, uint32 c, uint32 ch, DTYP dt){
     case DTYP::CMPLX  : byteStep = sizeof(cmplx); break;
     }
     byteLen = length*byteStep;
-    alloc(byteLen);
+    if(do_alloc)
+        alloc(byteLen);
+    sync_data_ptr();
 }
 void Mat::initName(){
     obj_name =std::string( "Mat_") + std::to_string (instant_count);
@@ -48,34 +54,23 @@ void Mat::initName(){
 }
 
 Mat::Mat(DTYP dt):mA(nullptr){
-    init(0,0,0, dt);
+    init(0,0,0, dt, true);
     initName();
 }
 Mat::Mat(DTYP dt, uint32 rc ):mA(nullptr){
-    init(rc, rc, 1, dt);
+    init(rc, rc, 1, dt, true);
     initName();
 }
 Mat::Mat(DTYP dt, uint32 r, uint32 c, uint32 ch):mA(nullptr){
-    init(r, c, ch, dt);
+    init(r, c, ch, dt, true);
     initName();
 }
-Mat::Mat(shr_ptr ma, DTYP dt, uint32 r, uint32 c, uint32 ch):mA(ma),datT(dt),row(r),col(c),Nch(ch){
-    stepCol   = Nch;
-    stepRow   = col*stepCol;
-    length    = row*stepRow;
-    lenRowCol = row*col;
-    switch(dt){
-    case DTYP::UCHAR  : byteStep = 1; break;
-    case DTYP::INT    : byteStep = 4; break;
-    case DTYP::FLOAT  : byteStep = 4; break;
-    case DTYP::DOUBLE : byteStep = 8; break;
-    case DTYP::CMPLX  : byteStep = sizeof(cmplx);
-    }
-    byteLen = length*byteStep;
+Mat::Mat(shr_ptr ma, DTYP dt, uint32 r, uint32 c, uint32 ch):mA(ma){
+    init(r, c, ch, dt, false);
     initName();
 }
 Mat::Mat(DTYP dt, uint32 r, uint32 c, uint32 ch, std::string name):mA(nullptr){
-    init(r, c, ch, dt);
+    init(r, c, ch, dt, true);
     obj_name = name;
 }
 Mat::Mat(const Mat& mat){
@@ -106,7 +101,7 @@ Mat::Mat(const Mat& mat){
 
 Mat::Mat( std::initializer_list<double> list ){
     //-- Making a column vector
-    init(list.size(),1,1,DTYP::DOUBLE);
+    init(list.size(),1,1,DTYP::DOUBLE, true);
 
     if(elptr.f64_ptr !=nullptr){
         memcpy(elptr.f64_ptr, list.begin(), list.size()*sizeof(double));
@@ -114,7 +109,7 @@ Mat::Mat( std::initializer_list<double> list ){
 }
 Mat::Mat( std::initializer_list<float> list ){
     //-- Making a column vector
-    init(list.size(),1,1,DTYP::FLOAT);
+    init(list.size(),1,1,DTYP::FLOAT, true);
 
     if(elptr.f32_ptr!=nullptr){
         memcpy(elptr.f32_ptr, list.begin(), list.size()*sizeof(float));
@@ -122,7 +117,7 @@ Mat::Mat( std::initializer_list<float> list ){
 }
 Mat::Mat( std::initializer_list<int32> list ){
     //-- Making a column vector
-    init(list.size(),1,1,DTYP::INT);
+    init(list.size(),1,1,DTYP::INT, true);
 
     if(elptr.int_ptr!=nullptr){
         memcpy(elptr.int_ptr, list.begin(), list.size()*sizeof(int32));
@@ -130,7 +125,7 @@ Mat::Mat( std::initializer_list<int32> list ){
 }
 Mat::Mat( std::initializer_list<uchar> list ){
     //-- Making a column vector
-    init(list.size(),1,1,DTYP::UCHAR);
+    init(list.size(),1,1,DTYP::UCHAR, true);
 
     if(elptr.uch_ptr!=nullptr){
         memcpy(elptr.uch_ptr, list.begin(), list.size()*sizeof(uchar));
@@ -138,7 +133,7 @@ Mat::Mat( std::initializer_list<uchar> list ){
 }
 Mat::Mat( std::initializer_list<cmplx> list ){
     //-- Making a column vector
-    init(list.size(),1,1,DTYP::CMPLX);
+    init(list.size(),1,1,DTYP::CMPLX, true);
 
     if(elptr.cmx_ptr!=nullptr){
         //memcpy(elptr.cmx_ptr, list.begin(), list.size()*sizeof(cmplx));
@@ -1706,13 +1701,14 @@ Mat Mat::repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 r
         return Mat();
     }
 
-    switch(src.getDatType()){
-    case DTYP::DOUBLE : return _repeat<double>(src, rr, rc, rch);
-    case DTYP::FLOAT  : return _repeat<float >(src, rr, rc, rch);
-    case DTYP::INT    : return _repeat<int32 >(src, rr, rc, rch);
-    case DTYP::UCHAR  : return _repeat<uchar >(src, rr, rc, rch);
-    default           : return _repeat<cmplx >(src, rr, rc, rch); // case DTYP::CMPLX
-    }
+    return Mat();
+    //switch(src.getDatType()){
+    //case DTYP::DOUBLE : return _repeat<double>(src, rr, rc, rch);
+    //case DTYP::FLOAT  : return _repeat<float >(src, rr, rc, rch);
+    //case DTYP::INT    : return _repeat<int32 >(src, rr, rc, rch);
+    //case DTYP::UCHAR  : return _repeat<uchar >(src, rr, rc, rch);
+    //default           : return _repeat<cmplx >(src, rr, rc, rch); // case DTYP::CMPLX
+    //}
 }
 
 } // end of jmat namespace

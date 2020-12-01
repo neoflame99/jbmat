@@ -69,8 +69,8 @@ private: // member fields
 
 private:
     inline void sync_data_ptr(){ elptr.uch_ptr = dat_ptr = mA.get(); }
-    void alloc(uint32 len);
-    void init(uint32 r, uint32 c, uint32 ch, DTYP dt);
+    void alloc(const uint32 len);
+    void init(uint32 r, uint32 c, uint32 ch, DTYP dt, bool do_alloc=true);
     void initName();
 
 public: // constructors and destructor
@@ -192,6 +192,8 @@ public : // public template methods
     Mat var() ;
     Mat sqrtm();
 
+    template <typename _T> void _repeat(Mat& des, const uint32 r, const uint32 c, const uint32 ch);
+
 private: // private template methods
     template <typename _T> void _print(_T* mdat);
     template <typename _Tslf, typename _Totr> void _plus_mat       (_Tslf* self, _Totr* other, uint32 len );
@@ -203,7 +205,6 @@ private: // private template methods
     template <typename _Tslf, typename _Totr> void _multiply_scalar(_Tslf* self, _Totr scalar, uint32 len );
     template <typename _Tslf, typename _Totr> void _dividing_scalar  (_Tslf* self, _Totr scalar, uint32 len );
     template <typename _Tslf, typename _Totr> void _divided_by_scalar(_Tslf* self, _Totr scalar, uint32 len );
-    template <typename _T> static Mat _repeat(const Mat& src, const uint32 r, const uint32 c, const uint32 ch);
 };
 
 
@@ -225,7 +226,9 @@ template <> inline cmplx* Mat::getDataPtr() const{
 }
 template <typename _T> inline _T* Mat::getRowPtr(const uint32 r) const{
     assert( r < row);
-    return ((_T*)dat_ptr)+(r*stepRow*stepCol);
+    //return ((_T*)dat_ptr)+(r*stepRow*stepCol);
+    _T* ptr = &((_T*)dat_ptr)[r*stepRow*stepCol];
+    return &((_T*)dat_ptr)[r*stepRow*stepCol];
 }
 template <typename _Tslf, typename _Totr> void Mat::_plus_mat(_Tslf* self, _Totr* other, uint32 len){
     for(uint32 k=0; k < len; k++ )
@@ -570,24 +573,27 @@ template <> inline Mat Mat::_std<cmplx>() {
     return A;
 }
 
-template <typename _T> Mat Mat::_repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
-    uint32 sr = src.getRow();
-    uint32 sc = src.getCol();
-    uint32 sch= src.getChannel();
+template <typename _T> void Mat::_repeat(Mat& des, const uint32 rr, const uint32 rc, const uint32 rch){
+    if(des.isEmpty()){
+        fprintf(stderr,"Mat::_repeat<>() : des Mat that is destination parameter is empty\n");
+        return;
+    }
+    uint32 sr = getRow();
+    uint32 sc = getCol();
+    uint32 sch= getChannel();
     uint32 nr = sr * rr;
     uint32 nc = sc * rc;
     uint32 nch= sch*rch;
-    DTYP srcDtype = src.getDatType();
-
-    Mat des(srcDtype, nr, nc, nch);
 
     uint32 x, y, z, i, k, n;
     uint32 ch_xpnd_sz = nch*sc;
     uint32 cl_xpnd_sz = nch*nc;
-    _T* sRow_ptr, *tRow_ptr;
-    _T *ch_xpnd = new _T[ch_xpnd_sz];
+    _T* sRow_ptr;
+    _T* tRow_ptr;
+    _T* ch_xpnd = (_T*)des.getDataPtr<_T>();
+
     for( y=0; y < sr ; ++y){
-        sRow_ptr = src.getRowPtr<_T>(y);
+        sRow_ptr = getRowPtr<_T>(y);
         tRow_ptr = des.getRowPtr<_T>(y);
 
         // make channel expanding array
@@ -598,8 +604,8 @@ template <typename _T> Mat Mat::_repeat(const Mat& src, const uint32 rr, const u
             }
         }
         // replicating the expanded channel data into new column of des Mat.
-        for(i=0; i < rc; ++i){
-            memcpy(tRow_ptr,ch_xpnd, sizeof(_T)*ch_xpnd_sz);
+        for(i=1; i < rc; ++i){
+            memcpy(tRow_ptr, ch_xpnd, sizeof(_T)*ch_xpnd_sz);
             tRow_ptr += ch_xpnd_sz;   // move the pointer in a new column
         }
     }
@@ -608,12 +614,9 @@ template <typename _T> Mat Mat::_repeat(const Mat& src, const uint32 rr, const u
         for(y=0; y < sr ; ++y){
             sRow_ptr = des.getRowPtr<_T>(y);
             tRow_ptr = des.getRowPtr<_T>(n+y);
-            memcpy(tRow_ptr,sRow_ptr, sizeof(_T)*cl_xpnd_sz);
+            memcpy(tRow_ptr, sRow_ptr, sizeof(_T)*cl_xpnd_sz);
         }
     }
-    delete [] ch_xpnd;
-
-    return des;
 }
 
 } // namespace jmat
