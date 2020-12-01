@@ -29,7 +29,7 @@ int32 main(int32 argc, char *argv[])
 {
     //jbMat_test();
     //bicubic_test();
-
+/*
     uint32 row = 7;
     uint32 col = 7;
     uint32 ch = 2;
@@ -48,7 +48,7 @@ int32 main(int32 argc, char *argv[])
             ++k;
         }
     }
-/*
+
     Mat ma_std = ma.std();
     ma_std.printMat("ma's std");
 
@@ -100,18 +100,19 @@ int32 main(int32 argc, char *argv[])
 */
 
     Mat me = {1,2,3,4,5,6};
-    //me.reshape(2,3,1);
-    Mat me_ex1(me.getDatType(), me.getRow()*2, me.getCol()*2, me.getChannel()*2);
-    me._repeat<int>(me_ex1, 2, 2, 2);
-    //me.changeDType(DTYP::DOUBLE);
-    //Mat me_ex2 = Mat::repeat(me, 2, 2, 2);
-    //Mat me2 = {cmplx(1,2),cmplx(3,4),cmplx(5,6),cmplx(7,8)};
-    //Mat me2_ex1 = Mat::repeat(me, 2, 2,3);
+    me.reshape(2,3,1);
+    Mat me_ex1 = Mat::_repeat<int>(me, 2, 2, 1);
+    me.changeDType(DTYP::DOUBLE);
+    Mat me_ex2 = Mat::_repeat<double>(me, 2, 2, 2);
+    Mat me2 = {cmplx(1,2),cmplx(3,4),cmplx(5,6),cmplx(7,8)};
+    Mat me2_ex1 = Mat::_repeat<cmplx>(me2, 2, 1, 3);
+    Mat me2_ex2 = Mat::_repeat<cmplx>(me2, 1, 2, 3);
     me.printMat("me") ;
-    //me_ex1.printMat("me_ex1");
-    //me_ex2.printMat("me_ex2");
-    //me2.printMat("me2") ;
-    //me2_ex1.printMat("me2_ex1");
+    me_ex1.printMat("me_ex1");
+    me_ex2.printMat("me_ex2");
+    me2.printMat("me2") ;
+    me2_ex1.printMat("me2_ex1");
+    me2_ex2.printMat("me2_ex2");
 
     return 0;
 }

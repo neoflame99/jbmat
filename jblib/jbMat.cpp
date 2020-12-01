@@ -11,12 +11,7 @@ int32 Mat::instant_count = 0;
 //-- shallow copy version & using shared_ptr
 inline void Mat::alloc(const uint32 len){
 
-    if(len !=0)
-        mA = shr_ptr (new uchar[len], std::default_delete<uchar[]>());
-    else
-        mA = nullptr ;
-
-    //mA = len==0 ? nullptr : shr_ptr (new uchar[len], std::default_delete<uchar[]>());
+    mA = len==0 ? nullptr : shr_ptr (new uchar[len], std::default_delete<uchar[]>());
     /*
     try{
         mA = (len==0)? nullptr : new double[len];
@@ -148,7 +143,7 @@ Mat::Mat( std::initializer_list<cmplx> list ){
 Mat::~Mat(){}
 
 void Mat::setRowCol(uint32 r, uint32 c, uint32 ch){
-    uint32 lenrc = r*c;   // --> deprecated
+    uint32 lenrc    = r*c;
     uint32 step_col = ch;
     uint32 step_row = c*step_col;
     uint32 len      = r*step_row;
