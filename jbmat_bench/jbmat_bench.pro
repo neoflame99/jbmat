@@ -29,7 +29,13 @@ HEADERS += \
     ../jblib/qimmat.h \
     ../jblib/jbimgproc.h
 
-macx{
+win32{
+    DEFINES += _WIN_
+    message("Windows")
+}unix:macx{
     DEFINES += _MACOS_
     message("Mac OS")
+}unix:!macx{
+    DEFINES += _LINUX_
+    message("LINUX OS")
 }

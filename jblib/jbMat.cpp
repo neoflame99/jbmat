@@ -8,19 +8,6 @@ namespace jmat {
 
 int32 Mat::instant_count = 0;
 
-//-- shallow copy version & using shared_ptr
-inline void Mat::alloc(const uint32 len){
-
-    mA = len==0 ? nullptr : shr_ptr (new uchar[len], std::default_delete<uchar[]>());
-    /*
-    try{
-        mA = (len==0)? nullptr : new double[len];
-    }catch(std::bad_alloc& ex){
-        fprintf(stderr,"memory allocation error: %s\n",ex.what());
-        mA = nullptr;
-    }
-    */
-}
 void Mat::init(uint32 r, uint32 c, uint32 ch, DTYP dt, bool do_alloc){
     row = r;
     col = c;
@@ -1691,19 +1678,14 @@ Mat Mat::sqrtm(){
 Mat Mat::repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
     if(src.isEmpty()) return Mat();
 
-    if(src.getChannel() > 1){
-        fprintf(stderr,"src Mat argument of repeat method should have only 1 channel\n");
-        return Mat();
+    switch(src.getDatType()){
+    case DTYP::DOUBLE : return _repeat<double>(src, rr, rc, rch);
+    case DTYP::FLOAT  : return _repeat<float >(src, rr, rc, rch);
+    case DTYP::INT    : return _repeat<int32 >(src, rr, rc, rch);
+    case DTYP::UCHAR  : return _repeat<uchar >(src, rr, rc, rch);
+    case DTYP::CMPLX  : return _repeat<cmplx >(src, rr, rc, rch);
+    default           : return Mat();
     }
-
-    return Mat();
-    //switch(src.getDatType()){
-    //case DTYP::DOUBLE : return _repeat<double>(src, rr, rc, rch);
-    //case DTYP::FLOAT  : return _repeat<float >(src, rr, rc, rch);
-    //case DTYP::INT    : return _repeat<int32 >(src, rr, rc, rch);
-    //case DTYP::UCHAR  : return _repeat<uchar >(src, rr, rc, rch);
-    //default           : return _repeat<cmplx >(src, rr, rc, rch); // case DTYP::CMPLX
-    //}
 }
 
 } // end of jmat namespace

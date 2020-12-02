@@ -2,6 +2,9 @@
 #define JBIMGPROC_H
 #include "jbMat.h"
 #include "jbmath.h"
+#ifdef _WIN_
+    #define _USE_MATH_DEFINES
+#endif
 #include <math.h>
 #include <vector>
 

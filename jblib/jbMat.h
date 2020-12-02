@@ -67,7 +67,7 @@ private: // member fields
 
     std::string obj_name;
 
-private:
+private: // initializing methods
     inline void sync_data_ptr(){ elptr.uch_ptr = dat_ptr = mA.get(); }
     void alloc(const uint32 len);
     void init(uint32 r, uint32 c, uint32 ch, DTYP dt, bool do_alloc=true);
@@ -161,18 +161,28 @@ public:
     inline uint32  getByteStep() const { return byteStep; }
     inline uint32  getByteLen() const { return byteLen; }
 
-    int32   reshape(uint32 r, uint32 c, uint32 ch=1);
-    void    transpose();
-    void    changeDType(const DTYP dt);
-    void    printMat() ;
-    void    printMat(const std::string objname);
+    int32 reshape(uint32 r, uint32 c, uint32 ch=1);
+    void  transpose();
+    void  changeDType(const DTYP dt);
+    void  printMat() ;
+    void  printMat(const std::string objname);
+    Mat   max() ;
+    Mat   min() ;
+    Mat   sum() ;
+    Mat   mean();
+    Mat   std() ;
+    Mat   var() ;
+    Mat   sqrtm();
+
+    inline elemptr getRowElptr(uint32 r=0) const;
+private: // other private methods
 
 public : // static methods
     static Mat ones (uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
     static Mat zeros(uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
     static int32 instant_count;
-    static Mat repeat(const Mat& src, const uint32 rp_r, const uint32 rp_c, const uint32 rp_ch);
     static int32 sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, const matRect& desSlice );
+    static Mat repeat(const Mat& src, const uint32 rp_r, const uint32 rp_c, const uint32 rp_ch);
     template <typename _T> static Mat _repeat(const Mat& src, const uint32 r, const uint32 c, const uint32 ch);
 
 public : // public template methods
@@ -185,13 +195,6 @@ public : // public template methods
     template <typename _T> Mat _mean();
     template <typename _T> Mat _std() ;
     template <typename _T> Mat _sum() ;
-    Mat max() ;
-    Mat min() ;
-    Mat sum() ;
-    Mat mean();
-    Mat std() ;
-    Mat var() ;
-    Mat sqrtm();
 
 
 private: // private template methods
@@ -207,6 +210,25 @@ private: // private template methods
     template <typename _Tslf, typename _Totr> void _divided_by_scalar(_Tslf* self, _Totr scalar, uint32 len );
 };
 
+//-- shallow copy version & using shared_ptr
+inline void Mat::alloc(const uint32 len){
+    mA = len==0 ? nullptr : shr_ptr (new uchar[len], std::default_delete<uchar[]>());
+}
+
+inline elemptr Mat::getRowElptr(uint32 r) const{
+    assert( r < row);
+    U64 offset = r*stepRow;
+    elemptr ptrs;
+    switch(datT){
+    case DTYP::DOUBLE: ptrs.f64_ptr = elptr.f64_ptr+offset;
+    case DTYP::FLOAT : ptrs.f32_ptr = elptr.f32_ptr+offset;
+    case DTYP::INT   : ptrs.int_ptr = elptr.int_ptr+offset;
+    case DTYP::UCHAR : ptrs.uch_ptr = elptr.uch_ptr+offset;
+    case DTYP::CMPLX : ptrs.cmx_ptr = elptr.cmx_ptr+offset;
+    default          : ptrs.uch_ptr = nullptr;
+    }
+    return ptrs;
+}
 
 template <typename _T> inline _T& Mat::at(uint32 i) const {
     assert(!isEmpty() && i < length);
