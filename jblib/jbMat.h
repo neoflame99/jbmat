@@ -183,7 +183,7 @@ public : // static methods
     static int32 instant_count;
     static int32 sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, const matRect& desSlice );
     static Mat repeat(const Mat& src, const uint32 rp_r, const uint32 rp_c, const uint32 rp_ch);
-    template <typename _T> static Mat _repeat(const Mat& src, const uint32 r, const uint32 c, const uint32 ch);
+    template <typename _T> inline static Mat _repeat(const Mat& src, const uint32 r, const uint32 c, const uint32 ch);
 
 public : // public template methods
     template <typename _T> _T& at(uint32 i=0) const;
@@ -594,7 +594,7 @@ template <> inline Mat Mat::_std<cmplx>() {
     return A;
 }
 
-template <typename _T> Mat Mat::_repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
+template <typename _T> inline Mat Mat::_repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
     uint32 sr = src.getRow();
     uint32 sc = src.getCol();
     uint32 sch= src.getChannel();
@@ -633,6 +633,55 @@ template <typename _T> Mat Mat::_repeat(const Mat& src, const uint32 rr, const u
         for( i=1, n=sr+y; i < rr; ++i, n+=sr){
             tRow_ptr = des.getRowPtr<_T>(n);
             memcpy(tRow_ptr, sRow_ptr, sizeof(_T)*cl_xpnd_sz);
+        }
+    }
+    return des;
+}
+template <> inline Mat Mat::_repeat<cmplx>(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
+    uint32 sr = src.getRow();
+    uint32 sc = src.getCol();
+    uint32 sch= src.getChannel();
+    uint32 nr = sr * rr;
+    uint32 nc = sc * rc;
+    uint32 nch= sch*rch;
+
+    uint32 x, y, z, i, k, n;
+    uint32 ch_xpnd_sz = nch*sc;
+    uint32 cl_xpnd_sz = nch*nc;
+    Mat des(src.getDatType(), nr, nc, nch);
+    cmplx* sRow_ptr;
+    cmplx* tRow_ptr;
+    cmplx* ch_xpnd;
+
+    for( y=0; y < sr ; ++y){
+        sRow_ptr = src.getRowPtr<cmplx>(y);
+        tRow_ptr = des.getRowPtr<cmplx>(y);
+        ch_xpnd  = tRow_ptr;
+        // make channel expanding array
+        for(i=0; i < rch; ++i){
+            for( x=0, z=i*sch, n=0; x < sc ; x+=sch, z+=nch){
+                for(k=0 ; k < sch; ++k, ++n)
+                    ch_xpnd[z+k] = sRow_ptr[n];
+            }
+        }
+        // replicating the expanded channel data into new column of des Mat.
+        for(i=1, x = ch_xpnd_sz; i < rc; ++i){
+            for(k=0 ; k < ch_xpnd_sz; ++k, ++x)
+                tRow_ptr[x] = ch_xpnd[k];
+        }
+        //for(i=1, tRow_ptr += ch_xpnd_sz; i < rc; ++i, tRow_ptr += ch_xpnd_sz){
+        //    memcpy(tRow_ptr, ch_xpnd, sizeof(cmplx)*ch_xpnd_sz);
+        //    tRow_ptr += ch_xpnd_sz;   // move the pointer in a new column
+        //}
+    }
+    // replicating the expanded column Mat into remaining rows of des Mat.
+    for(y=0; y < sr ; ++y){
+        sRow_ptr = des.getRowPtr<cmplx>(y);
+        for( i=1, n=sr+y; i < rr; ++i, n+=sr){
+            tRow_ptr = des.getRowPtr<cmplx>(n);
+            for(k=0; k < cl_xpnd_sz; ++k)
+                tRow_ptr[k] = sRow_ptr[k];
+            //memcpy(tRow_ptr, sRow_ptr, sizeof(cmplx)*cl_xpnd_sz);
         }
     }
     return des;

@@ -1455,21 +1455,20 @@ Mat Mat::max(){
         }
     }else if(datT == DTYP::CMPLX){
         cmplx   cl, tmp;
-        double *clmag_ch, large_mag, tmp_mag;
-        clmag_ch = new double[ch];
-        for(; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; clmag_ch[k] = cl.square();}
+        double *larg_mag_ch, tmp_mag;
+        larg_mag_ch = new double[ch];
+        for(; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; larg_mag_ch[k] = cl.square();}
         for(m = ch ; m < length; m+=ch ){
             for(k=0, n=m ; k < ch; ++k, ++n){
                 tmp       = elptr.cmx_ptr[n];
                 tmp_mag   = tmp.square();
-                large_mag = clmag_ch[k];
-                if( clmag_ch[k] < tmp_mag){
+                if( larg_mag_ch[k] < tmp_mag){
                     Aptrs.cmx_ptr[k] = tmp;
-                    clmag_ch[k]      = tmp_mag;
+                    larg_mag_ch[k]      = tmp_mag;
                 }
             }
         }
-        delete [] clmag_ch;
+        delete [] larg_mag_ch;
     }
     return A;
 }
@@ -1517,21 +1516,20 @@ Mat Mat::min(){
         }
     }else if(datT == DTYP::CMPLX){
         cmplx   cl, tmp;
-        double *clmag_ch, large_mag, tmp_mag;
-        clmag_ch = new double[ch];
-        for(; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; clmag_ch[k] = cl.square(); }
+        double *larg_mag_ch, tmp_mag;
+        larg_mag_ch = new double[ch];
+        for(; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; larg_mag_ch[k] = cl.square(); }
         for(m = ch ; m < length; m+=ch ){
             for(k=0, n=m ; k < ch; ++k, ++n){
                 tmp       = elptr.cmx_ptr[n];
                 tmp_mag   = tmp.square();
-                large_mag = clmag_ch[k];
-                if( clmag_ch[k] > tmp_mag){
+                if( larg_mag_ch[k] > tmp_mag){
                     Aptrs.cmx_ptr[k] = tmp;
-                    clmag_ch[k]      = tmp_mag;
+                    larg_mag_ch[k]      = tmp_mag;
                 }
             }
         }
-        delete [] clmag_ch;
+        delete [] larg_mag_ch;
     }
     return A;
 }

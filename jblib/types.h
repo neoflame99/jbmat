@@ -23,10 +23,8 @@ namespace jmat {
     typedef int64_t        int64;
     typedef std::shared_ptr<uchar> shr_ptr;
     enum class DTYP {UCHAR=0 , INT=1 , FLOAT=2, DOUBLE=3, CMPLX=4};
-    struct _complex;
-    typedef _complex  cmplx;
 
-    struct _complex{
+    typedef struct _complex{
         double re;
         double im;
         // constructor
@@ -98,7 +96,7 @@ namespace jmat {
 
             return _complex(sr, si);
         }
-    };
+    }cmplx;
 
     inline _complex operator +(_complex& lhs, double rhs){
         _complex A = lhs;

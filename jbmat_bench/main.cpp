@@ -9,8 +9,11 @@
 #include <QDir>
 #include <QDebug>
 #include <stdlib.h>
-#include <sys/time.h>
 #ifdef _MACOS_
+    #include <string>
+    #include <sys/time.h>
+#elif  _LINUX_
+    #include <sys/time.h>
     #include <string>
 #else
     #include <string.h>
@@ -105,7 +108,7 @@ int32 main(int32 argc, char *argv[])
     Mat me_ex2 = Mat::repeat(me, 2, 2, 2);
     Mat me2 = {cmplx(1,2),cmplx(3,4),cmplx(5,6),cmplx(7,8)};
     Mat me2_ex1 = Mat::repeat(me2, 2, 1, 3);
-    Mat me2_ex2 = Mat::repeat(me2, 1, 2, 3);
+    Mat me2_ex2 = Mat::repeat(me2, 1, 3, 2);
     me.printMat("me") ;
     me_ex1.printMat("me_ex1");
     me_ex2.printMat("me_ex2");
@@ -283,12 +286,12 @@ void jbMat_test(){
     Mat mdps3rp2 = Mat::repeat(mdps3,1,1,3);
     mdps3rp2.printMat("mdps3 repeat 2nd (1,1,3)");
 
-    _complex ca(100,5);
-    _complex cb(4,-2);
-    _complex da = ca * cb;
-    _complex db = ca / cb;
-    _complex dc = ca + cb;
-    _complex dd = ca - cb;
+    cmplx ca(100,5);
+    cmplx cb(4,-2);
+    cmplx da = ca * cb;
+    cmplx db = ca / cb;
+    cmplx dc = ca + cb;
+    cmplx dd = ca - cb;
     printf("ca*cb=%f+j%f, ca/cb=%f+j%f, ca+cb=%f+j%f, ca-cb=%f+j%f\n",da.re, da.im, db.re, db.im, dc.re, dc.im, dd.re, dd.im);
 
     /* ---- sliceCopyMat  ----*/
@@ -306,14 +309,16 @@ void jbMat_test(){
     Mat mC = imgproc::copy_padding(ma,2);
     mC.printMat();
 }
+
+#if defined(_LINUX_) || defined(_MACX_)
 void fft_test(){
 
     int32 len = 16;
-    _complex *dat1 = new _complex[len];
-    _complex *dat2 = new _complex[len];
+    cmplx *dat1 = new cmplx[len];
+    cmplx *dat2 = new cmplx[len];
 
     for(int32 i=0; i < len; ++i){
-        dat1[i] = _complex(i+1, len-i);
+        dat1[i] = cmplx(i+1, len-i);
         dat2[i] = dat1[i];
         printf("%3d : %f %+fj\n",i, dat1[i].re, dat1[i].im);
     }
@@ -373,7 +378,7 @@ void fft_test(){
 
     printf("data\n");
     for(int32 i=0; i < len; ++i){
-        dat1[i] = _complex(i+1, len-i);
+        dat1[i] = cmplx(i+1, len-i);
         dat2[i] = dat1[i];
     }
     for(int32 i=0; i < len; ++i)
@@ -424,11 +429,11 @@ void fft_test(){
 
     printf("FFT DIF4\n");
     len = 16;
-    _complex *dat3 = new _complex[len];
+    cmplx *dat3 = new cmplx[len];
 
     printf(" DATA:\n");
     for(int32 i=0; i < len; ++i){
-        dat3[i] = _complex(i, len-i);
+        dat3[i] = cmplx(i, len-i);
         printf("%3d : %f %+fj\n",i, dat3[i].re, dat3[i].im);
     }
     imgproc::fft_dif4(dat3, len, false); // fft
@@ -447,20 +452,20 @@ void fft_test(){
     std::vector<int32> ff;
     imgproc::factorizeN(187, ff);
     printf(" factorizing:\n");
-    for(int32 i=0; i < ff.size(); ++i)
+    for(uint32 i=0; i < ff.size(); ++i)
         printf("%3d \n",ff.at(i));
 
 
     len = 64;
     struct timeval  tv1, tv2;
 
-    _complex *dat4 = new _complex[len];
-    _complex *dat5 = new _complex[len];
+    cmplx *dat4 = new cmplx[len];
+    cmplx *dat5 = new cmplx[len];
 
     printf(" DATA:\n");
     for(int32 i=0; i < len; ++i){
-        dat4[i] = _complex(i+1, 0); //len-i);
-        dat5[i] = _complex(i+1, 0); //len-i);
+        dat4[i] = cmplx(i+1, 0); //len-i);
+        dat5[i] = cmplx(i+1, 0); //len-i);
         printf("%3d : %f %+fj\n",i, dat4[i].re, dat4[i].im);
     }
     ff.clear();
@@ -505,6 +510,7 @@ void fft_test(){
     delete [] dat4;
     delete [] dat5;
 }
+#endif
 
 void tonemap_test(){
     /* ----- */
