@@ -70,21 +70,20 @@ private: // member fields
 private: // initializing methods
     inline void sync_data_ptr(){ elptr.uch_ptr = dat_ptr = mA.get(); }
     void alloc(const uint32 len);
-    void init(uint32 r, uint32 c, uint32 ch, DTYP dt, bool do_alloc=true);
-    void initName();
+    void init(const uint32 r, const uint32 c, const uint32 ch,const DTYP dt,const bool do_alloc=true);
 
 public: // constructors and destructor
-    Mat(DTYP dt = DTYP::DOUBLE);
-    Mat(DTYP dt, uint32 r, uint32 c, uint32 ch );
-    Mat(DTYP dt, uint32 r, uint32 c, uint32 ch, std::string name);
-    Mat(DTYP dt, uint32 rc);
-    Mat(shr_ptr ma, DTYP dt, uint32 r, uint32 c, uint32 ch );
+    Mat();
+    Mat(const DTYP dt, const uint32 r, const uint32 c, const uint32 ch );
+    Mat(const DTYP dt, const uint32 r, const uint32 c, const uint32 ch, const std::string name);
+    Mat(const DTYP dt, const uint32 rc);
+    Mat(const shr_ptr ma, const DTYP dt, const uint32 r, const uint32 c, const uint32 ch );
     Mat(const Mat& mat);
-    Mat( std::initializer_list<double> list );
-    Mat( std::initializer_list<int32 > list );
-    Mat( std::initializer_list<float > list );
-    Mat( std::initializer_list<uchar > list );
-    Mat( std::initializer_list<cmplx > list );
+    Mat(const std::initializer_list<double> list );
+    Mat(const std::initializer_list<int32 > list );
+    Mat(const std::initializer_list<float > list );
+    Mat(const std::initializer_list<uchar > list );
+    Mat(const std::initializer_list<cmplx > list );
     ~Mat();
 
 public:
@@ -142,12 +141,11 @@ public:
     Mat& divScalar(const  int32 scalar);
     Mat& divScalar(const  uchar scalar);
 
-    void setRowCol(uint32 r, uint32 c, uint32 ch=1);
-    void setChannelN(const Mat& src, const uint32 srcfromCh=0,const uint32 Channels=1, const uint32 tarToCh=0);
-    void setName(std::string name);
+    void setRowCol(const uint32 r,const uint32 c,const uint32 ch=1);
+    void setChannel(const Mat& src, const uint32 srcCh=0, const uint32 tarCh=0,const uint32 Channels=1);
+    void setName(const std::string name);
 
     Mat   copy() const;
-    Mat   copyChannelN(const uint32 NoCh=0) const;
     Mat   copySubMat(const uint32 startRow, const uint32 endRow, const uint32 startCol, const uint32 endCol) const;
 
     inline bool    isEmpty() const { return ((length <= 0) ? true : false); }
@@ -180,10 +178,10 @@ private: // other private methods
 public : // static methods
     static Mat ones (uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
     static Mat zeros(uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
-    static int32 instant_count;
     static int32 sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, const matRect& desSlice );
     static Mat repeat(const Mat& src, const uint32 rp_r, const uint32 rp_c, const uint32 rp_ch);
     template <typename _T> inline static Mat _repeat(const Mat& src, const uint32 r, const uint32 c, const uint32 ch);
+    static Mat extractChannel(const Mat& src, const uint32 ch=0);
 
 public : // public template methods
     template <typename _T> _T& at(uint32 i=0) const;

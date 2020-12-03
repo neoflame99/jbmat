@@ -65,6 +65,11 @@ int32 main(int32 argc, char *argv[])
     ma.changeDType(DTYP::INT);
     ma.printMat();
 
+    Mat ma_xt= Mat::extractChannel(ma,1);
+    ma_xt.printMat("ma_channel1");
+
+
+
     Mat mb = {cmplx(1.0,2.0),cmplx(3.0,4.0),cmplx(5.0,6.0),cmplx(7.0,8.0)};
     mb.printMat("mb");
     printf("mb data type: %d\n", mb.getDatType());
@@ -116,6 +121,10 @@ int32 main(int32 argc, char *argv[])
     me2_ex1.printMat("me2_ex1");
     me2_ex2.printMat("me2_ex2");
 
+    Mat mf = Mat::zeros(4,6,2);
+    mf.setChannel(me_ex2,0,0,2);
+    mf.printMat("mf");
+
     return 0;
 }
 void bicubic_test(){
@@ -160,7 +169,7 @@ void jbMat_test(){
     Mat maa = ma.copy();
     maa.printMat("maa");
     //maa.plusMat(ma);
-    Mat ma_ch1 = ma.copyChannelN(1);
+    Mat ma_ch1 = Mat::extractChannel(ma, 1);
     ma_ch1.printMat("ma_ch1");
     maa += ma;
     maa.printMat();
