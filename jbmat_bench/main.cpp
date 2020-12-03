@@ -68,7 +68,8 @@ int32 main(int32 argc, char *argv[])
     Mat ma_xt= Mat::extractChannel(ma,1);
     ma_xt.printMat("ma_channel1");
 
-
+    Mat ma_sub=ma.copySubMat(2,5,2,4);
+    ma_sub.printMat("ma_sub:");
 
     Mat mb = {cmplx(1.0,2.0),cmplx(3.0,4.0),cmplx(5.0,6.0),cmplx(7.0,8.0)};
     mb.printMat("mb");

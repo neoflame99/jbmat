@@ -689,48 +689,59 @@ void Mat::setName(const std::string name){
 
 Mat Mat::copySubMat(const uint32 startRow, const uint32 endRow, const uint32 startCol, const uint32 endCol) const {
     if( startRow > row || endRow > row || startCol > col || endCol > col){
-        fprintf(stderr,"copySubMat() : one or more arguments are out of bound from *this mat \n");
+        fprintf(stderr,"Mat::copySubMat() : one or more arguments are out of bound from *this mat \n");
         return Mat();
     }else if( endRow < startRow){
-        fprintf(stderr,"copySubMat() : endRow argument is less than startRow argument into copySubMat \n");
+        fprintf(stderr,"Mat::copySubMat() : endRow argument is less than startRow argument into copySubMat \n");
         return Mat();
     }else if( endCol < startCol){
-        fprintf(stderr,"copySubMat() : endCol argument is less than startCol argument into copySubMat \n");
+        fprintf(stderr,"Mat::copySubMat() : endCol argument is less than startCol argument into copySubMat \n");
         return Mat();
     }
 
     uint32 new_row = endRow-startRow+1;
     uint32 new_col = endCol-startCol+1;
     Mat A( datT, new_row, new_col, Nch);
-    uchar *tardat_ptr = A.getMat().get();
 
-    uint32 ch_offset = 0 ;
-    uint32 r, ch;
-    uint32 offset;
-    uint32 lenRCByteStep = lenRowCol*byteStep;
-    uint32 rowByteStep   = col*byteStep;
-    uint32 startColByte  = startCol*byteStep;
-    uint32 endColByte    = (endCol+1)*byteStep;
-    uint32 colBytes      = endColByte - startColByte;
-    uint32 rowstart      = startRow*rowByteStep;
-    uint32 rowend        = (endRow+1)*rowByteStep;
-    uchar* k             = tardat_ptr;
-    uchar* colstart;
-    uchar* colend;
-    for( ch=0, ch_offset=0; ch < Nch; ++ch, ch_offset += lenRCByteStep){
-        for( r = rowstart; r < rowend; r+=rowByteStep ){
-            offset   = ch_offset + r;
-            colstart = dat_ptr + offset + startColByte;
-            colend   = colstart+ endColByte;
-            /*
-            for( c = colstart; c < colend ; c++){
-                tardat_ptr[k++] = dat_ptr[ c ];
-            } */
-            // =>
-            std::copy(colstart,colend, k);
-            k += colBytes;
+    elemptr sRowPtr, tPtr;
+    uint32 m, n, k;
+    uint32 start_p = startCol*stepCol;
+    uint32 end_p   = (endCol+1)*stepCol;
+
+    tPtr.uch_ptr = A.getDataPtr();
+    k = 0;
+    if( datT == DTYP::DOUBLE ){
+        for(m=startRow; m <= endRow; ++m){
+            sRowPtr = getRowElptr(m);
+            for(n=start_p; n < end_p; ++n )
+                tPtr.f64_ptr[k++] = sRowPtr.f64_ptr[n];
+        }
+    }else if(datT == DTYP::FLOAT){
+        for(m=startRow; m <= endRow; ++m){
+            sRowPtr = getRowElptr(m);
+            for(n=start_p; n < end_p; ++n )
+                tPtr.f32_ptr[k++] = sRowPtr.f32_ptr[n];
+        }
+    }else if(datT == DTYP::INT  ){
+        for(m=startRow; m <= endRow; ++m){
+            sRowPtr = getRowElptr(m);
+            for(n=start_p; n < end_p; ++n )
+                tPtr.int_ptr[k++] = sRowPtr.int_ptr[n];
+        }
+    }else if(datT == DTYP::UCHAR){
+        for(m=startRow; m <= endRow; ++m){
+            sRowPtr = getRowElptr(m);
+            for(n=start_p; n < end_p; ++n )
+                tPtr.uch_ptr[k++] = sRowPtr.uch_ptr[n];
+        }
+    }else if(datT == DTYP::CMPLX){
+        for(m=startRow; m <= endRow; ++m){
+            sRowPtr = getRowElptr(m);
+            for(n=start_p; n < end_p; ++n )
+                tPtr.cmx_ptr[k++] = sRowPtr.cmx_ptr[n];
         }
     }
+
     return A;
 }
 
@@ -829,49 +840,48 @@ Mat& Mat::plusMat(const Mat& other){
         fprintf(stderr, "Waring, Mat::plusMat method : data types between self and other are different\n");
     }
     uint32 k = 0;
-    elemptr slf_ptr, oth_ptr;
-    slf_ptr.uch_ptr = dat_ptr;
+    elemptr oth_ptr;
     oth_ptr.uch_ptr = other.getDataPtr();
 
     if(  othrdatT == DTYP::DOUBLE){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] += oth_ptr.f64_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] += oth_ptr.f64_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] += oth_ptr.f64_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] += oth_ptr.f64_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] += oth_ptr.f64_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] += oth_ptr.f64_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] += oth_ptr.f64_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] += oth_ptr.f64_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] += oth_ptr.f64_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] += oth_ptr.f64_ptr[k]; }
         }
     }else if( othrdatT == DTYP::FLOAT){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] += oth_ptr.f32_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] += oth_ptr.f32_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] += oth_ptr.f32_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] += oth_ptr.f32_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] += oth_ptr.f32_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] += oth_ptr.f32_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] += oth_ptr.f32_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] += oth_ptr.f32_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] += oth_ptr.f32_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] += oth_ptr.f32_ptr[k]; }
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] += oth_ptr.int_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] += oth_ptr.int_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] += oth_ptr.int_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] += oth_ptr.int_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] += oth_ptr.int_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] += oth_ptr.int_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] += oth_ptr.int_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] += oth_ptr.int_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] += oth_ptr.int_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] += oth_ptr.int_ptr[k]; }
         }
     }else if (othrdatT== DTYP::UCHAR){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] += oth_ptr.uch_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] += oth_ptr.uch_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] += oth_ptr.uch_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] += oth_ptr.uch_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] += oth_ptr.uch_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] += oth_ptr.uch_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] += oth_ptr.uch_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] += oth_ptr.uch_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] += oth_ptr.uch_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] += oth_ptr.uch_ptr[k]; }
         }
     }else if( othrdatT == DTYP::CMPLX){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] += oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] += oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] += oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] += oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] += oth_ptr.cmx_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] += oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] += oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] += oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] += oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] += oth_ptr.cmx_ptr[k]; }
         }
     }
     return *this;
@@ -891,49 +901,48 @@ Mat& Mat::minusMat(const Mat& other){
         fprintf(stderr, "Waring, Mat::minusMat method : data types between self and other are different\n");
     }
     uint32 k = 0;
-    elemptr slf_ptr, oth_ptr;
-    slf_ptr.uch_ptr = dat_ptr;
+    elemptr oth_ptr;
     oth_ptr.uch_ptr = other.getDataPtr();
 
     if(  othrdatT == DTYP::DOUBLE){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] -= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] -= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] -= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] -= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] -= oth_ptr.f64_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] -= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] -= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] -= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] -= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] -= oth_ptr.f64_ptr[k]; }
         }
     }else if( othrdatT == DTYP::FLOAT){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] -= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] -= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] -= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] -= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] -= oth_ptr.f32_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] -= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] -= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] -= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] -= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] -= oth_ptr.f32_ptr[k]; }
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] -= oth_ptr.int_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] -= oth_ptr.int_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] -= oth_ptr.int_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] -= oth_ptr.int_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] -= oth_ptr.int_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] -= oth_ptr.int_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] -= oth_ptr.int_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] -= oth_ptr.int_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] -= oth_ptr.int_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] -= oth_ptr.int_ptr[k]; }
         }
     }else if (othrdatT== DTYP::UCHAR){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] -= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] -= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] -= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] -= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] -= oth_ptr.uch_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] -= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] -= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] -= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] -= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] -= oth_ptr.uch_ptr[k]; }
         }
     }else if( othrdatT == DTYP::CMPLX){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] -= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] -= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] -= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] -= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] -= oth_ptr.cmx_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] -= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] -= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] -= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] -= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] -= oth_ptr.cmx_ptr[k]; }
         }
     }
     return *this;
@@ -953,49 +962,48 @@ Mat& Mat::mulMat(const Mat& other){
         fprintf(stderr, "Waring, Mat::mulMat method : data types between self and other are different\n");
     }
     uint32 k = 0;
-    elemptr slf_ptr, oth_ptr;
-    slf_ptr.uch_ptr = dat_ptr;
+    elemptr oth_ptr;
     oth_ptr.uch_ptr = other.getDataPtr();
 
     if(  othrdatT == DTYP::DOUBLE){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] *= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] *= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] *= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] *= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] *= oth_ptr.f64_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] *= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] *= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] *= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] *= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] *= oth_ptr.f64_ptr[k]; }
         }
     }else if( othrdatT == DTYP::FLOAT){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] *= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] *= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] *= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] *= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] *= oth_ptr.f32_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] *= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] *= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] *= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] *= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] *= oth_ptr.f32_ptr[k]; }
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] *= oth_ptr.int_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] *= oth_ptr.int_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] *= oth_ptr.int_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] *= oth_ptr.int_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] *= oth_ptr.int_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] *= oth_ptr.int_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] *= oth_ptr.int_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] *= oth_ptr.int_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] *= oth_ptr.int_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] *= oth_ptr.int_ptr[k]; }
         }
     }else if (othrdatT== DTYP::UCHAR){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] *= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] *= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] *= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] *= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] *= oth_ptr.uch_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] *= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] *= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] *= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] *= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] *= oth_ptr.uch_ptr[k]; }
         }
     }else if( othrdatT == DTYP::CMPLX){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] *= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] *= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] *= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] *= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] *= oth_ptr.cmx_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] *= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] *= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] *= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] *= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] *= oth_ptr.cmx_ptr[k]; }
         }
     }
     return *this;
@@ -1015,49 +1023,48 @@ Mat& Mat::divMat(const Mat& other){
         fprintf(stderr, "Waring, Mat::divMat method : data types between self and other are different\n");
     }
     uint32 k = 0;
-    elemptr slf_ptr, oth_ptr;
-    slf_ptr.uch_ptr = dat_ptr;
+    elemptr oth_ptr;
     oth_ptr.uch_ptr = other.getDataPtr();
 
     if(  othrdatT == DTYP::DOUBLE){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] /= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] /= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] /= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] /= oth_ptr.f64_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] /= oth_ptr.f64_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] /= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] /= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] /= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] /= oth_ptr.f64_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] /= oth_ptr.f64_ptr[k]; }
         }
     }else if( othrdatT == DTYP::FLOAT){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] /= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] /= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] /= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] /= oth_ptr.f32_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] /= oth_ptr.f32_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] /= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] /= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] /= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] /= oth_ptr.f32_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] /= oth_ptr.f32_ptr[k]; }
         }
     }else if( othrdatT == DTYP::INT){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] /= oth_ptr.int_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] /= oth_ptr.int_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] /= oth_ptr.int_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] /= oth_ptr.int_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] /= oth_ptr.int_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] /= oth_ptr.int_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] /= oth_ptr.int_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] /= oth_ptr.int_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] /= oth_ptr.int_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] /= oth_ptr.int_ptr[k]; }
         }
     }else if (othrdatT== DTYP::UCHAR){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] /= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] /= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] /= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] /= oth_ptr.uch_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] /= oth_ptr.uch_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] /= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] /= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] /= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] /= oth_ptr.uch_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] /= oth_ptr.uch_ptr[k]; }
         }
     }else if( othrdatT == DTYP::CMPLX){
         switch ( datT ){
-        case DTYP::DOUBLE : for(; k < length; ++k) { slf_ptr.f64_ptr[k] /= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::FLOAT  : for(; k < length; ++k) { slf_ptr.f32_ptr[k] /= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::INT    : for(; k < length; ++k) { slf_ptr.int_ptr[k] /= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::UCHAR  : for(; k < length; ++k) { slf_ptr.uch_ptr[k] /= oth_ptr.cmx_ptr[k]; } break;
-        case DTYP::CMPLX  : for(; k < length; ++k) { slf_ptr.cmx_ptr[k] /= oth_ptr.cmx_ptr[k]; }
+        case DTYP::DOUBLE : for(; k < length; ++k) { elptr.f64_ptr[k] /= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::FLOAT  : for(; k < length; ++k) { elptr.f32_ptr[k] /= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::INT    : for(; k < length; ++k) { elptr.int_ptr[k] /= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::UCHAR  : for(; k < length; ++k) { elptr.uch_ptr[k] /= oth_ptr.cmx_ptr[k]; } break;
+        case DTYP::CMPLX  : for(; k < length; ++k) { elptr.cmx_ptr[k] /= oth_ptr.cmx_ptr[k]; }
         }
     }
     return *this;

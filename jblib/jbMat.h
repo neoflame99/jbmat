@@ -218,11 +218,11 @@ inline elemptr Mat::getRowElptr(uint32 r) const{
     U64 offset = r*stepRow;
     elemptr ptrs;
     switch(datT){
-    case DTYP::DOUBLE: ptrs.f64_ptr = elptr.f64_ptr+offset;
-    case DTYP::FLOAT : ptrs.f32_ptr = elptr.f32_ptr+offset;
-    case DTYP::INT   : ptrs.int_ptr = elptr.int_ptr+offset;
-    case DTYP::UCHAR : ptrs.uch_ptr = elptr.uch_ptr+offset;
-    case DTYP::CMPLX : ptrs.cmx_ptr = elptr.cmx_ptr+offset;
+    case DTYP::DOUBLE: ptrs.f64_ptr = elptr.f64_ptr+offset; break;
+    case DTYP::FLOAT : ptrs.f32_ptr = elptr.f32_ptr+offset; break;
+    case DTYP::INT   : ptrs.int_ptr = elptr.int_ptr+offset; break;
+    case DTYP::UCHAR : ptrs.uch_ptr = elptr.uch_ptr+offset; break;
+    case DTYP::CMPLX : ptrs.cmx_ptr = elptr.cmx_ptr+offset; break;
     default          : ptrs.uch_ptr = nullptr;
     }
     return ptrs;
