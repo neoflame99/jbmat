@@ -10,12 +10,8 @@
 #include "types.h"
 #include <math.h>
 #include <string.h>
+#include <string>
 
-#ifdef _MACOS_
-    #include <string>
-#else
-    #include <string.h>
-#endif
 
 namespace jmat {
 
