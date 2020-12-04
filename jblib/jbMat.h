@@ -178,7 +178,7 @@ private: // other private methods
 public : // static methods
     static Mat ones (uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
     static Mat zeros(uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
-    static int32 sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, const matRect& desSlice );
+    static bool sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, const matRect& desSlice );
     static Mat repeat(const Mat& src, const uint32 rp_r, const uint32 rp_c, const uint32 rp_ch);
     template <typename _T> inline static Mat _repeat(const Mat& src, const uint32 r, const uint32 c, const uint32 ch);
     static Mat extractChannel(const Mat& src, const uint32 ch=0);
@@ -622,7 +622,6 @@ template <typename _T> inline Mat Mat::_repeat(const Mat& src, const uint32 rr, 
         // replicating the expanded channel data into new column of des Mat.
         for(i=1, tRow_ptr += ch_xpnd_sz; i < rc; ++i, tRow_ptr += ch_xpnd_sz){
             memcpy(tRow_ptr, ch_xpnd, sizeof(_T)*ch_xpnd_sz);
-            tRow_ptr += ch_xpnd_sz;   // move the pointer in a new column
         }
     }
     // replicating the expanded column Mat into remaining rows of des Mat.

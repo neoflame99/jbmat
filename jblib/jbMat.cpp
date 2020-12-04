@@ -704,126 +704,66 @@ Mat Mat::copySubMat(const uint32 startRow, const uint32 endRow, const uint32 sta
     Mat A( datT, new_row, new_col, Nch);
 
     elemptr sRowPtr, tPtr;
-    uint32 m, n, k;
-    uint32 start_p = startCol*stepCol;
-    uint32 end_p   = (endCol+1)*stepCol;
+    uint32 m, n;
+    uint32 start_p = startCol*stepCol*byteStep;
+    uint32 cp_byte_len = byteStep*new_col*stepCol;
 
     tPtr.uch_ptr = A.getDataPtr();
-    k = 0;
-    if( datT == DTYP::DOUBLE ){
-        for(m=startRow; m <= endRow; ++m){
-            sRowPtr = getRowElptr(m);
-            for(n=start_p; n < end_p; ++n )
-                tPtr.f64_ptr[k++] = sRowPtr.f64_ptr[n];
-        }
-    }else if(datT == DTYP::FLOAT){
-        for(m=startRow; m <= endRow; ++m){
-            sRowPtr = getRowElptr(m);
-            for(n=start_p; n < end_p; ++n )
-                tPtr.f32_ptr[k++] = sRowPtr.f32_ptr[n];
-        }
-    }else if(datT == DTYP::INT  ){
-        for(m=startRow; m <= endRow; ++m){
-            sRowPtr = getRowElptr(m);
-            for(n=start_p; n < end_p; ++n )
-                tPtr.int_ptr[k++] = sRowPtr.int_ptr[n];
-        }
-    }else if(datT == DTYP::UCHAR){
-        for(m=startRow; m <= endRow; ++m){
-            sRowPtr = getRowElptr(m);
-            for(n=start_p; n < end_p; ++n )
-                tPtr.uch_ptr[k++] = sRowPtr.uch_ptr[n];
-        }
-    }else if(datT == DTYP::CMPLX){
-        for(m=startRow; m <= endRow; ++m){
-            sRowPtr = getRowElptr(m);
-            for(n=start_p; n < end_p; ++n )
-                tPtr.cmx_ptr[k++] = sRowPtr.cmx_ptr[n];
-        }
+    for(m=startRow, n=0; m <= endRow; ++m, ++n){
+        sRowPtr = getRowElptr(m);
+        tPtr    = A.getRowElptr(n);
+        memcpy(tPtr.uch_ptr, sRowPtr.uch_ptr+start_p, cp_byte_len);
     }
 
     return A;
 }
 
-int32 Mat::sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, const matRect& desSlice ){
+bool Mat::sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, const matRect& desSlice ){
     int32 srcR = src.getRow();
     int32 srcC = src.getCol();
     int32 desR = des.getRow();
     int32 desC = des.getCol();
 
-    if( srcSlice.sR > srcR || srcSlice.eR > srcR || srcSlice.sC > srcC || srcSlice.eC > srcC){
-        fprintf(stderr,"SliceCopyMat() : one or more arguments are out of bound from \'src mat\' \n");
-        return -1;
-    }else if( desSlice.sR > desR || desSlice.eR > desR || desSlice.sC > desC || desSlice.eC > desC){
-        fprintf(stderr,"SliceCopyMat() : one or more arguments are out of bound from \'des mat\' \n");
-        return -1;
-    }else if( srcSlice.eR < srcSlice.sR || srcSlice.eC < srcSlice.sC){
-        fprintf(stderr,"SliceCopyMat() : eR(or eC)of srcSlice has to be larger than sR(or sC) \n");
-        return -1;
-    }else if( desSlice.eR < desSlice.sR || desSlice.eC < desSlice.sC){
-        fprintf(stderr,"SliceCopyMat() : eR(or eC)of desSlice has to be larger than sR(or sC) \n");
-        return -1;
-    }else if( (desSlice.eR-desSlice.sR != srcSlice.eR-srcSlice.sR) || (desSlice.eC-desSlice.sC != srcSlice.eC-srcSlice.sC)) {
-        fprintf(stderr,"SliceCopyMat() : The sizes between srcSlice and desSlice are not matched! \n");
+    if( src.isEmpty() || des.isEmpty()){
+        fprintf(stderr,"Mat::sliceCopyMat() : At least one of src and des mat is empty! \n");
         return -1;
     }else if( des.getDatType() != src.getDatType()){
-        fprintf(stderr,"SliceCopyMat() : The data types of srcSlice and desSlice are not matched! \n");
+        fprintf(stderr,"Mat::sliceCopyMat() : The data types of srcSlice and desSlice are not matched! \n");
         return -1;
     }else if( des.getChannel() != src.getChannel()){
-        fprintf(stderr,"SliceCopyMat() : The channels of srcSlice and desSlice are not matched! \n");
+        fprintf(stderr,"Mat::sliceCopyMat() : The channels of srcSlice and desSlice are not matched! \n");
         return -1;
-    }else if( src.isEmpty() || des.isEmpty()){
-        fprintf(stderr,"SliceCopyMat() : At least one of src and des mat is empty! \n");
+    }else if( srcSlice.sR > srcR || srcSlice.eR > srcR || srcSlice.sC > srcC || srcSlice.eC > srcC){
+        fprintf(stderr,"Mat::sliceCopyMat() : one or more arguments are out of bound from \'src mat\' \n");
+        return -1;
+    }else if( desSlice.sR > desR || desSlice.eR > desR || desSlice.sC > desC || desSlice.eC > desC){
+        fprintf(stderr,"Mat::sliceCopyMat() : one or more arguments are out of bound from \'des mat\' \n");
+        return -1;
+    }else if( srcSlice.eR < srcSlice.sR || srcSlice.eC < srcSlice.sC){
+        fprintf(stderr,"Mat::sliceCopyMat() : eR(or eC)of srcSlice has to be larger than sR(or sC) \n");
+        return -1;
+    }else if( desSlice.eR < desSlice.sR || desSlice.eC < desSlice.sC){
+        fprintf(stderr,"Mat::sliceCopyMat() : eR(or eC)of desSlice has to be larger than sR(or sC) \n");
+        return -1;
+    }else if( (desSlice.eR-desSlice.sR != srcSlice.eR-srcSlice.sR) || (desSlice.eC-desSlice.sC != srcSlice.eC-srcSlice.sC)) {
+        fprintf(stderr,"Mat::sliceCopyMat() : The sizes between srcSlice and desSlice are not matched! \n");
         return -1;
     }
 
-    uint32 src_lenRowCol = srcR * srcC;
-    uint32 des_lenRowCol = desR * desC;
-    uint32 byteStep  = src.getByteStep();
+    elemptr sRowPtr, dRowPtr;
+    uint32 m, n;
+    uint32 src_col_start_p = srcSlice.sC*src.stepCol*src.byteStep;
+    uint32 des_col_start_p = desSlice.sC*des.stepCol*des.byteStep;
+    uint32 cp_byte_len = (srcSlice.eC - srcSlice.sC +1)*src.stepCol*src.byteStep;
 
-    uchar *des_dat_ptr = des.getMat().get();
-    uchar *src_dat_ptr = src.getMat().get();
-
-    uint32 src_ch_offset, des_ch_offset ;
-    uint32 src_r, des_r;
-    uint32 ch;
-    uint32 src_offset, des_offset;
-    uint32 src_lenRCByteStep = src_lenRowCol*byteStep;
-    uint32 src_rowByteStep   = srcC*byteStep;
-    uint32 src_startColByte  = srcSlice.sC*byteStep;
-    uint32 src_endColByte    = (srcSlice.eC+1)*byteStep;
-    uint32 src_rowstart      = srcSlice.sR*src_rowByteStep;
-    uint32 src_rowend        = (srcSlice.eR+1)*src_rowByteStep;
-    uchar *src_colstart_p;
-    uchar *src_colend_p;
-
-    uint32 des_lenRCByteStep = des_lenRowCol*byteStep;
-    uint32 des_rowByteStep   = desC*byteStep;
-    uint32 des_startColByte  = desSlice.sC*byteStep;
-    uint32 des_rowstart      = desSlice.sR*des_rowByteStep;
-    uchar *des_colstart_p;
-    src_ch_offset = 0;
-    des_ch_offset = 0;
-    for( ch=0; ch < src.getChannel(); ++ch){
-        for( src_r = src_rowstart, des_r = des_rowstart; src_r < src_rowend; src_r+=src_rowByteStep, des_r+=des_rowByteStep ){
-            src_offset     = src_ch_offset + src_r;
-            src_colstart_p = src_dat_ptr + (src_offset + src_startColByte);
-            src_colend_p   = src_dat_ptr + (src_offset + src_endColByte);
-
-            des_offset     = des_ch_offset + des_r;
-            des_colstart_p = des_dat_ptr + des_offset + des_startColByte;
-            /*
-            for( c = colstart; c < colend ; c++){
-                tardat_ptr[k++] = dat_ptr[ c ];
-            } */
-            // =>
-            std::copy(src_colstart_p, src_colend_p, des_colstart_p);
-            //printf("%p, %p, %p\n",src_colstart_p, src_colend_p, des_colstart_p );
-        }
-        src_ch_offset += src_lenRCByteStep;
-        des_ch_offset += des_lenRCByteStep;
+    dRowPtr.uch_ptr = des.getDataPtr();
+    for(m=srcSlice.sR, n=desSlice.sR; m <= (uint32)srcSlice.eR; ++m, ++n){
+        sRowPtr = src.getRowElptr(m);
+        dRowPtr = des.getRowElptr(n);
+        memcpy(dRowPtr.uch_ptr+des_col_start_p, sRowPtr.uch_ptr+src_col_start_p, cp_byte_len);
     }
-    return 1;
+
+    return true;
 }
 
 Mat& Mat::plusMat(const Mat& other){
@@ -1648,17 +1588,81 @@ Mat Mat::sqrtm(){
     }
 }
 
+//Mat Mat::repeat_(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
+//    if(src.isEmpty()) return Mat();
+//
+//    switch(src.getDatType()){
+//    case DTYP::DOUBLE : return _repeat<double>(src, rr, rc, rch);
+//    case DTYP::FLOAT  : return _repeat<float >(src, rr, rc, rch);
+//    case DTYP::INT    : return _repeat<int32 >(src, rr, rc, rch);
+//    case DTYP::UCHAR  : return _repeat<uchar >(src, rr, rc, rch);
+//    case DTYP::CMPLX  : return _repeat<cmplx >(src, rr, rc, rch);
+//    default           : return Mat();
+//    }
+//}
 Mat Mat::repeat(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
     if(src.isEmpty()) return Mat();
+    uint32 sr = src.getRow();
+    uint32 sc = src.getCol();
+    uint32 sch= src.getChannel();
+    uint32 nr = sr * rr;
+    uint32 nc = sc * rc;
+    uint32 nch= sch*rch;
 
-    switch(src.getDatType()){
-    case DTYP::DOUBLE : return _repeat<double>(src, rr, rc, rch);
-    case DTYP::FLOAT  : return _repeat<float >(src, rr, rc, rch);
-    case DTYP::INT    : return _repeat<int32 >(src, rr, rc, rch);
-    case DTYP::UCHAR  : return _repeat<uchar >(src, rr, rc, rch);
-    case DTYP::CMPLX  : return _repeat<cmplx >(src, rr, rc, rch);
-    default           : return Mat();
+    uint32 x, y, z, i, k, n;
+    uint32 ch_xpnd_sz = nch*sc*src.byteStep;
+    uint32 cl_xpnd_sz = nch*nc*src.byteStep;
+    Mat des(src.getDatType(), nr, nc, nch);
+    elemptr sRow_ptr;
+    elemptr tRow_ptr;
+    elemptr ch_xpnd;
+
+    for( y=0; y < sr ; ++y){
+        sRow_ptr = src.getRowElptr(y);
+        tRow_ptr = des.getRowElptr(y);
+        ch_xpnd  = tRow_ptr;
+        // make channel expanding array
+        for(i=0; i < rch; ++i){
+            if(src.getDatType() == DTYP::DOUBLE){
+                for( x=0, z=i*sch, n=0; x < sc ; x+=sch, z+=nch){
+                    for(k=0 ; k < sch; ++k, ++n)
+                        ch_xpnd.f64_ptr[z+k] = sRow_ptr.f64_ptr[n];
+                }
+            }else if(src.getDatType()==DTYP::FLOAT){
+                for( x=0, z=i*sch, n=0; x < sc ; x+=sch, z+=nch){
+                    for(k=0 ; k < sch; ++k, ++n)
+                        ch_xpnd.f32_ptr[z+k] = sRow_ptr.f32_ptr[n];
+                }
+            }else if(src.getDatType()==DTYP::INT){
+                for( x=0, z=i*sch, n=0; x < sc ; x+=sch, z+=nch){
+                    for(k=0 ; k < sch; ++k, ++n)
+                        ch_xpnd.int_ptr[z+k] = sRow_ptr.int_ptr[n];
+                }
+            }else if(src.getDatType()==DTYP::UCHAR){
+                for( x=0, z=i*sch, n=0; x < sc ; x+=sch, z+=nch){
+                    for(k=0 ; k < sch; ++k, ++n)
+                        ch_xpnd.uch_ptr[z+k] = sRow_ptr.uch_ptr[n];
+                }
+            }else if(src.getDatType()==DTYP::CMPLX){
+                for( x=0, z=i*sch, n=0; x < sc ; x+=sch, z+=nch){
+                    for(k=0 ; k < sch; ++k, ++n)
+                        ch_xpnd.cmx_ptr[z+k] = sRow_ptr.cmx_ptr[n];
+                }
+            }
+        }
+        // replicating the expanded channel data into new column of des Mat.
+        for(i=1, tRow_ptr.uch_ptr += ch_xpnd_sz; i < rc; ++i, tRow_ptr.uch_ptr += ch_xpnd_sz){
+            memcpy(tRow_ptr.uch_ptr, ch_xpnd.uch_ptr, ch_xpnd_sz);
+        }
     }
+    // replicating the expanded column Mat into remaining rows of des Mat.
+    for(y=0; y < sr ; ++y){
+        sRow_ptr = des.getRowElptr(y);
+        for( i=1, n=sr+y; i < rr; ++i, n+=sr){
+            tRow_ptr = des.getRowElptr(n);
+            memcpy(tRow_ptr.uch_ptr, sRow_ptr.uch_ptr, cl_xpnd_sz);
+        }
+    }
+    return des;
 }
-
 } // end of jmat namespace

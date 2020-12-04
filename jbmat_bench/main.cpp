@@ -62,14 +62,16 @@ int32 main(int32 argc, char *argv[])
     ma.changeDType(DTYP::CMPLX);
     ma.printMat();
 
+    Mat ma_sub=ma.copySubMat(2,5,2,4);
+    ma_sub.printMat("ma_sub:");
+
+
     ma.changeDType(DTYP::INT);
     ma.printMat();
 
     Mat ma_xt= Mat::extractChannel(ma,1);
     ma_xt.printMat("ma_channel1");
 
-    Mat ma_sub=ma.copySubMat(2,5,2,4);
-    ma_sub.printMat("ma_sub:");
 
     Mat mb = {cmplx(1.0,2.0),cmplx(3.0,4.0),cmplx(5.0,6.0),cmplx(7.0,8.0)};
     mb.printMat("mb");
@@ -126,6 +128,13 @@ int32 main(int32 argc, char *argv[])
     mf.setChannel(me_ex2,0,0,2);
     mf.printMat("mf");
 
+    Mat mf2= Mat::zeros(4,6,2);
+    Mat::sliceCopyMat(mf, matRect(1,1,2,3), mf2,matRect(0,1,1,3));
+    mf2.printMat("mf2");
+
+    Mat mf3= Mat::zeros(4,3,2, DTYP::CMPLX);
+    Mat::sliceCopyMat(me2_ex2, matRect(1,0,2,1), mf3,matRect(0,1,1,2));
+    mf3.printMat("mf3");
     return 0;
 }
 void bicubic_test(){
