@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2020. Jong B. Choi
+ * License : MIT License
+ * contact : neoflame99@naver.com
+ */
+
 #ifndef SATCAST_H
 #define SATCAST_H
 //

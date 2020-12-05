@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2020. Jong B. Choi
+ * License : MIT License
+ * contact : neoflame99@naver.com
+ */
+
 #ifndef JBIMGPROC_H
 #define JBIMGPROC_H
 #include "jbMat.h"

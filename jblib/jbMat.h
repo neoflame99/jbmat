@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2020. Jong B. Choi
+ * License : MIT License
+ * contact : neoflame99@naver.com
+ *
+ */
+
 #ifndef JBMAT_H
 #define JBMAT_H
 

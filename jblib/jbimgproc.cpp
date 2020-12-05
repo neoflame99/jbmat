@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2020. Jong B. Choi
+ * License : MIT License
+ * contact : neoflame99@naver.com
+ */
+
 #include "jbimgproc.h"
 #include "jbimgproc.h"
 
