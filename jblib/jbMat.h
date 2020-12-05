@@ -617,7 +617,7 @@ template <typename _T> inline Mat Mat::_repeat(const Mat& src, const uint32 rr, 
         }
         // replicating the expanded channel data into new column of des Mat.
         for(i=1, tRow_ptr += ch_xpnd_sz; i < rc; ++i, tRow_ptr += ch_xpnd_sz){
-            memcpy(tRow_ptr, ch_xpnd, sizeof(_T)*ch_xpnd_sz);
+            memcpy(tRow_ptr, ch_xpnd, src.byteStep*ch_xpnd_sz);
         }
     }
     // replicating the expanded column Mat into remaining rows of des Mat.
@@ -625,11 +625,12 @@ template <typename _T> inline Mat Mat::_repeat(const Mat& src, const uint32 rr, 
         sRow_ptr = des.getRowPtr<_T>(y);
         for( i=1, n=sr+y; i < rr; ++i, n+=sr){
             tRow_ptr = des.getRowPtr<_T>(n);
-            memcpy(tRow_ptr, sRow_ptr, sizeof(_T)*cl_xpnd_sz);
+            memcpy(tRow_ptr, sRow_ptr, src.byteStep*cl_xpnd_sz);
         }
     }
     return des;
 }
+/*
 template <> inline Mat Mat::_repeat<cmplx>(const Mat& src, const uint32 rr, const uint32 rc, const uint32 rch){
     uint32 sr = src.getRow();
     uint32 sc = src.getCol();
@@ -678,7 +679,7 @@ template <> inline Mat Mat::_repeat<cmplx>(const Mat& src, const uint32 rr, cons
         }
     }
     return des;
-}
+}*/
 
 } // namespace jmat
 
