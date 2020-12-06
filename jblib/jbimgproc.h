@@ -84,6 +84,19 @@ namespace imgproc {
     Mat bicubicIntp(const Mat& src,const int32 s);
     Mat copy_padding(const Mat& src, int32 pad_size=2);
     template <typename _T> inline Mat _bicubicIntp(const Mat& src, int32 s);
+
+    template <typename T> class bgr_g{
+        public: T B, G, R;
+    };
+    template <typename T> class yuv_g{
+        public: T Y, U, V;
+    };
+    template <typename T> class xyz_g{
+        public: T X, Y, Z;
+    };
+    template <typename T> class Yxy_g{
+        public: T Y, x, y;
+    };
 }
 
 
@@ -108,30 +121,21 @@ namespace  imgproc{
         assert(chsize==3);
 
         Mat  A(rgbIm.getDatType(), row, col, chsize);
-        _T* srcDat_pt = rgbIm.getDataPtr<_T>();
-        _T* tarDat_pt = A.getDataPtr<_T>();
-        _T  R,G,B;
+        bgr_g<_T>* bgr = (bgr_g<_T> *)rgbIm.getDataPtr();
+        yuv_g<_T>* yuv = (yuv_g<_T> *)A.getDataPtr();
 
-        uint32 x, x2;
+        uint32 x;
         if( sel_eq == 0){
-            for(x=0, x2=0 ; x < rgbIm.getLength();  ){
-                B = srcDat_pt[x++];
-                G = srcDat_pt[x++];
-                R = srcDat_pt[x++];
-
-                tarDat_pt[x2++] = (_T)(bt601_r2y[0][0] * R + bt601_r2y[0][1] * G + bt601_r2y[0][2] * B); // Y
-                tarDat_pt[x2++] = (_T)(bt601_r2y[1][0] * R + bt601_r2y[1][1] * G + bt601_r2y[1][2] * B); // U
-                tarDat_pt[x2++] = (_T)(bt601_r2y[2][0] * R + bt601_r2y[2][1] * G + bt601_r2y[2][2] * B); // V
+            for(x=0 ; x < rgbIm.getRowColSize(); ++x){
+                yuv[x].Y = (_T)(bt601_r2y[0][0]*bgr[x].R + bt601_r2y[0][1]*bgr[x].G + bt601_r2y[0][2]*bgr[x].B); // Y
+                yuv[x].U = (_T)(bt601_r2y[1][0]*bgr[x].R + bt601_r2y[1][1]*bgr[x].G + bt601_r2y[1][2]*bgr[x].B); // U
+                yuv[x].V = (_T)(bt601_r2y[2][0]*bgr[x].R + bt601_r2y[2][1]*bgr[x].G + bt601_r2y[2][2]*bgr[x].B); // V
             }
         }else if( sel_eq == 1){
-            for(x= 0, x2=0 ; x < rgbIm.getLength(); ){
-                B = srcDat_pt[x++];
-                G = srcDat_pt[x++];
-                R = srcDat_pt[x++];
-
-                tarDat_pt[x2++] = (_T)(bt709_r2y[0][0] * R + bt709_r2y[0][1] * G + bt709_r2y[0][2] * B); // Y
-                tarDat_pt[x2++] = (_T)(bt709_r2y[1][0] * R + bt709_r2y[1][1] * G + bt709_r2y[1][2] * B); // U
-                tarDat_pt[x2++] = (_T)(bt709_r2y[2][0] * R + bt709_r2y[2][1] * G + bt709_r2y[2][2] * B); // V
+            for(x=0 ; x < rgbIm.getRowColSize(); ++x){
+                yuv[x].Y = (_T)(bt709_r2y[0][0]*bgr[x].R + bt709_r2y[0][1]*bgr[x].G + bt709_r2y[0][2]*bgr[x].B); // Y
+                yuv[x].U = (_T)(bt709_r2y[1][0]*bgr[x].R + bt709_r2y[1][1]*bgr[x].G + bt709_r2y[1][2]*bgr[x].B); // U
+                yuv[x].V = (_T)(bt709_r2y[2][0]*bgr[x].R + bt709_r2y[2][1]*bgr[x].G + bt709_r2y[2][2]*bgr[x].B); // V
             }
         }
         return A;
@@ -157,38 +161,28 @@ namespace  imgproc{
          assert(chsize==3);
 
          Mat A(yccIm.getDatType(), row, col, chsize);
-         _T *srcDat_pt = yccIm.getDataPtr<_T>();
-         _T *tarDat_pt = A.getDataPtr<_T>();
-         _T Y, U, V;
-         _T R, G, B;
-         uint32 x, x2;
+         yuv_g<_T> *yuv = (yuv_g<_T> *)yccIm.getDataPtr();
+         bgr_g<_T> *bgr = (bgr_g<_T> *)A.getDataPtr();
+         uint32 x ;
          if( sel_eq == 0){
-             for(x= 0, x2= 0 ; x < yccIm.getLength(); ){
-                 Y = srcDat_pt[x++];
-                 U = srcDat_pt[x++];
-                 V = srcDat_pt[x++];
+             for(x= 0 ; x < yccIm.getRowColSize(); ++x ){
+                 bgr[x].B = bt601_y2r[2][0]*yuv[x].Y + bt601_y2r[2][1]*yuv[x].U + bt601_y2r[2][2]*yuv[x].V;
+                 bgr[x].G = bt601_y2r[1][0]*yuv[x].Y + bt601_y2r[1][1]*yuv[x].U + bt601_y2r[1][2]*yuv[x].V;
+                 bgr[x].R = bt601_y2r[0][0]*yuv[x].Y + bt601_y2r[0][1]*yuv[x].U + bt601_y2r[0][2]*yuv[x].V;
 
-                 R = bt601_y2r[0][0] * Y + bt601_y2r[0][1] * U + bt601_y2r[0][2] * V;
-                 G = bt601_y2r[1][0] * Y + bt601_y2r[1][1] * U + bt601_y2r[1][2] * V;
-                 B = bt601_y2r[2][0] * Y + bt601_y2r[2][1] * U + bt601_y2r[2][2] * V;
-
-                 tarDat_pt[x2++] = (B < 0 ) ? 0 : B;
-                 tarDat_pt[x2++] = (G < 0 ) ? 0 : G;
-                 tarDat_pt[x2++] = (R < 0 ) ? 0 : R;
+                 bgr[x].B = (bgr[x].B < 0 ) ? 0 : bgr[x].B;
+                 bgr[x].G = (bgr[x].G < 0 ) ? 0 : bgr[x].G;
+                 bgr[x].R = (bgr[x].R < 0 ) ? 0 : bgr[x].R;
              }
          }else if( sel_eq == 1){
-             for(x= 0, x2=0 ; x < yccIm.getLength(); ){
-                 Y = srcDat_pt[x++];
-                 U = srcDat_pt[x++];
-                 V = srcDat_pt[x++];
+             for(x= 0 ; x < yccIm.getRowColSize(); ++x){
+                 bgr[x].B = bt709_y2r[2][0]*yuv[x].Y + bt709_y2r[2][1]*yuv[x].U + bt709_y2r[2][2]*yuv[x].V;
+                 bgr[x].G = bt709_y2r[1][0]*yuv[x].Y + bt709_y2r[1][1]*yuv[x].U + bt709_y2r[1][2]*yuv[x].V;
+                 bgr[x].R = bt709_y2r[0][0]*yuv[x].Y + bt709_y2r[0][1]*yuv[x].U + bt709_y2r[0][2]*yuv[x].V;
 
-                 R = bt709_y2r[0][0] * Y + bt709_y2r[0][1] * U + bt709_y2r[0][2] * V;
-                 G = bt709_y2r[1][0] * Y + bt709_y2r[1][1] * U + bt709_y2r[1][2] * V;
-                 B = bt709_y2r[2][0] * Y + bt709_y2r[2][1] * U + bt709_y2r[2][2] * V;
-
-                 tarDat_pt[x2++] = (B < 0 ) ? 0 : B;
-                 tarDat_pt[x2++] = (G < 0 ) ? 0 : G;
-                 tarDat_pt[x2++] = (R < 0 ) ? 0 : R;
+                 bgr[x].B = (bgr[x].B < 0 ) ? 0 : bgr[x].B;
+                 bgr[x].G = (bgr[x].G < 0 ) ? 0 : bgr[x].G;
+                 bgr[x].R = (bgr[x].R < 0 ) ? 0 : bgr[x].R;
              }
          }
          return A;
@@ -213,20 +207,19 @@ namespace  imgproc{
         assert(ch==3);
 
         Mat A(rgbIm.getDatType(), row, col, 1);
-        _T *srcDat_pt = rgbIm.getDataPtr<_T>();
-        _T *tarDat_pt = A.getDataPtr<_T>();
+        bgr_g<_T> *bgr = (bgr_g<_T> *) rgbIm.getDataPtr();
+        _T *gray = A.getDataPtr<_T>();
 
-        uint32 x1,x2,x3,k;
-
+        uint32 k;
         if( HowToGray==0){
-            for(x1=0, x2=1, x3=2, k=0 ; k < imsize; x1+=ch, x2+=ch, x3+=ch, k++)
-                tarDat_pt[k] =  bt601_r2y[0][0] * srcDat_pt[x3] + bt601_r2y[0][1] * srcDat_pt[x2] + bt601_r2y[0][2] * srcDat_pt[x1];
+            for( k=0 ; k < imsize; k++)
+                gray[k] =  bt601_r2y[0][0]*bgr[k].R + bt601_r2y[0][1]*bgr[k].G + bt601_r2y[0][2]*bgr[k].B;
         }else if( HowToGray==1){
-            for(x1=0, x2=1, x3=2, k=0 ; k < imsize; x1+=ch, x2+=ch, x3+=ch, k++)
-                tarDat_pt[k] =  bt709_r2y[0][0] * srcDat_pt[x3] + bt709_r2y[0][1] * srcDat_pt[x2] + bt709_r2y[0][2] * srcDat_pt[x1];
+            for( k=0 ; k < imsize; k++)
+                gray[k] =  bt709_r2y[0][0]*bgr[k].R + bt709_r2y[0][1]*bgr[k].G + bt709_r2y[0][2]*bgr[k].B;
         }else if( HowToGray==2){
-            for(x1=0, x2=1, x3=2, k=0 ; k < imsize; x1+=ch, x2+=ch, x3+=ch, k++)
-                tarDat_pt[k] =  0.3333 * srcDat_pt[x3] + 0.3334 * srcDat_pt[x2] + 0.3333 * srcDat_pt[x1];
+            for( k=0 ; k < imsize; k++)
+                gray[k] =  0.333*bgr[k].R + 0.334*bgr[k].G + 0.333*bgr[k].B;
         }
         return A;
     }
@@ -238,18 +231,13 @@ namespace  imgproc{
         if( chsize != 3) return Mat();
 
         Mat A(rgbIm.getDatType(), row, col, chsize);
-        _T* dat64f = A.getDataPtr<_T>();
-        _T* src_pt = rgbIm.getDataPtr<_T>();
-        _T r, g, b;
-        uint32 i, i2;
-        for( i=0, i2=0; i < rgbIm.getLength() ; ){
-            b = src_pt[i++];
-            g = src_pt[i++];
-            r = src_pt[i++];
-
-            dat64f[i2++] = rgb2xyz_bt709[0][0] * r + rgb2xyz_bt709[0][1] * g + rgb2xyz_bt709[0][2] * b; // X
-            dat64f[i2++] = rgb2xyz_bt709[1][0] * r + rgb2xyz_bt709[1][1] * g + rgb2xyz_bt709[1][2] * b; // Y
-            dat64f[i2++] = rgb2xyz_bt709[2][0] * r + rgb2xyz_bt709[2][1] * g + rgb2xyz_bt709[2][2] * b; // Z
+        bgr_g<_T> *bgr = (bgr_g<_T> *)rgbIm.getDataPtr();
+        xyz_g<_T> *xyz = (xyz_g<_T> *)A.getDataPtr();
+        uint32 i;
+        for( i=0; i < rgbIm.getRowColSize() ; ++i ){
+            xyz[i].X = rgb2xyz_bt709[0][0]*bgr[i].R + rgb2xyz_bt709[0][1]*bgr[i].G + rgb2xyz_bt709[0][2]*bgr[i].B; // X
+            xyz[i].Y = rgb2xyz_bt709[1][0]*bgr[i].R + rgb2xyz_bt709[1][1]*bgr[i].G + rgb2xyz_bt709[1][2]*bgr[i].B; // Y
+            xyz[i].Z = rgb2xyz_bt709[2][0]*bgr[i].R + rgb2xyz_bt709[2][1]*bgr[i].G + rgb2xyz_bt709[2][2]*bgr[i].B; // Z
         }
         return A;
     }
@@ -260,18 +248,13 @@ namespace  imgproc{
         if( chsize != 3) return Mat();
 
         Mat A(xyzIm.getDatType(), row, col, chsize);
-        _T* dat64f = A.getDataPtr<_T>();
-        _T* src_pt = xyzIm.getDataPtr<_T>();
-        _T x, y, z;
-        uint32 i, i2;
-        for(i=0, i2=0; i < xyzIm.getLength(); ) {
-            x = src_pt[i++];
-            y = src_pt[i++];
-            z = src_pt[i++];
-
-            dat64f[i2++] = xyz2rgb_bt709[2][0] * x + xyz2rgb_bt709[2][1] * y + xyz2rgb_bt709[2][2] * z; // B
-            dat64f[i2++] = xyz2rgb_bt709[1][0] * x + xyz2rgb_bt709[1][1] * y + xyz2rgb_bt709[1][2] * z; // G
-            dat64f[i2++] = xyz2rgb_bt709[0][0] * x + xyz2rgb_bt709[0][1] * y + xyz2rgb_bt709[0][2] * z; // R
+        xyz_g<_T> *xyz = (xyz_g<_T> *)xyzIm.getDataPtr();
+        bgr_g<_T> *bgr = (bgr_g<_T> *)A.getDataPtr();
+        uint32 i;
+        for(i=0; i < xyzIm.getRowColSize(); ++i) {
+            bgr[i].R = xyz2rgb_bt709[0][0]*xyz[i].X + xyz2rgb_bt709[0][1]*xyz[i].Y + xyz2rgb_bt709[0][2]*xyz[i].Z; // R
+            bgr[i].G = xyz2rgb_bt709[1][0]*xyz[i].X + xyz2rgb_bt709[1][1]*xyz[i].Y + xyz2rgb_bt709[1][2]*xyz[i].Z; // G
+            bgr[i].B = xyz2rgb_bt709[2][0]*xyz[i].X + xyz2rgb_bt709[2][1]*xyz[i].Y + xyz2rgb_bt709[2][2]*xyz[i].Z; // B
         }
         return A;
     }
@@ -283,20 +266,15 @@ namespace  imgproc{
         if( chsize != 3) return Mat();
 
         Mat A(rgbIm.getDatType(), row, col, chsize);
-        _T* dat64f = A.getDataPtr<_T>();
-        _T* src_pt = rgbIm.getDataPtr<_T>();
+        bgr_g<_T> *bgr = (bgr_g<_T> *)rgbIm.getDataPtr();
+        Yxy_g<_T> *Yxy = (Yxy_g<_T> *)A.getDataPtr();
 
         _T X, Y, Z, W, x, y;
-        _T r,g,b;
-        uint32 i, i2;
-        for( i=0, i2=0; i < rgbIm.getLength(); ){
-            b = src_pt[i++];
-            g = src_pt[i++];
-            r = src_pt[i++];
-
-            X = rgb2xyz_bt709[0][0] * r + rgb2xyz_bt709[0][1] * g + rgb2xyz_bt709[0][2] * b;
-            Y = rgb2xyz_bt709[1][0] * r + rgb2xyz_bt709[1][1] * g + rgb2xyz_bt709[1][2] * b;
-            Z = rgb2xyz_bt709[2][0] * r + rgb2xyz_bt709[2][1] * g + rgb2xyz_bt709[2][2] * b;
+        uint32 i;
+        for( i=0 ; i < rgbIm.getRowColSize(); ++i ){
+            X = rgb2xyz_bt709[0][0]*bgr[i].R + rgb2xyz_bt709[0][1]*bgr[i].G + rgb2xyz_bt709[0][2]*bgr[i].B;
+            Y = rgb2xyz_bt709[1][0]*bgr[i].R + rgb2xyz_bt709[1][1]*bgr[i].G + rgb2xyz_bt709[1][2]*bgr[i].B;
+            Z = rgb2xyz_bt709[2][0]*bgr[i].R + rgb2xyz_bt709[2][1]*bgr[i].G + rgb2xyz_bt709[2][2]*bgr[i].B;
             W = X + Y + Z;
             if( W <= 0.0) {
                 x = 0.0;
@@ -305,11 +283,10 @@ namespace  imgproc{
                 x = X/W;
                 y = Y/W;
             }
-            dat64f[i2++]= Y;
-            dat64f[i2++]= x;
-            dat64f[i2++]= y;
+            Yxy[i].Y = Y;
+            Yxy[i].x = x;
+            Yxy[i].y = y;
         }
-
         return A;
     }
 
@@ -320,25 +297,18 @@ namespace  imgproc{
         if( chsize != 3) return Mat();
 
         Mat A(YxyIm.getDatType(), row, col, chsize);
-        _T* dat64f = A.getDataPtr<_T>();
-        _T* src_pt = YxyIm.getDataPtr<_T>();
+        Yxy_g<_T> *Yxy = (Yxy_g<_T> *)YxyIm.getDataPtr();
+        bgr_g<_T> *bgr = (bgr_g<_T> *)A.getDataPtr();
 
-        _T  r, g, b;
-        _T  X,Y,Z,x,y,W;
-        uint32 i, i2;
-        for(i=0, i2= 0; i < YxyIm.getLength(); ){
-            Y = src_pt[i++];
-            x = src_pt[i++];
-            y = src_pt[i++];
-            W = Y/y;
-            X = x * W;
-            Z = W-Y-X;
-            r = xyz2rgb_bt709[0][0] *X + xyz2rgb_bt709[0][1] *Y + xyz2rgb_bt709[0][2] *Z;
-            g = xyz2rgb_bt709[1][0] *X + xyz2rgb_bt709[1][1] *Y + xyz2rgb_bt709[1][2] *Z;
-            b = xyz2rgb_bt709[2][0] *X + xyz2rgb_bt709[2][1] *Y + xyz2rgb_bt709[2][2] *Z;
-            dat64f[i2++]= b;
-            dat64f[i2++]= g;
-            dat64f[i2++]= r;
+        _T  X,Z,W;
+        uint32 i;
+        for(i=0 ; i < YxyIm.getRowColSize(); ++i){
+            W = Yxy[i].Y/Yxy[i].y;
+            X = Yxy[i].x * W;
+            Z = W-Yxy[i].Y-X;
+            bgr[i].R = xyz2rgb_bt709[0][0]*X + xyz2rgb_bt709[0][1]*Yxy[i].Y + xyz2rgb_bt709[0][2]*Z;
+            bgr[i].G = xyz2rgb_bt709[1][0]*X + xyz2rgb_bt709[1][1]*Yxy[i].Y + xyz2rgb_bt709[1][2]*Z;
+            bgr[i].B = xyz2rgb_bt709[2][0]*X + xyz2rgb_bt709[2][1]*Yxy[i].Y + xyz2rgb_bt709[2][2]*Z;
         }
         return A;
     }
