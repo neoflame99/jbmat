@@ -140,6 +140,25 @@ int32 main(int32 argc, char *argv[])
     struct timeval tv1, tv2;
     Mat mg(DTYP::DOUBLE, 1000, 10000, 3);
 
+    gettimeofday(&tv1, NULL);
+    imgproc::rgb2ycc(mg, 0);
+    gettimeofday(&tv2, NULL);
+    printf ("Total time = %f seconds\n",
+             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+             (double) (tv2.tv_sec - tv1.tv_sec));
+    gettimeofday(&tv1, NULL);
+    imgproc::rgb2ycc(mg, 0);
+    gettimeofday(&tv2, NULL);
+    printf ("Total time = %f seconds\n",
+             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+             (double) (tv2.tv_sec - tv1.tv_sec));
+    gettimeofday(&tv1, NULL);
+    imgproc::ycc2rgb(mg, 0);
+    gettimeofday(&tv2, NULL);
+    printf ("Total time = %f seconds\n",
+             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+             (double) (tv2.tv_sec - tv1.tv_sec));
+
     imgproc_t();
     return 0;
 }
@@ -191,6 +210,40 @@ void imgproc_t(){
     c.reshape(1,2,3);
     r = imgproc::ycc2rgb(c,1);
     r.printMat("r ");
+
+    c ={255, 255, 255, 255, 255, 0, 255, 0, 255, 0, 255, 255};
+    ref = {242, 255, 277, 137, 200, 272, 151, 72, 247, 196, 236, 35};
+    c.reshape(1,4,3);
+    ref.reshape(1,4,3);
+    r = imgproc::rgb2xyz(c);
+    r.printMat("rgb2xyz");
+    ref.printMat("ref");
+
+    c.changeDType(DTYP::DOUBLE);
+    ref = {255.0000, 0.3127, 0.3290, 200.7684, 0.2247, 0.3288,
+           72.6362, 0.3209, 0.1542, 236.5954, 0.4193, 0.5052};
+    ref.reshape(1,4,3);
+    r = imgproc::rgb2Yxy(c);
+    r.printMat("rgb2Yxy");
+    ref.printMat("ref");
+
+    c ={242, 255, 277, 196, 236, 35, 151, 72, 247, 137, 200, 272};
+    ref = {254,	255, 254, 0, 254, 254,  254, 0 , 255, 254, 253, 0};
+    c.reshape(1,4,3);
+    ref.reshape(1,4,3);
+    r = imgproc::xyz2rgb(c);
+    r.printMat("xyz2rgb");
+    ref.printMat("ref");
+
+    c={255.0000, 0.3127, 0.329, 236.5954, 0.4193, 0.5052,
+       72.6362,	0.3209, 0.1542, 200.7684, 0.2247, 0.3288};
+    ref = { 254.0612, 255.0059, 255.9594, 0.0365, 254.9933, 255.0102,
+            254.9958,   0.0264, 254.9125, 254.9114, 254.9863, 0.0761};
+    c.reshape(1,4,3);
+    ref.reshape(1,4,3);
+    r = imgproc::Yxy2rgb(c);
+    r.printMat("Yxy2rgb");
+    ref.printMat("ref");
 }
 
 void bicubic_test(){

@@ -263,9 +263,13 @@ namespace  imgproc{
         bgr_g<_T> *bgr = (bgr_g<_T> *)A.getDataPtr();
         uint32 i;
         for(i=0; i < xyzIm.getRowColSize(); ++i) {
-            bgr[i].R = ( 3240454*xyz[i].X - 1537139*xyz[i].Y - 0.498531*xyz[i].Z)/1000000; // R
-            bgr[i].G = ( -969266*xyz[i].X + 1876011*xyz[i].Y + 0.041556*xyz[i].Z)/1000000; // G
-            bgr[i].B = (   55643*xyz[i].X -  204026*xyz[i].Y + 1.057225*xyz[i].Z)/1000000; // B
+            bgr[i].R = ( 3240454*xyz[i].X - 1537139*xyz[i].Y -  498531*xyz[i].Z)/1000000; // R
+            bgr[i].G = ( -969266*xyz[i].X + 1876011*xyz[i].Y +   41556*xyz[i].Z)/1000000; // G
+            bgr[i].B = (   55643*xyz[i].X -  204026*xyz[i].Y + 1057225*xyz[i].Z)/1000000; // B
+
+            bgr[i].R = bgr[i].R < 0 ? 0 : bgr[i].R;
+            bgr[i].G = bgr[i].G < 0 ? 0 : bgr[i].G;
+            bgr[i].B = bgr[i].B < 0 ? 0 : bgr[i].B;
         }
         return A;
     }
@@ -317,9 +321,13 @@ namespace  imgproc{
             W = Yxy[i].Y/Yxy[i].y;
             X = Yxy[i].x * W;
             Z = W-Yxy[i].Y-X;
-            bgr[i].R = xyz2rgb_bt709[0][0]*X + xyz2rgb_bt709[0][1]*Yxy[i].Y + xyz2rgb_bt709[0][2]*Z;
-            bgr[i].G = xyz2rgb_bt709[1][0]*X + xyz2rgb_bt709[1][1]*Yxy[i].Y + xyz2rgb_bt709[1][2]*Z;
-            bgr[i].B = xyz2rgb_bt709[2][0]*X + xyz2rgb_bt709[2][1]*Yxy[i].Y + xyz2rgb_bt709[2][2]*Z;
+            bgr[i].R = ( 3240454*X - 1537139*Yxy[i].Y -  498531*Z)/1000000; // R
+            bgr[i].G = ( -969266*X + 1876011*Yxy[i].Y +   41556*Z)/1000000; // G
+            bgr[i].B = (   55643*X -  204026*Yxy[i].Y + 1057225*Z)/1000000; // B
+
+            bgr[i].R = bgr[i].R < 0 ? 0 : bgr[i].R;
+            bgr[i].G = bgr[i].G < 0 ? 0 : bgr[i].G;
+            bgr[i].B = bgr[i].B < 0 ? 0 : bgr[i].B;
         }
         return A;
     }
