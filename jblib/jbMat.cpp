@@ -1385,7 +1385,7 @@ Mat Mat::max(){
                 tmp_mag   = tmp.square();
                 if( larg_mag_ch[k] < tmp_mag){
                     Aptrs.cmx_ptr[k] = tmp;
-                    larg_mag_ch[k]      = tmp_mag;
+                    larg_mag_ch[k]   = tmp_mag;
                 }
             }
         }
@@ -1446,7 +1446,7 @@ Mat Mat::min(){
                 tmp_mag   = tmp.square();
                 if( larg_mag_ch[k] > tmp_mag){
                     Aptrs.cmx_ptr[k] = tmp;
-                    larg_mag_ch[k]      = tmp_mag;
+                    larg_mag_ch[k]   = tmp_mag;
                 }
             }
         }
@@ -1497,7 +1497,7 @@ Mat Mat::sum(){
         }else if(datT == DTYP::UCHAR){
             for(m = 0 ; m < length; m+=ch ){
                 for( k=0 ; k < ch; ++k, ++n)
-                    Aptr[k] += double(elptr.int_ptr[n]);
+                    Aptr[k] += double(elptr.uch_ptr[n]);
             }
         }
         return A;

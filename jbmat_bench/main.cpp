@@ -28,6 +28,7 @@ void imagerw_test();
 void imgproc_test();
 void math_test();
 void bicubic_test();
+void imgproc_t();
 int32 main(int32 argc, char *argv[])
 {
     //jbMat_test();
@@ -139,51 +140,36 @@ int32 main(int32 argc, char *argv[])
     struct timeval tv1, tv2;
     Mat mg(DTYP::DOUBLE, 1000, 10000, 3);
 
-    gettimeofday(&tv1, NULL);
-    imgproc::_rgb2ycc<double>(mg, 0);
-    gettimeofday(&tv2, NULL);
-    printf ("Total time = %f seconds\n",
-             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-             (double) (tv2.tv_sec - tv1.tv_sec));
-    gettimeofday(&tv1, NULL);
-    imgproc::_rgb2ycc<double>(mg, 0);
-    gettimeofday(&tv2, NULL);
-    printf ("Total time = %f seconds\n",
-             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-             (double) (tv2.tv_sec - tv1.tv_sec));
-    gettimeofday(&tv1, NULL);
-    imgproc::_rgb2ycc<double>(mg, 2);
-    gettimeofday(&tv2, NULL);
-    printf ("Total time = %f seconds\n",
-             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-             (double) (tv2.tv_sec - tv1.tv_sec));
-    gettimeofday(&tv1, NULL);
-    imgproc::_rgb2ycc<double>(mg, 0);
-    gettimeofday(&tv2, NULL);
-    printf ("Total time = %f seconds\n",
-             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-             (double) (tv2.tv_sec - tv1.tv_sec));
-    gettimeofday(&tv1, NULL);
-    imgproc::_rgb2ycc<double>(mg, 2);
-    gettimeofday(&tv2, NULL);
-    printf ("Total time = %f seconds\n",
-             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-             (double) (tv2.tv_sec - tv1.tv_sec));
-
-    gettimeofday(&tv1, NULL);
-    imgproc::_rgb2ycc<double>(mg, 2);
-    gettimeofday(&tv2, NULL);
-    printf ("Total time = %f seconds\n",
-             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-             (double) (tv2.tv_sec - tv1.tv_sec));
-    gettimeofday(&tv1, NULL);
-    imgproc::_rgb2ycc<double>(mg, 0);
-    gettimeofday(&tv2, NULL);
-    printf ("Total time = %f seconds\n",
-             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-             (double) (tv2.tv_sec - tv1.tv_sec));
+    imgproc_t();
     return 0;
 }
+
+void imgproc_t(){
+    uint32 i;
+    Mat a = { 255, 255, 255, 255, 255, 0, 255, 0, 255, 0 , 255, 255, 255, 0, 0, 0 , 255, 0, 0, 0, 255};
+    a.reshape(1, 7, 3);
+    Mat r = imgproc::rgb2ycc(a, 0);
+    Mat ref ={255, 0, 0, 179, 43, -128, 105, 84, 107, 226, -128, 21, 29, 128, -21, 150, -84, -107, 76, -43, 128};
+    ref.reshape(1,7,3);
+    r.printMat("r ");
+    ref.printMat("ref");
+    //check
+    for( i=0; i < ref.getLength(); i++ ) {
+        assert( r.at<int>(i) == ref.at<int>(i));
+    }
+
+    r = imgproc::rgb2ycc(a, 1);
+    ref = {255, 0, 0, 201, 29, -128, 73, 98, 116, 237, -128, 12, 18, 128, -12, 182, -98, -116, 54, -29, 128 };
+    ref.reshape(1,7,3);
+    r.printMat("r ");
+    ref.printMat("ref");
+    //check
+    for( i=0; i < ref.getLength(); i++ ) {
+        assert( r.at<int>(i) == ref.at<int>(i));
+    }
+
+}
+
 void bicubic_test(){
     int rc=7;
     Mat ma(DTYP::INT,rc,rc,1);

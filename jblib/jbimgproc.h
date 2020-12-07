@@ -127,15 +127,19 @@ namespace  imgproc{
         uint32 x;
         if( sel_eq == 0){
             for(x=0 ; x < rgbIm.getRowColSize(); ++x){
-                yuv[x].Y = (_T)(bt601_r2y[0][0]*bgr[x].R + bt601_r2y[0][1]*bgr[x].G + bt601_r2y[0][2]*bgr[x].B); // Y
-                yuv[x].U = (_T)(bt601_r2y[1][0]*bgr[x].R + bt601_r2y[1][1]*bgr[x].G + bt601_r2y[1][2]*bgr[x].B); // U
-                yuv[x].V = (_T)(bt601_r2y[2][0]*bgr[x].R + bt601_r2y[2][1]*bgr[x].G + bt601_r2y[2][2]*bgr[x].B); // V
+                yuv[x].Y = (_T)round(bt601_r2y[0][0]*bgr[x].R + bt601_r2y[0][1]*bgr[x].G + bt601_r2y[0][2]*bgr[x].B); // Y
+                yuv[x].U = (_T)round(bt601_r2y[1][0]*bgr[x].R + bt601_r2y[1][1]*bgr[x].G + bt601_r2y[1][2]*bgr[x].B); // U
+                yuv[x].V = (_T)round(bt601_r2y[2][0]*bgr[x].R + bt601_r2y[2][1]*bgr[x].G + bt601_r2y[2][2]*bgr[x].B); // V
             }
         }else if( sel_eq == 1){
             for(x=0 ; x < rgbIm.getRowColSize(); ++x){
-                yuv[x].Y = (_T)(bt709_r2y[0][0]*bgr[x].R + bt709_r2y[0][1]*bgr[x].G + bt709_r2y[0][2]*bgr[x].B); // Y
-                yuv[x].U = (_T)(bt709_r2y[1][0]*bgr[x].R + bt709_r2y[1][1]*bgr[x].G + bt709_r2y[1][2]*bgr[x].B); // U
-                yuv[x].V = (_T)(bt709_r2y[2][0]*bgr[x].R + bt709_r2y[2][1]*bgr[x].G + bt709_r2y[2][2]*bgr[x].B); // V
+                double Tmp = bt709_r2y[0][0]*bgr[x].R;
+                Tmp += bt709_r2y[0][1]*bgr[x].G;
+                Tmp += bt709_r2y[0][2]*bgr[x].B;
+
+                yuv[x].Y = (_T)round(bt709_r2y[0][0]*bgr[x].R + bt709_r2y[0][1]*bgr[x].G + bt709_r2y[0][2]*bgr[x].B); // Y
+                yuv[x].U = (_T)round(bt709_r2y[1][0]*bgr[x].R + bt709_r2y[1][1]*bgr[x].G + bt709_r2y[1][2]*bgr[x].B); // U
+                yuv[x].V = (_T)round(bt709_r2y[2][0]*bgr[x].R + bt709_r2y[2][1]*bgr[x].G + bt709_r2y[2][2]*bgr[x].B); // V
             }
         }
         return A;
