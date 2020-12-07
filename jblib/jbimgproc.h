@@ -127,19 +127,15 @@ namespace  imgproc{
         uint32 x;
         if( sel_eq == 0){
             for(x=0 ; x < rgbIm.getRowColSize(); ++x){
-                yuv[x].Y = (_T)round(bt601_r2y[0][0]*bgr[x].R + bt601_r2y[0][1]*bgr[x].G + bt601_r2y[0][2]*bgr[x].B); // Y
-                yuv[x].U = (_T)round(bt601_r2y[1][0]*bgr[x].R + bt601_r2y[1][1]*bgr[x].G + bt601_r2y[1][2]*bgr[x].B); // U
-                yuv[x].V = (_T)round(bt601_r2y[2][0]*bgr[x].R + bt601_r2y[2][1]*bgr[x].G + bt601_r2y[2][2]*bgr[x].B); // V
+                yuv[x].Y = (299*bgr[x].R + 587*bgr[x].G + 114*bgr[x].B)/1000; // Y
+                yuv[x].U = (-168736*bgr[x].R -331264*bgr[x].G + 500000*bgr[x].B)/1000000; // U
+                yuv[x].V = (500000*bgr[x].R -418688*bgr[x].G - 81312*bgr[x].B)/1000000; // V
             }
         }else if( sel_eq == 1){
             for(x=0 ; x < rgbIm.getRowColSize(); ++x){
-                double Tmp = bt709_r2y[0][0]*bgr[x].R;
-                Tmp += bt709_r2y[0][1]*bgr[x].G;
-                Tmp += bt709_r2y[0][2]*bgr[x].B;
-
-                yuv[x].Y = (_T)round(bt709_r2y[0][0]*bgr[x].R + bt709_r2y[0][1]*bgr[x].G + bt709_r2y[0][2]*bgr[x].B); // Y
-                yuv[x].U = (_T)round(bt709_r2y[1][0]*bgr[x].R + bt709_r2y[1][1]*bgr[x].G + bt709_r2y[1][2]*bgr[x].B); // U
-                yuv[x].V = (_T)round(bt709_r2y[2][0]*bgr[x].R + bt709_r2y[2][1]*bgr[x].G + bt709_r2y[2][2]*bgr[x].B); // V
+                yuv[x].Y = (2126*bgr[x].R + 7152*bgr[x].G + 722*bgr[x].B)/10000; // Y
+                yuv[x].U = (-11457*bgr[x].R -38543*bgr[x].G + 50000*bgr[x].B)/100000; // U
+                yuv[x].V = (50000*bgr[x].R -45415*bgr[x].G -4585*bgr[x].B)/100000; // V
             }
         }
         return A;
@@ -158,7 +154,6 @@ namespace  imgproc{
          *  b = [ 1.0000 ,  1.8556  ,  -0.0000  ]   [ Pr ]
          *
          */
-
          uint32 row = yccIm.getRow();
          uint32 col = yccIm.getCol();
          uint32 chsize = yccIm.getChannel();
@@ -170,9 +165,9 @@ namespace  imgproc{
          uint32 x ;
          if( sel_eq == 0){
              for(x= 0 ; x < yccIm.getRowColSize(); ++x ){
-                 bgr[x].B = bt601_y2r[2][0]*yuv[x].Y + bt601_y2r[2][1]*yuv[x].U + bt601_y2r[2][2]*yuv[x].V;
-                 bgr[x].G = bt601_y2r[1][0]*yuv[x].Y + bt601_y2r[1][1]*yuv[x].U + bt601_y2r[1][2]*yuv[x].V;
-                 bgr[x].R = bt601_y2r[0][0]*yuv[x].Y + bt601_y2r[0][1]*yuv[x].U + bt601_y2r[0][2]*yuv[x].V;
+                 bgr[x].R = (10000*yuv[x].Y + 14020*yuv[x].V)/10000;
+                 bgr[x].G = (10000*yuv[x].Y - 3441*yuv[x].U -7141*yuv[x].V)/10000;
+                 bgr[x].B = (10000*yuv[x].Y + 17720*yuv[x].U)/10000;
 
                  bgr[x].B = (bgr[x].B < 0 ) ? 0 : bgr[x].B;
                  bgr[x].G = (bgr[x].G < 0 ) ? 0 : bgr[x].G;
@@ -180,9 +175,9 @@ namespace  imgproc{
              }
          }else if( sel_eq == 1){
              for(x= 0 ; x < yccIm.getRowColSize(); ++x){
-                 bgr[x].B = bt709_y2r[2][0]*yuv[x].Y + bt709_y2r[2][1]*yuv[x].U + bt709_y2r[2][2]*yuv[x].V;
-                 bgr[x].G = bt709_y2r[1][0]*yuv[x].Y + bt709_y2r[1][1]*yuv[x].U + bt709_y2r[1][2]*yuv[x].V;
-                 bgr[x].R = bt709_y2r[0][0]*yuv[x].Y + bt709_y2r[0][1]*yuv[x].U + bt709_y2r[0][2]*yuv[x].V;
+                 bgr[x].R = (10000*yuv[x].Y + 15748*yuv[x].V)/10000;
+                 bgr[x].G = (10000*yuv[x].Y - 1873*yuv[x].U - 4681*yuv[x].V)/10000;
+                 bgr[x].B = (10000*yuv[x].Y + 18556*yuv[x].U)/10000;
 
                  bgr[x].B = (bgr[x].B < 0 ) ? 0 : bgr[x].B;
                  bgr[x].G = (bgr[x].G < 0 ) ? 0 : bgr[x].G;
@@ -217,18 +212,24 @@ namespace  imgproc{
         uint32 k;
         if( HowToGray==0){
             for( k=0 ; k < imsize; k++)
-                gray[k] =  bt601_r2y[0][0]*bgr[k].R + bt601_r2y[0][1]*bgr[k].G + bt601_r2y[0][2]*bgr[k].B;
+                gray[k] = (299*bgr[k].R + 587*bgr[k].G + 114*bgr[k].B)/1000;
         }else if( HowToGray==1){
             for( k=0 ; k < imsize; k++)
-                gray[k] =  bt709_r2y[0][0]*bgr[k].R + bt709_r2y[0][1]*bgr[k].G + bt709_r2y[0][2]*bgr[k].B;
+                gray[k] = (2126*bgr[k].R + 7152*bgr[k].G + 722*bgr[k].B)/10000;
         }else if( HowToGray==2){
             for( k=0 ; k < imsize; k++)
-                gray[k] =  0.333*bgr[k].R + 0.334*bgr[k].G + 0.333*bgr[k].B;
+                gray[k] = (3333*bgr[k].R + 3334*bgr[k].G + 3333*bgr[k].B)/10000;
         }
         return A;
     }
 
     template <typename _T> inline Mat _conv_rgb2xyz(const Mat& rgbIm){
+        /*
+         * rgb -> XYZ
+         * [0.4124564, 0.3575761, 0.1804375] [ r ]
+         * [0.2126729, 0.7151522, 0.0721750]*[ g ]
+         * [0.0193339, 0.1191920, 0.9503041] [ b ]
+         */
         uint32 row    = rgbIm.getRow();
         uint32 col    = rgbIm.getCol();
         uint32 chsize = rgbIm.getChannel();
@@ -239,13 +240,19 @@ namespace  imgproc{
         xyz_g<_T> *xyz = (xyz_g<_T> *)A.getDataPtr();
         uint32 i;
         for( i=0; i < rgbIm.getRowColSize() ; ++i ){
-            xyz[i].X = rgb2xyz_bt709[0][0]*bgr[i].R + rgb2xyz_bt709[0][1]*bgr[i].G + rgb2xyz_bt709[0][2]*bgr[i].B; // X
-            xyz[i].Y = rgb2xyz_bt709[1][0]*bgr[i].R + rgb2xyz_bt709[1][1]*bgr[i].G + rgb2xyz_bt709[1][2]*bgr[i].B; // Y
-            xyz[i].Z = rgb2xyz_bt709[2][0]*bgr[i].R + rgb2xyz_bt709[2][1]*bgr[i].G + rgb2xyz_bt709[2][2]*bgr[i].B; // Z
+            xyz[i].X = (412456*bgr[i].R + 357576*bgr[i].G + 180438*bgr[i].B)/1000000; // X
+            xyz[i].Y = (212673*bgr[i].R + 715152*bgr[i].G +  72175*bgr[i].B)/1000000; // Y
+            xyz[i].Z = ( 19334*bgr[i].R + 119192*bgr[i].G + 950304*bgr[i].B)/1000000; // Z
         }
         return A;
     }
     template <typename _T> inline Mat _conv_xyz2rgb(const Mat& xyzIm){
+        /*
+         * XYZ -> rgb
+         * [ 3.2404542, -1.5371385, -0.4985314]  [ X ]
+         * [-0.9692660,  1.8760108,  0.0415560] *[ Y ]
+         * [ 0.0556434, -0.2040259,  1.0572252]  [ Z ]
+         */
         uint32 row    = xyzIm.getRow();
         uint32 col    = xyzIm.getCol();
         uint32 chsize = xyzIm.getChannel();
@@ -256,9 +263,9 @@ namespace  imgproc{
         bgr_g<_T> *bgr = (bgr_g<_T> *)A.getDataPtr();
         uint32 i;
         for(i=0; i < xyzIm.getRowColSize(); ++i) {
-            bgr[i].R = xyz2rgb_bt709[0][0]*xyz[i].X + xyz2rgb_bt709[0][1]*xyz[i].Y + xyz2rgb_bt709[0][2]*xyz[i].Z; // R
-            bgr[i].G = xyz2rgb_bt709[1][0]*xyz[i].X + xyz2rgb_bt709[1][1]*xyz[i].Y + xyz2rgb_bt709[1][2]*xyz[i].Z; // G
-            bgr[i].B = xyz2rgb_bt709[2][0]*xyz[i].X + xyz2rgb_bt709[2][1]*xyz[i].Y + xyz2rgb_bt709[2][2]*xyz[i].Z; // B
+            bgr[i].R = ( 3240454*xyz[i].X - 1537139*xyz[i].Y - 0.498531*xyz[i].Z)/1000000; // R
+            bgr[i].G = ( -969266*xyz[i].X + 1876011*xyz[i].Y + 0.041556*xyz[i].Z)/1000000; // G
+            bgr[i].B = (   55643*xyz[i].X -  204026*xyz[i].Y + 1.057225*xyz[i].Z)/1000000; // B
         }
         return A;
     }
@@ -276,9 +283,9 @@ namespace  imgproc{
         _T X, Y, Z, W, x, y;
         uint32 i;
         for( i=0 ; i < rgbIm.getRowColSize(); ++i ){
-            X = rgb2xyz_bt709[0][0]*bgr[i].R + rgb2xyz_bt709[0][1]*bgr[i].G + rgb2xyz_bt709[0][2]*bgr[i].B;
-            Y = rgb2xyz_bt709[1][0]*bgr[i].R + rgb2xyz_bt709[1][1]*bgr[i].G + rgb2xyz_bt709[1][2]*bgr[i].B;
-            Z = rgb2xyz_bt709[2][0]*bgr[i].R + rgb2xyz_bt709[2][1]*bgr[i].G + rgb2xyz_bt709[2][2]*bgr[i].B;
+            X = (412456*bgr[i].R + 357576*bgr[i].G + 180438*bgr[i].B)/1000000; // X
+            Y = (212673*bgr[i].R + 715152*bgr[i].G +  72175*bgr[i].B)/1000000; // Y
+            Z = ( 19334*bgr[i].R + 119192*bgr[i].G + 950304*bgr[i].B)/1000000; // Z
             W = X + Y + Z;
             if( W <= 0.0) {
                 x = 0.0;

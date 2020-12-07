@@ -149,7 +149,7 @@ void imgproc_t(){
     Mat a = { 255, 255, 255, 255, 255, 0, 255, 0, 255, 0 , 255, 255, 255, 0, 0, 0 , 255, 0, 0, 0, 255};
     a.reshape(1, 7, 3);
     Mat r = imgproc::rgb2ycc(a, 0);
-    Mat ref ={255, 0, 0, 179, 43, -128, 105, 84, 107, 226, -128, 21, 29, 128, -21, 150, -84, -107, 76, -43, 128};
+    Mat ref ={255, 0, 0, 178, 43, -127, 105, 84, 106, 225, -127, 20, 29, 127, -20, 149, -84, -106, 76, -43, 127};
     ref.reshape(1,7,3);
     r.printMat("r ");
     ref.printMat("ref");
@@ -159,7 +159,7 @@ void imgproc_t(){
     }
 
     r = imgproc::rgb2ycc(a, 1);
-    ref = {255, 0, 0, 201, 29, -128, 73, 98, 116, 237, -128, 12, 18, 128, -12, 182, -98, -116, 54, -29, 128 };
+    ref = {255, 0, 0, 200, 29, -127, 72, 98, 115, 236, -127, 11, 18, 127, -11, 182, -98, -115, 54, -29, 127 };
     ref.reshape(1,7,3);
     r.printMat("r ");
     ref.printMat("ref");
@@ -168,6 +168,29 @@ void imgproc_t(){
         assert( r.at<int>(i) == ref.at<int>(i));
     }
 
+    Mat b = {1.0, 1.0, 1.0, 0.0, 1.0, 1.0};
+    b.reshape(1,2,3);
+    r = imgproc::rgb2ycc(b,0);
+    r.printMat("r ");
+
+    Mat c = {1.0f, 0.0f, 0.0f, 0.886f, -0.5f, 0.0813f};
+    c.reshape(1,2,3);
+    r = imgproc::ycc2rgb(c,0);
+    r.printMat("r ");
+    c = {1.0f, 0.0f, 0.0f, 0.9278f, -0.5f, 0.04585f};
+    c.reshape(1,2,3);
+    r = imgproc::ycc2rgb(c,1);
+    r.printMat("r ");
+
+    c = { 255, 0, 0, 225, -127, 20};
+    c.reshape(1,2,3);
+    r = imgproc::ycc2rgb(c,0);
+    r.printMat("r ");
+
+    c = { 255, 0, 0, 236, -127, 11};
+    c.reshape(1,2,3);
+    r = imgproc::ycc2rgb(c,1);
+    r.printMat("r ");
 }
 
 void bicubic_test(){
