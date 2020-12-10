@@ -143,7 +143,7 @@ Mat Yxy2rgb(const Mat& YxyIm){
 }
 
 
-Mat histoPmf(const Mat& src, const int32 bins, const double step){
+Mat histoPmf(const Mat& src, const uint32 bins, const double step, const double low_clipval){
     uint32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
@@ -158,10 +158,10 @@ Mat histoPmf(const Mat& src, const int32 bins, const double step){
     }
 
     switch(src.getDatType()){
-    case DTYP::DOUBLE : return _histoPmf<double>(src, bins, step);
-    case DTYP::FLOAT  : return _histoPmf<float >(src, bins, step);
-    case DTYP::INT    : return _histoPmf<int32 >(src, bins, step);
-    case DTYP::UCHAR  : return _histoPmf<uchar >(src, bins, step);
+    case DTYP::DOUBLE : return _histoPmf<double>(src, bins, step, low_clipval);
+    case DTYP::FLOAT  : return _histoPmf<float >(src, bins, step, low_clipval);
+    case DTYP::INT    : return _histoPmf<int32 >(src, bins, step, low_clipval);
+    case DTYP::UCHAR  : return _histoPmf<uchar >(src, bins, step, low_clipval);
     default           : {
         fprintf(stderr, " Unsupported DTYP in histoPmf func.\n");
         return Mat();
@@ -169,7 +169,7 @@ Mat histoPmf(const Mat& src, const int32 bins, const double step){
     }
 }
 
-Mat histoCmf(const Mat& src, const int32 bins, const double step){
+Mat histoCmf(const Mat& src, const uint32 bins, const double step, const double low_clipval){
     uint32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
@@ -184,10 +184,10 @@ Mat histoCmf(const Mat& src, const int32 bins, const double step){
     }
 
     switch(src.getDatType()){
-    case DTYP::DOUBLE : return _histoCmf<double>(src, bins, step);
-    case DTYP::FLOAT  : return _histoCmf<float >(src, bins, step);
-    case DTYP::INT    : return _histoCmf<int32 >(src, bins, step);
-    case DTYP::UCHAR  : return _histoCmf<uchar >(src, bins, step);
+    case DTYP::DOUBLE : return _histoCmf<double>(src, bins, step, low_clipval);
+    case DTYP::FLOAT  : return _histoCmf<float >(src, bins, step, low_clipval);
+    case DTYP::INT    : return _histoCmf<int32 >(src, bins, step, low_clipval);
+    case DTYP::UCHAR  : return _histoCmf<uchar >(src, bins, step, low_clipval);
     default           : {
         fprintf(stderr, " Unsupported DTYP in histoCmf func.\n");
         return Mat();
@@ -196,7 +196,7 @@ Mat histoCmf(const Mat& src, const int32 bins, const double step){
 }
 
 
-Mat clip_HistoPmf(const Mat& src,const int32 clipVal,const int32 bins, const int32 step){
+Mat clip_HistoPmf(const Mat& src,const uint32 clipVal,const uint32 bins, const double step, const double low_clipval){
     uint32 ch  = src.getChannel();
     if( src.isEmpty() ){
         fprintf(stderr,"clip_histoPmf : src argument is empty matrix\n");
@@ -213,10 +213,10 @@ Mat clip_HistoPmf(const Mat& src,const int32 clipVal,const int32 bins, const int
     }
 
     switch(src.getDatType()){
-    case DTYP::DOUBLE : return _clip_HistoPmf<double>(src, clipVal, bins, step);
-    case DTYP::FLOAT  : return _clip_HistoPmf<float >(src, clipVal, bins, step);
-    case DTYP::INT    : return _clip_HistoPmf<int32 >(src, clipVal, bins, step);
-    case DTYP::UCHAR  : return _clip_HistoPmf<uchar >(src, clipVal, bins, step);
+    case DTYP::DOUBLE : return _clip_HistoPmf<double>(src, clipVal, bins, step, low_clipval);
+    case DTYP::FLOAT  : return _clip_HistoPmf<float >(src, clipVal, bins, step, low_clipval);
+    case DTYP::INT    : return _clip_HistoPmf<int32 >(src, clipVal, bins, step, low_clipval);
+    case DTYP::UCHAR  : return _clip_HistoPmf<uchar >(src, clipVal, bins, step, low_clipval);
     default           : {
         fprintf(stderr, " Unsupported DTYP in clip_HistoPmf func.\n");
         return Mat();
@@ -224,7 +224,7 @@ Mat clip_HistoPmf(const Mat& src,const int32 clipVal,const int32 bins, const int
     }
 }
 
-Mat clip_HistoCmf(const Mat& src,const int32 clipVal,const int32 bins, const int32 step){
+Mat clip_HistoCmf(const Mat& src,const uint32 clipVal,const uint32 bins, const double step, const double low_clipval){
     uint32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
@@ -242,10 +242,10 @@ Mat clip_HistoCmf(const Mat& src,const int32 clipVal,const int32 bins, const int
     }
 
     switch(src.getDatType()){
-    case DTYP::DOUBLE : return _clip_HistoCmf<double>(src, clipVal, bins, step);
-    case DTYP::FLOAT  : return _clip_HistoCmf<float >(src, clipVal, bins, step);
-    case DTYP::INT    : return _clip_HistoCmf<int32 >(src, clipVal, bins, step);
-    case DTYP::UCHAR  : return _clip_HistoCmf<uchar >(src, clipVal, bins, step);
+    case DTYP::DOUBLE : return _clip_HistoCmf<double>(src, clipVal, bins, step, low_clipval);
+    case DTYP::FLOAT  : return _clip_HistoCmf<float >(src, clipVal, bins, step, low_clipval);
+    case DTYP::INT    : return _clip_HistoCmf<int32 >(src, clipVal, bins, step, low_clipval);
+    case DTYP::UCHAR  : return _clip_HistoCmf<uchar >(src, clipVal, bins, step, low_clipval);
     default           : {
         fprintf(stderr, " Unsupported DTYP in clip_HistoCmf func.\n");
         return Mat();
@@ -253,7 +253,7 @@ Mat clip_HistoCmf(const Mat& src,const int32 clipVal,const int32 bins, const int
     }
 }
 
-Mat clip_HistoEqual(const Mat& src,const Mat& histCmf, const int32 step){
+Mat clip_HistoEq(const Mat& src,const Mat& histCmf, const double step){
     uint32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
@@ -267,10 +267,10 @@ Mat clip_HistoEqual(const Mat& src,const Mat& histCmf, const int32 step){
         return Mat();
     }
     switch(src.getDatType()){
-    case DTYP::DOUBLE : return _clip_HistoEqual<double>(src, histCmf, step);
-    case DTYP::FLOAT  : return _clip_HistoEqual<float >(src, histCmf, step);
-    case DTYP::INT    : return _clip_HistoEqual<int32 >(src, histCmf, step);
-    case DTYP::UCHAR  : return _clip_HistoEqual<uchar >(src, histCmf, step);
+    case DTYP::DOUBLE : return _clip_HistoEq<double>(src, histCmf, step);
+    case DTYP::FLOAT  : return _clip_HistoEq<float >(src, histCmf, step);
+    case DTYP::INT    : return _clip_HistoEq<int32 >(src, histCmf, step);
+    case DTYP::UCHAR  : return _clip_HistoEq<uchar >(src, histCmf, step);
     default           : {
         fprintf(stderr, " Unsupported DTYP in clip_HistoEqual func.\n");
         return Mat();
