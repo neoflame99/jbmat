@@ -19,7 +19,8 @@ SOURCES += \
     ../jblib/jbMat.cpp \
     ../jblib/jbmath.cpp \
     ../jblib/qimmat.cpp \
-    ../jblib/jbimgproc.cpp
+    ../jblib/jbimgproc.cpp \
+    ../jblib/jbBmp.cpp
 
 HEADERS += \
     ../jblib/types.h \
@@ -27,7 +28,8 @@ HEADERS += \
     ../jblib/jbMat.h \
     ../jblib/jbmath.h \
     ../jblib/qimmat.h \
-    ../jblib/jbimgproc.h
+    ../jblib/jbimgproc.h \
+    ../jblib/jbBmp.h
 
 win32{
     DEFINES += _WIN_

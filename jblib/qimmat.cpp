@@ -7,6 +7,7 @@
 #include "qimmat.h"
 #include <stdio.h>
 #include "jbimgproc.h"
+#include <QRegularExpression>
 
 namespace qimmat {
 
@@ -106,7 +107,7 @@ namespace qimmat {
             }
             else if(line.contains(QString("pvalue"),Qt::CaseInsensitive) ){
                 t = line.indexOf(QString("+e"));
-                strlist = line.mid(t).trimmed().split(QRegExp("\\s"));
+                strlist = line.mid(t).trimmed().split(QRegularExpression("\\s"));
                 exposure = strlist.at(1).toDouble(&isOk);
                 if( !isOk)
                     exposure = 1.0;
