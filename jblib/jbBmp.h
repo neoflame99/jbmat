@@ -49,6 +49,6 @@ typedef struct _rgbQ      // 32비트 비트맵 이미지의 픽셀 구조체
 #pragma pack(pop)
 
 
-bool read_bmp(const std::string& fname, Mat& desIm);
+Mat read_bmp(const std::string& fname);
 
 #endif // JBBMP_H
