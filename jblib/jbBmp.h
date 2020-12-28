@@ -7,6 +7,9 @@
 #include "types.h"
 #include "jbMat.h"
 
+#define  BI_RGB  0
+#define  BI_BITFIELDS 3
+
 using namespace jmat;
 #pragma pack (push, 1)               // 구조체를 1바이트 크기로 정렬
 typedef struct _BitmapFileHeader     // BMP 비트맵 파일 헤더 구조체
@@ -15,7 +18,7 @@ typedef struct _BitmapFileHeader     // BMP 비트맵 파일 헤더 구조체
     unsigned int   bfSize;           // 파일 크기
     unsigned short bfReserved1;      // 예약
     unsigned short bfReserved2;      // 예약
-    unsigned int   bfOffBits;        // 비트맵 데이터의 시작 위치
+    unsigned int   bfOffset;        // 비트맵 데이터의 시작 위치
 } BmpFileheader;
 
 typedef struct _BitmapInfoHeader     // BMP 비트맵 정보 헤더 구조체(DIB 헤더)
@@ -33,6 +36,15 @@ typedef struct _BitmapInfoHeader     // BMP 비트맵 정보 헤더 구조체(DI
     unsigned int   biClrImportant;   // 비트맵을 표현하기 위해 필요한 색상 인덱스 수
 } BmpInfoheader;
 
+typedef struct _BitmapV3InfoHeader     // BMP 비트맵 정보 헤더 구조체(DIB 헤더)
+{
+    BmpInfoheader  bmpInfoHeader;
+    unsigned int   biRedBitField;
+    unsigned int   biGrnBitField;
+    unsigned int   biBluBitField;
+    unsigned int   biAlpBitField;
+} BmpV3Infoheader;
+
 typedef struct _rgbT      // 24비트 비트맵 이미지의 픽셀 구조체
 {
     uchar blu;
@@ -41,9 +53,7 @@ typedef struct _rgbT      // 24비트 비트맵 이미지의 픽셀 구조체
 } rgbT;
 typedef struct _rgbQ      // 32비트 비트맵 이미지의 픽셀 구조체
 {
-    uchar blu;
-    uchar grn;
-    uchar red;
+    rgbT  rgbt;
     uchar alp;
 } rgbQ;
 #pragma pack(pop)
