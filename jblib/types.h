@@ -238,7 +238,56 @@ namespace jmat {
         return (rhs.re <= lhs+DBL_EPSILON && rhs.re >= lhs-DBL_EPSILON && rhs.im == 0.0) ? true : false;
     }
 
-
+#pragma pack (push, 1)               // 구조체를 1바이트 크기로 정렬
+    typedef struct _bgr_d{
+        double b, g, r;
+    }bgr_d;
+    typedef struct _bgr_f{
+        float b, g, r;
+    }bgr_f;
+    typedef struct _bgr_i{
+        int32 b, g, r;
+    }bgr_i;
+    typedef struct _bgr_uc{
+        uchar b, g, r;
+    }bgr_uc;
+    typedef struct _yuv_d{
+        double y, u, v;
+    }yuv_d;
+    typedef struct _yuv_f{
+        float y, u, v;
+    }yuv_f;
+    typedef struct _yuv_i{
+        int32 y, u, v;
+    }yuv_i;
+    typedef struct _yuv_uc{
+        uchar y, u, v;
+    }yuv_uc;
+    typedef struct _xyz_d{
+        double x, y, z;
+    }xyz_d;
+    typedef struct _xyz_f{
+        float x, y, z;
+    }xyz_f;
+    typedef struct _xyz_i{
+        int32 x, y, z;
+    }xyz_i;
+    typedef struct _xyz_uc{
+        uchar x, y, z;
+    }xyz_uc;
+    typedef struct _Yxy_d{
+        double y, u, v;
+    }Yxy_d;
+    typedef struct _Yxy_f{
+        float y, u, v;
+    }Yxy_f;
+    typedef struct _Yxy_i{
+        int32 y, u, v;
+    }Yxy_i;
+    typedef struct _Yxy_uc{
+        uchar y, u, v;
+    }Yxy_uc;
+#pragma pack (pop)
 }
 
 namespace jmat {
