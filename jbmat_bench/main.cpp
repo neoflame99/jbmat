@@ -3,6 +3,8 @@
 #include "../jblib/jbmath.h"
 #include "../jblib/qimmat.h"
 #include "../jblib/jbimgproc.h"
+#include "../jblib/jbBmp.h"
+#include <opencv2/opencv.hpp>
 
 #include <QImage>
 #include <QString>
@@ -160,6 +162,19 @@ int32 main(int32 argc, char *argv[])
              (double) (tv2.tv_sec - tv1.tv_sec));
 
     imgproc_t();
+    std::string fn("/Users/neoflame99/sample_1920×1280_3.bmp");
+    Mat bmpd = read_bmp(fn);
+    cv::Mat cv_bmp(bmpd.getRow(), bmpd.getCol(), CV_8UC3);
+    for(uint32 m=0; m < bmpd.getRow(); ++m){
+        uchar *mat_dat   = bmpd.getRowPtr<uchar>(m);
+        uchar *cvmat_dat = cv_bmp.ptr<uchar>(m);
+        for(uint32 n=0; n < bmpd.getCol()*bmpd.getChannel(); n++){
+            cvmat_dat[n] = mat_dat[n];
+        }
+    }
+    cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE ); // Create a window for display.
+    cv::imshow( "Display window", cv_bmp );                  // Show our image inside it.
+    cv::waitKey(0);   // Wait for a keystroke in the window
     return 0;
 }
 
