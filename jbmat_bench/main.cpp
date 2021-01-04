@@ -161,7 +161,7 @@ int32 main(int32 argc, char *argv[])
              (double) (tv2.tv_sec - tv1.tv_sec));
 
     imgproc_t();
-
+#ifdef _LINUX_
     std::string bmpF("/home/neoflame99/Downloads/bike.bmp");
     std::string bmpFw32("/home/neoflame99/Downloads/bike32.bmp");
     std::string bmpFw24("/home/neoflame99/Downloads/bike24.bmp");
@@ -178,7 +178,7 @@ int32 main(int32 argc, char *argv[])
     w_ok= write_bmp(bmpFw8, im, 8);
     if(!w_ok)
         fprintf(stderr,"bmpFw8 Error\n");
-
+#endif
     return 0;
 }
 
@@ -210,6 +210,8 @@ void imgproc_t(){
     b.reshape(1,2,3);
     r = imgproc::rgb2ycc(b,0);
     r.printMat("r ");
+    Mat _r = imgproc::_rgb2ycc<double>(b,0);
+    _r.printMat("_r ");
 
     Mat c = {1.0f, 0.0f, 0.0f, 0.886f, -0.5f, 0.0813f};
     c.reshape(1,2,3);

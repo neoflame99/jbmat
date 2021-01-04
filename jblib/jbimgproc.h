@@ -8,6 +8,7 @@
 #define JBIMGPROC_H
 #include "jbMat.h"
 #include "jbmath.h"
+#include "satcast.h"
 #ifdef _WIN_
     #define _USE_MATH_DEFINES
 #endif

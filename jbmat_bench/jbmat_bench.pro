@@ -37,6 +37,21 @@ win32{
 }unix:macx{
     DEFINES += _MACOS_
     message("Mac OS")
+    DEFINES += _MACOS_
+    INCLUDEPATH += "/usr/local/include/opencv4"
+    CONFIG(debug, debug|release){
+        LIBS += -L"/usr/local/lib" \
+            -lopencv_core \
+            -lopencv_highgui \
+            -lopencv_imgproc \
+            -lopencv_imgcodecs
+    }else{
+        LIBS += -L"/usr/local/lib" \
+            -lopencv_core \
+            -lopencv_highgui \
+            -lopencv_imgproc \
+            -lopencv_imgcodecs
+    }
 }unix:!macx{
     DEFINES += _LINUX_
     message("LINUX OS")
