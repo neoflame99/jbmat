@@ -7,10 +7,10 @@
 #include "types.h"
 #include "jbMat.h"
 
-#define  BI_RGB  0
-#define  BI_BITFIELDS 3
 
 using namespace jmat;
+enum BI_CMPRESS {bi_rgb=0, bi_bitfields=3};
+
 #pragma pack (push, 1)               // 구조체를 1바이트 크기로 정렬
 typedef struct _BitmapFileHeader     // BMP 비트맵 파일 헤더 구조체
 {
@@ -29,7 +29,7 @@ typedef struct _BitmapInfoHeader     // BMP 비트맵 정보 헤더 구조체(DI
     unsigned short biPlanes;         // 사용하는 색상판의 수
     unsigned short biBitCount;       // 픽셀 하나를 표현하는 비트 수
     unsigned int   biCompression;    // 압축 방식
-    unsigned int   biSizeImage;      // 비트맵 이미지의 픽셀 데이터 크기
+    unsigned int   biSizeImage;      // 비트맵 이미지의 픽셀 데이터 크기(including padding)
     int            biXPelsPerMeter;  // 그림의 가로 해상도(미터당 픽셀)
     int            biYPelsPerMeter;  // 그림의 세로 해상도(미터당 픽셀)
     unsigned int   biClrUsed;        // 색상 테이블에서 실제 사용되는 색상 수
@@ -60,5 +60,6 @@ typedef struct _rgbQ      // 32비트 비트맵 이미지의 픽셀 구조체
 
 
 Mat read_bmp(const std::string& fname);
+bool write_bmp(const std::string& fname, const Mat& Im, const int biBits=24);
 
 #endif // JBBMP_H

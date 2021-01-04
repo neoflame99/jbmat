@@ -3,6 +3,7 @@
 #include "../jblib/jbmath.h"
 #include "../jblib/qimmat.h"
 #include "../jblib/jbimgproc.h"
+#include "../jblib/jbBmp.h"
 
 #include <QImage>
 #include <QString>
@@ -160,6 +161,24 @@ int32 main(int32 argc, char *argv[])
              (double) (tv2.tv_sec - tv1.tv_sec));
 
     imgproc_t();
+
+    std::string bmpF("/home/neoflame99/Downloads/bike.bmp");
+    std::string bmpFw32("/home/neoflame99/Downloads/bike32.bmp");
+    std::string bmpFw24("/home/neoflame99/Downloads/bike24.bmp");
+    std::string bmpFw8("/home/neoflame99/Downloads/bike8.bmp");
+    Mat im = read_bmp(bmpF);
+    bool w_ok;
+    w_ok= write_bmp(bmpFw32, im, 32);
+    if(!w_ok)
+        fprintf(stderr,"bmpFw32 Error\n");
+
+    w_ok= write_bmp(bmpFw24, im, 24);
+    if(!w_ok)
+        fprintf(stderr,"bmpFw24 Error\n");
+    w_ok= write_bmp(bmpFw8, im, 8);
+    if(!w_ok)
+        fprintf(stderr,"bmpFw8 Error\n");
+
     return 0;
 }
 
