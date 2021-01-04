@@ -176,6 +176,7 @@ public:
     Mat   sqrtm();
 
     inline elemptr getRowElptr(uint32 r=0) const;
+    inline elemptr getElptr() const { return elptr; }
 private: // other private methods
 
 public : // static methods
