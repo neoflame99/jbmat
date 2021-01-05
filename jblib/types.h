@@ -276,16 +276,16 @@ namespace jmat {
         uchar x, y, z;
     }xyz_uc;
     typedef struct _Yxy_d{
-        double y, u, v;
+        double Y, x, y;
     }Yxy_d;
     typedef struct _Yxy_f{
-        float y, u, v;
+        float Y, x, y;
     }Yxy_f;
     typedef struct _Yxy_i{
-        int32 y, u, v;
+        int32 Y, x, y;
     }Yxy_i;
     typedef struct _Yxy_uc{
-        uchar y, u, v;
+        uchar Y, x, y;
     }Yxy_uc;
 #pragma pack (pop)
 }
