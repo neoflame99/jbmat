@@ -184,6 +184,7 @@ int32 main(int32 argc, char *argv[])
 
 void imgproc_t(){
     uint32 i;
+    printf("rgb2yuv: \n");
     Mat a = { 255, 255, 255, 255, 255, 0, 255, 0, 255, 0 , 255, 255, 255, 0, 0, 0 , 255, 0, 0, 0, 255};
     a.reshape(1, 7, 3);
     Mat r = imgproc::rgb2ycc(a, 0);
@@ -213,24 +214,43 @@ void imgproc_t(){
     Mat _r = imgproc::_rgb2ycc<double>(b,0);
     _r.printMat("_r ");
 
+
+    printf("rgb2gray: \n");
+    r = imgproc::rgb2gray(a, 1);
+    _r = imgproc::_rgb2gray<int>(a, 1);
+    r.printMat("r ");
+    _r.printMat("_r");
+
+    r = imgproc::rgb2gray(b, 1);
+    _r = imgproc::_rgb2gray<double>(b, 1);
+    r.printMat("r ");
+    _r.printMat("_r");
+
+
+    printf("yuv2rgb: \n");
     Mat c = {1.0f, 0.0f, 0.0f, 0.886f, -0.5f, 0.0813f};
     c.reshape(1,2,3);
     r = imgproc::ycc2rgb(c,0);
     r.printMat("r ");
+    _r = imgproc::_ycc2rgb<float>(c,0);
+    _r.printMat("_r");
+
     c = {1.0f, 0.0f, 0.0f, 0.9278f, -0.5f, 0.04585f};
     c.reshape(1,2,3);
     r = imgproc::ycc2rgb(c,1);
     r.printMat("r ");
+    _r = imgproc::_ycc2rgb<float>(c,1);
+    _r.printMat("_r");
 
     c = { 255, 0, 0, 225, -127, 20};
     c.reshape(1,2,3);
     r = imgproc::ycc2rgb(c,0);
     r.printMat("r ");
+    _r = imgproc::_ycc2rgb<int>(c,0);
+    _r.printMat("_r");
 
-    c = { 255, 0, 0, 236, -127, 11};
-    c.reshape(1,2,3);
-    r = imgproc::ycc2rgb(c,1);
-    r.printMat("r ");
+
+
 
     c ={255, 255, 255, 255, 255, 0, 255, 0, 255, 0, 255, 255};
     ref = {242, 255, 277, 137, 200, 272, 151, 72, 247, 196, 236, 35};
@@ -265,6 +285,7 @@ void imgproc_t(){
     r = imgproc::Yxy2rgb(c);
     r.printMat("Yxy2rgb");
     ref.printMat("ref");
+
 }
 
 void bicubic_test(){

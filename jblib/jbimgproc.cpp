@@ -79,7 +79,7 @@ Mat rgb2ycc(const Mat& rgbIm, const int32 sel_eq){
 }
 
 
-Mat ycc2rgb(const Mat& rgbIm, const int32 sel_eq){
+Mat ycc2rgb(const Mat& yuvIm, const int32 sel_eq){
 /*
  *   if sel_eq = 0 (BT 601)
  *
@@ -93,17 +93,66 @@ Mat ycc2rgb(const Mat& rgbIm, const int32 sel_eq){
  *  b = [ 1.0000 ,  1.8556  ,  -0.0000  ]   [ Pr ]
  *
  */
+    uint32 row = yuvIm.getRow();
+    uint32 col = yuvIm.getCol();
+    uint32 chsize = yuvIm.getChannel();
+    assert(chsize==3);
 
-    switch(rgbIm.getDatType()){
-    case DTYP::DOUBLE : return _ycc2rgb<double>(rgbIm, sel_eq);
-    case DTYP::FLOAT  : return _ycc2rgb<float >(rgbIm, sel_eq);
-    case DTYP::INT    : return _ycc2rgb<int32 >(rgbIm, sel_eq);
-    case DTYP::UCHAR  : return _ycc2rgb<uchar >(rgbIm, sel_eq);
-    default           : {
+    Mat  A(yuvIm.getDatType(), row, col, chsize);
+    int32 coe1[]={ 10000,     0, 14020,
+                   10000, -3441, -7141,
+                   10000, 17720,     0};
+    int32 coe2[]={ 10000,     0, 15748,
+                   10000, -1873, -4681,
+                   10000, 18556,     0};
+    int32* coe = sel_eq == 1 ? coe2 : coe1;
+    uint32 x;
+    if(yuvIm.getDatType()==DTYP::DOUBLE){
+        yuv_d* yuv = (yuv_d*)yuvIm.getElptr().f64_ptr;
+        bgr_d* bgr = (bgr_d*)A.getElptr().f64_ptr;
+        for(x=0 ; x < yuvIm.getRowColSize(); ++x ){
+            bgr[x].r = (coe[0]*yuv[x].y + coe[1]*yuv[x].u + coe[2]*yuv[x].v)/10000;
+            bgr[x].g = (coe[3]*yuv[x].y + coe[4]*yuv[x].u + coe[5]*yuv[x].v)/10000;
+            bgr[x].b = (coe[6]*yuv[x].y + coe[7]*yuv[x].u + coe[8]*yuv[x].v)/10000;
+            bgr[x].r = (bgr[x].r < 0 ) ? 0 : bgr[x].r;
+            bgr[x].g = (bgr[x].g < 0 ) ? 0 : bgr[x].g;
+            bgr[x].b = (bgr[x].b < 0 ) ? 0 : bgr[x].b;
+        }
+    }else if(yuvIm.getDatType()==DTYP::FLOAT){
+        yuv_f* yuv = (yuv_f*)yuvIm.getElptr().f32_ptr;
+        bgr_f* bgr = (bgr_f*)A.getElptr().f32_ptr;
+        for(x=0 ; x < yuvIm.getRowColSize(); ++x ){
+            bgr[x].r = (coe[0]*yuv[x].y + coe[1]*yuv[x].u + coe[2]*yuv[x].v)/10000;
+            bgr[x].g = (coe[3]*yuv[x].y + coe[4]*yuv[x].u + coe[5]*yuv[x].v)/10000;
+            bgr[x].b = (coe[6]*yuv[x].y + coe[7]*yuv[x].u + coe[8]*yuv[x].v)/10000;
+            bgr[x].r = (bgr[x].r < 0 ) ? 0 : bgr[x].r;
+            bgr[x].g = (bgr[x].g < 0 ) ? 0 : bgr[x].g;
+            bgr[x].b = (bgr[x].b < 0 ) ? 0 : bgr[x].b;
+        }
+    }else if(yuvIm.getDatType()==DTYP::INT){
+        yuv_i* yuv = (yuv_i*)yuvIm.getElptr().int_ptr;
+        bgr_i* bgr = (bgr_i*)A.getElptr().int_ptr;
+        for(x=0 ; x < yuvIm.getRowColSize(); ++x ){
+            bgr[x].r = (coe[0]*yuv[x].y + coe[1]*yuv[x].u + coe[2]*yuv[x].v)/10000;
+            bgr[x].g = (coe[3]*yuv[x].y + coe[4]*yuv[x].u + coe[5]*yuv[x].v)/10000;
+            bgr[x].b = (coe[6]*yuv[x].y + coe[7]*yuv[x].u + coe[8]*yuv[x].v)/10000;
+            bgr[x].r = (bgr[x].r < 0 ) ? 0 : bgr[x].r;
+            bgr[x].g = (bgr[x].g < 0 ) ? 0 : bgr[x].g;
+            bgr[x].b = (bgr[x].b < 0 ) ? 0 : bgr[x].b;
+        }
+    }else if(yuvIm.getDatType()==DTYP::UCHAR){
+        yuv_uc* yuv = (yuv_uc*)yuvIm.getElptr().uch_ptr;
+        bgr_uc* bgr = (bgr_uc*)A.getElptr().uch_ptr;
+        for(x=0 ; x < yuvIm.getRowColSize(); ++x ){
+            bgr[x].r = sat_cast<uchar>((coe[0]*yuv[x].y + coe[1]*yuv[x].u + coe[2]*yuv[x].v)/10000);
+            bgr[x].g = sat_cast<uchar>((coe[3]*yuv[x].y + coe[4]*yuv[x].u + coe[5]*yuv[x].v)/10000);
+            bgr[x].b = sat_cast<uchar>((coe[6]*yuv[x].y + coe[7]*yuv[x].u + coe[8]*yuv[x].v)/10000);
+        }
+    }else{
         fprintf(stderr, " Unsupported DTYP in ycc2rgb func.\n");
         return Mat();
-        }
     }
+    return A;
 }
 
 
@@ -118,16 +167,51 @@ Mat rgb2gray(const Mat& rgbIm, const int32 HowToGray){
  *  if HowToGray = 2 (3 equal-weight)
  *  Y = 0.3333 * r + 0.3334 * g + 0.3333 * b
  */
-    switch(rgbIm.getDatType()){
-    case DTYP::DOUBLE : return _rgb2gray<double>(rgbIm, HowToGray);
-    case DTYP::FLOAT  : return _rgb2gray<float >(rgbIm, HowToGray);
-    case DTYP::INT    : return _rgb2gray<int32 >(rgbIm, HowToGray);
-    case DTYP::UCHAR  : return _rgb2gray<uchar >(rgbIm, HowToGray);
-    default           : {
+    uint32 row = rgbIm.getRow();
+    uint32 col = rgbIm.getCol();
+    uint32 chsize = rgbIm.getChannel();
+    assert(chsize==3);
+
+    Mat  A(rgbIm.getDatType(), row, col, 1);
+    int32 coe1[]={    2990,    5870,    1140};
+    int32 coe2[]={    2126,    7152,     722};
+    int32 coe3[]={    3333,    3334,    3333};
+    int32* coe ;
+    switch (HowToGray) {
+    case 0 : coe = coe1; break;
+    case 1 : coe = coe2; break;
+    default: coe = coe3;
+    }
+    uint32 x;
+    if(rgbIm.getDatType()==DTYP::DOUBLE){
+        bgr_d* bgr = (bgr_d*)rgbIm.getElptr().f64_ptr;
+        double* Y  = A.getElptr().f64_ptr;
+        for(x=0 ; x < rgbIm.getRowColSize(); ++x ){
+            Y[x] = (coe[0]*bgr[x].r + coe[1]*bgr[x].g + coe[2]*bgr[x].b)/10000; // Y
+        }
+    }else if(rgbIm.getDatType()==DTYP::FLOAT){
+        bgr_f* bgr = (bgr_f*)rgbIm.getElptr().f32_ptr;
+        float* Y   = A.getElptr().f32_ptr;
+        for(x=0 ; x < rgbIm.getRowColSize(); ++x ){
+            Y[x] = (coe[0]*bgr[x].r + coe[1]*bgr[x].g + coe[2]*bgr[x].b)/10000  ; // Y
+        }
+    }else if(rgbIm.getDatType()==DTYP::INT){
+        bgr_i* bgr = (bgr_i*)rgbIm.getElptr().int_ptr;
+        int32*   Y = A.getElptr().int_ptr;
+        for(x=0 ; x < rgbIm.getRowColSize(); ++x ){
+            Y[x] = (coe[0]*bgr[x].r + coe[1]*bgr[x].g + coe[2]*bgr[x].b)/10000 ; // Y
+        }
+    }else if(rgbIm.getDatType()==DTYP::UCHAR){
+        bgr_uc* bgr = (bgr_uc*)rgbIm.getElptr().uch_ptr;
+        uchar*  Y   = A.getElptr().uch_ptr;
+        for(x=0 ; x < rgbIm.getRowColSize(); ++x ){
+            Y[x] = sat_cast<uchar>((coe[0]*bgr[x].r + coe[1]*bgr[x].g + coe[2]*bgr[x].b)/10000  ); // Y
+        }
+    }else{
         fprintf(stderr, " Unsupported DTYP in rgb2gray func.\n");
         return Mat();
-        }
     }
+    return A;
 }
 
 Mat rgb2xyz(const Mat& rgbIm){
