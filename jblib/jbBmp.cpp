@@ -208,7 +208,7 @@ bool write_bmp(const std::string& fname, const Mat& Im, const int biBits){
     BmpFileheader   fileheader;
     BmpInfoheader   infoheader;
 
-    uint   palette_sz ;
+    uint32 palette_sz ;
     size_t bmpsize;
     size_t data_sz;
     int32  mat_cur_r, biHt, rowSz, rowPadSz;
@@ -296,7 +296,7 @@ bool write_bmp(const std::string& fname, const Mat& Im, const int biBits){
         step = 1;
         uchar *palette_ptr = (uchar *)(memblock+sizeof(BmpFileheader)+infoheader.biSize);
         uchar* mem = (uchar *)(memblock+fileheader.bfOffset);
-        for(uint mm=0, mn=0; mm < palette_sz; mm+=4, mn++){
+        for(uint32 mm=0, mn=0; mm < palette_sz; mm+=4, mn++){
             palette_ptr[mm  ] = mn;
             palette_ptr[mm+1] = mn;
             palette_ptr[mm+2] = mn;

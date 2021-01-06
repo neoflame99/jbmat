@@ -137,7 +137,7 @@ int32 main(int32 argc, char *argv[])
     Mat mf3= Mat::zeros(4,3,2, DTYP::CMPLX);
     Mat::sliceCopyMat(me2_ex2, matRect(1,0,2,1), mf3,matRect(0,1,1,2));
     mf3.printMat("mf3");
-
+#if defined _LINUX_ || defined _MACOS_
     struct timeval tv1, tv2;
     Mat mg(DTYP::DOUBLE, 1000, 10000, 3);
 
@@ -159,6 +159,7 @@ int32 main(int32 argc, char *argv[])
     printf ("Total time = %f seconds\n",
              (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
              (double) (tv2.tv_sec - tv1.tv_sec));
+#endif
 
     imgproc_t();
 #ifdef _LINUX_
