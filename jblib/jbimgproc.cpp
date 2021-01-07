@@ -454,12 +454,12 @@ Mat Yxy2rgb(const Mat& YxyIm){
 
 
 Mat histoPmf(const Mat& src, const uint32 bins, const double step, const double low_clipval){
-    uint32 ch  = src.getChannel();
+    uint32 ch_src  = src.getChannel();
 
     if( src.isEmpty() ){
         fprintf(stderr,"histoPmf : src argument is empty matrix\n");
         return Mat();
-    }else if( ch != 1) {
+    }else if( ch_src != 1) {
         fprintf(stderr,"histoPmf : src is not 1 channel matrix\n");
         return Mat();
     }else if( bins < 1) {
@@ -468,6 +468,7 @@ Mat histoPmf(const Mat& src, const uint32 bins, const double step, const double 
     }
 
     Mat A = Mat::zeros(1, bins, src.getChannel(), DTYP::DOUBLE);
+    uint32 ch = A.getChannel();
     elemptr tarDat_pt = A.getElptr();
     elemptr srcDat_pt = src.getElptr();
 
@@ -536,7 +537,7 @@ Mat histoCmf(const Mat& src, const uint32 bins, const double step, const double 
     uint32 m, k;
     for( m=0; m < ch_cmf; ++m){
         for( k=ch_cmf+m ; k < cmf.getLength() ; k+= ch_cmf)  // getLength() == bins*ch
-            srcDat_pt[k] += srcDat_pt[k-ch];
+            srcDat_pt[k] += srcDat_pt[k-ch_cmf];
     }
 
     return cmf;
@@ -616,8 +617,8 @@ Mat clip_HistoCmf(const Mat& src,const uint32 clipVal,const uint32 bins, const d
 
     // making cumiltive data
     for( m = 0 ; m < ch_cmf ; ++m){
-        for(k=ch_cmf+m ; k < cmf.getLength() ; k+= ch) // getLength() == bins*ch
-            srcDat_pt[k] += srcDat_pt[k-ch];
+        for(k=ch_cmf+m ; k < cmf.getLength() ; k+= ch_cmf) // getLength() == bins*ch
+            srcDat_pt[k] += srcDat_pt[k-ch_cmf];
     }
     return cmf;
 }
@@ -634,17 +635,131 @@ Mat clip_HistoEq(const Mat& src,const Mat& histCmf, const double step){
     }else if( histCmf.isEmpty()){
         fprintf(stdout,"histCmf is empty \n");
         return Mat();
-    }
-    switch(src.getDatType()){
-    case DTYP::DOUBLE : return _clip_HistoEq<double>(src, histCmf, step);
-    case DTYP::FLOAT  : return _clip_HistoEq<float >(src, histCmf, step);
-    case DTYP::INT    : return _clip_HistoEq<int32 >(src, histCmf, step);
-    case DTYP::UCHAR  : return _clip_HistoEq<uchar >(src, histCmf, step);
-    default           : {
+    }else if( src.getChannel()!= 1 || histCmf.getChannel()!=1){
+       fprintf(stderr, "imgproc::clip_HistoEq() : Channels of src and histCmf are to be 1.\n");
+       return Mat();
+    }else if( src.getDatType()==DTYP::CMPLX ){
         fprintf(stderr, " Unsupported DTYP in clip_HistoEqual func.\n");
         return Mat();
+    }else if( histCmf.getDatType()!=DTYP::DOUBLE){
+        fprintf(stderr, " HistoCmf's data type of clip_HistoEq is to be DTYP::DOUBLE. \n");
+        return Mat();
+    }
+
+    Mat A = src.copy();
+    elemptr srcDat_pt = src.getElptr();
+    elemptr tarDat_pt = A.getElptr();
+    double *mapDat_pt = histCmf.getDataPtr<double>();
+
+    uint32 bins = histCmf.getRowColSize();
+    double d0, d1, d2, d3;
+    int32 i0, i1;
+    double mp1, mp2, mv;
+    int32 halfstep = step / 2;
+    int32 lowlmt = halfstep;
+    int32 upplmt = (bins-1)*step + halfstep;
+    if(src.getDatType()==DTYP::DOUBLE){
+        for(uint32 i=0; i < src.getLength(); i++){
+            d0 = srcDat_pt.f64_ptr[i];
+            if( d0 < lowlmt ){
+                tarDat_pt.f64_ptr[i] = (mapDat_pt[0]);
+            }else if( d0 >= upplmt ){
+                tarDat_pt.f64_ptr[i] = (mapDat_pt[bins-1]);
+            }else {
+                d1 = floor(d0 / step);
+                d3 = d0 - d1*step;
+                if( d3 < halfstep ){
+                    i0 = d1-1;
+                    i1 = d1;
+                    d2 = halfstep + d3;
+                }else{
+                    i0 = d1;
+                    i1 = d1+1;
+                    d2 = d3 - halfstep;
+                }
+                mp1 = mapDat_pt[i0];
+                mp2 = mapDat_pt[i1];
+                mv  = (mp2-mp1)/d2;
+                tarDat_pt.f64_ptr[i] = (mp1 + mv);
+            }
+        }
+    }else if(src.getDatType()==DTYP::FLOAT){
+        for(uint32 i=0; i < src.getLength(); i++){
+            d0 = srcDat_pt.f32_ptr[i];
+            if( d0 < lowlmt ){
+                tarDat_pt.f32_ptr[i] = float(mapDat_pt[0]);
+            }else if( d0 >= upplmt ){
+                tarDat_pt.f32_ptr[i] = float(mapDat_pt[bins-1]);
+            }else {
+                d1 = floor(d0 / step);
+                d3 = d0 - d1*step;
+                if( d3 < halfstep ){
+                    i0 = d1-1;
+                    i1 = d1;
+                    d2 = halfstep + d3;
+                }else{
+                    i0 = d1;
+                    i1 = d1+1;
+                    d2 = d3 - halfstep;
+                }
+                mp1 = mapDat_pt[i0];
+                mp2 = mapDat_pt[i1];
+                mv  = (mp2-mp1)/d2;
+                tarDat_pt.f32_ptr[i] = float(mp1 + mv);
+            }
+        }
+    }else if(src.getDatType()==DTYP::INT){
+        for(uint32 i=0; i < src.getLength(); i++){
+            d0 = srcDat_pt.int_ptr[i];
+            if( d0 < lowlmt ){
+                tarDat_pt.int_ptr[i] = int32(mapDat_pt[0]);
+            }else if( d0 >= upplmt ){
+                tarDat_pt.int_ptr[i] = int32(mapDat_pt[bins-1]);
+            }else {
+                d1 = floor(d0 / step);
+                d3 = d0 - d1*step;
+                if( d3 < halfstep ){
+                    i0 = d1-1;
+                    i1 = d1;
+                    d2 = halfstep + d3;
+                }else{
+                    i0 = d1;
+                    i1 = d1+1;
+                    d2 = d3 - halfstep;
+                }
+                mp1 = mapDat_pt[i0];
+                mp2 = mapDat_pt[i1];
+                mv  = (mp2-mp1)/d2;
+                tarDat_pt.int_ptr[i] = int32(mp1 + mv);
+            }
+        }
+    }else if(src.getDatType()==DTYP::UCHAR){
+        for(uint32 i=0; i < src.getLength(); i++){
+            d0 = srcDat_pt.uch_ptr[i];
+            if( d0 < lowlmt ){
+                tarDat_pt.uch_ptr[i] = uchar(mapDat_pt[0]);
+            }else if( d0 >= upplmt ){
+                tarDat_pt.uch_ptr[i] = uchar(mapDat_pt[bins-1]);
+            }else {
+                d1 = floor(d0 / step);
+                d3 = d0 - d1*step;
+                if( d3 < halfstep ){
+                    i0 = d1-1;
+                    i1 = d1;
+                    d2 = halfstep + d3;
+                }else{
+                    i0 = d1;
+                    i1 = d1+1;
+                    d2 = d3 - halfstep;
+                }
+                mp1 = mapDat_pt[i0];
+                mp2 = mapDat_pt[i1];
+                mv  = (mp2-mp1)/d2;
+                tarDat_pt.uch_ptr[i] = uchar(mp1 + mv);
+            }
         }
     }
+    return A;
 }
 
 
