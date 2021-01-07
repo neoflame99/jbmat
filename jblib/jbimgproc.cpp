@@ -467,16 +467,49 @@ Mat histoPmf(const Mat& src, const uint32 bins, const double step, const double 
         return Mat();
     }
 
-    switch(src.getDatType()){
-    case DTYP::DOUBLE : return _histoPmf<double>(src, bins, step, low_clipval);
-    case DTYP::FLOAT  : return _histoPmf<float >(src, bins, step, low_clipval);
-    case DTYP::INT    : return _histoPmf<int32 >(src, bins, step, low_clipval);
-    case DTYP::UCHAR  : return _histoPmf<uchar >(src, bins, step, low_clipval);
-    default           : {
+    Mat A = Mat::zeros(1, bins, src.getChannel(), DTYP::DOUBLE);
+    elemptr tarDat_pt = A.getElptr();
+    elemptr srcDat_pt = src.getElptr();
+
+    uint32 k, m, d ;
+
+    if(src.getDatType()==DTYP::DOUBLE){
+        for(m=0 ; m < ch ; ++m){
+            for(k=m ; k < src.getLength() ; k+=ch ){
+                d = uint32((srcDat_pt.f64_ptr[k]-low_clipval)/step);
+                d = (d < 0) ? 0 : (d >= bins) ? bins-1: d;  // bin index range : 0 ~ bins-1
+                tarDat_pt.f64_ptr[d*ch+m]++;
+            }
+        }
+    }else if(src.getDatType()==DTYP::FLOAT){
+        for(m=0 ; m < ch ; ++m){
+            for(k=m ; k < src.getLength() ; k+=ch ){
+                d = uint32((srcDat_pt.f32_ptr[k]-low_clipval)/step);
+                d = (d < 0) ? 0 : (d >= bins) ? bins-1: d;  // bin index range : 0 ~ bins-1
+                tarDat_pt.f64_ptr[d*ch+m]++;
+            }
+        }
+    }else if(src.getDatType()==DTYP::INT){
+        for(m=0 ; m < ch ; ++m){
+            for(k=m ; k < src.getLength() ; k+=ch ){
+                d = uint32((srcDat_pt.int_ptr[k]-low_clipval)/step);
+                d = (d < 0) ? 0 : (d >= bins) ? bins-1: d;  // bin index range : 0 ~ bins-1
+                tarDat_pt.f64_ptr[d*ch+m]++;
+            }
+        }
+    }else if(src.getDatType()==DTYP::UCHAR){
+        for(m=0 ; m < ch ; ++m){
+            for(k=m ; k < src.getLength() ; k+=ch ){
+                d = uint32((srcDat_pt.uch_ptr[k]-low_clipval)/step);
+                d = (d < 0) ? 0 : (d >= bins) ? bins-1: d;  // bin index range : 0 ~ bins-1
+                tarDat_pt.f64_ptr[d*ch+m]++;
+            }
+        }
+    }else{
         fprintf(stderr, " Unsupported DTYP in histoPmf func.\n");
         return Mat();
-        }
     }
+    return A;
 }
 
 Mat histoCmf(const Mat& src, const uint32 bins, const double step, const double low_clipval){
@@ -491,18 +524,22 @@ Mat histoCmf(const Mat& src, const uint32 bins, const double step, const double 
     }else if( bins < 1) {
         fprintf(stderr,"histoCmf : 'bins' should be larger than or equal 1 \n");
         return Mat();
-    }
-
-    switch(src.getDatType()){
-    case DTYP::DOUBLE : return _histoCmf<double>(src, bins, step, low_clipval);
-    case DTYP::FLOAT  : return _histoCmf<float >(src, bins, step, low_clipval);
-    case DTYP::INT    : return _histoCmf<int32 >(src, bins, step, low_clipval);
-    case DTYP::UCHAR  : return _histoCmf<uchar >(src, bins, step, low_clipval);
-    default           : {
+    }else if( src.getDatType()==DTYP::CMPLX){
         fprintf(stderr, " Unsupported DTYP in histoCmf func.\n");
         return Mat();
-        }
     }
+
+    Mat cmf = histoPmf(src, bins, step, low_clipval);
+
+    double *srcDat_pt = cmf.getDataPtr<double>();
+    uint32 ch_cmf = cmf.getChannel();
+    uint32 m, k;
+    for( m=0; m < ch_cmf; ++m){
+        for( k=ch_cmf+m ; k < cmf.getLength() ; k+= ch_cmf)  // getLength() == bins*ch
+            srcDat_pt[k] += srcDat_pt[k-ch];
+    }
+
+    return cmf;
 }
 
 
@@ -520,18 +557,36 @@ Mat clip_HistoPmf(const Mat& src,const uint32 clipVal,const uint32 bins, const d
     }else if( step < 1) {
         fprintf(stderr,"clip_histoPmf : 'step' should be larger than or equal 1 \n");
         return Mat();
-    }
-
-    switch(src.getDatType()){
-    case DTYP::DOUBLE : return _clip_HistoPmf<double>(src, clipVal, bins, step, low_clipval);
-    case DTYP::FLOAT  : return _clip_HistoPmf<float >(src, clipVal, bins, step, low_clipval);
-    case DTYP::INT    : return _clip_HistoPmf<int32 >(src, clipVal, bins, step, low_clipval);
-    case DTYP::UCHAR  : return _clip_HistoPmf<uchar >(src, clipVal, bins, step, low_clipval);
-    default           : {
+    }else if( src.getDatType()==DTYP::CMPLX){
         fprintf(stderr, " Unsupported DTYP in clip_HistoPmf func.\n");
         return Mat();
+    }
+
+    Mat pmf = histoPmf(src, bins, step, low_clipval );
+    double *srcDat_pt = pmf.getDataPtr<double>();
+
+    uint32 ch_pmf = pmf.getChannel();
+    uint32 sum_clipped ;
+    uint32 binval;
+    uint32 k, m;
+
+    for( m =0 ; m < ch_pmf ; ++m){
+        // clipping on each channel
+        sum_clipped = 0;
+        for( k=m ; k < pmf.getLength() ; k+= ch_pmf){ // getLength() == bins*ch
+            binval = int32(srcDat_pt[k]);
+            if( binval > clipVal){
+                sum_clipped += binval - clipVal;
+                srcDat_pt[k] = clipVal;
+            }
+        }
+        sum_clipped /= bins;
+        // distributing the clipped sum
+        for( k=m ; k < pmf.getLength() ; k+= ch_pmf){
+            srcDat_pt[k] += sum_clipped;
         }
     }
+    return pmf;
 }
 
 Mat clip_HistoCmf(const Mat& src,const uint32 clipVal,const uint32 bins, const double step, const double low_clipval){
@@ -549,18 +604,22 @@ Mat clip_HistoCmf(const Mat& src,const uint32 clipVal,const uint32 bins, const d
     }else if( step < 1) {
         fprintf(stderr,"clip_histoPmf : 'step' should be larger than or equal 1 \n");
         return Mat();
-    }
-
-    switch(src.getDatType()){
-    case DTYP::DOUBLE : return _clip_HistoCmf<double>(src, clipVal, bins, step, low_clipval);
-    case DTYP::FLOAT  : return _clip_HistoCmf<float >(src, clipVal, bins, step, low_clipval);
-    case DTYP::INT    : return _clip_HistoCmf<int32 >(src, clipVal, bins, step, low_clipval);
-    case DTYP::UCHAR  : return _clip_HistoCmf<uchar >(src, clipVal, bins, step, low_clipval);
-    default           : {
+    }else if( src.getDatType()==DTYP::CMPLX){
         fprintf(stderr, " Unsupported DTYP in clip_HistoCmf func.\n");
         return Mat();
-        }
     }
+
+    Mat cmf = clip_HistoPmf(src, clipVal, bins, step, low_clipval);
+    double *srcDat_pt = cmf.getDataPtr<double>();
+    uint32 ch_cmf = cmf.getChannel();
+    uint32 m, k;
+
+    // making cumiltive data
+    for( m = 0 ; m < ch_cmf ; ++m){
+        for(k=ch_cmf+m ; k < cmf.getLength() ; k+= ch) // getLength() == bins*ch
+            srcDat_pt[k] += srcDat_pt[k-ch];
+    }
+    return cmf;
 }
 
 Mat clip_HistoEq(const Mat& src,const Mat& histCmf, const double step){
