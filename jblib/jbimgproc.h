@@ -38,16 +38,16 @@ namespace imgproc {
     template <typename _T> inline Mat _conv_Yxy2rgb(const Mat& YxyIm);
 
     // histogram functions
-    Mat histoPmf(const Mat& src,const uint32 bins, const double step, const double low_clipval);
-    Mat histoCmf(const Mat& src,const uint32 bins, const double step, const double low_clipval);
-    Mat clip_HistoPmf(const Mat& src, const uint32 clipVal,const uint32 bins, const double step, const double low_clipval);
-    Mat clip_HistoCmf(const Mat& src, const uint32 clipVal,const uint32 bins, const double step, const double low_clipval);
-    Mat clip_HistoEqual(const Mat& src, const Mat& histCmf, const double step);
-    template <typename _T> inline Mat _histoPmf(const Mat& src, const uint32 bins, const double step, const double low_clipval);
-    template <typename _T> inline Mat _histoCmf(const Mat& src, const uint32 bins, const double step, const double low_clipval);
-    template <typename _T> inline Mat _clip_HistoPmf(const Mat& src, const uint32 clipVal, const uint32 bins, const double step, const double low_clipval);
-    template <typename _T> inline Mat _clip_HistoCmf(const Mat& src, const uint32 clipVal, const uint32 bins, const double step, const double low_clipval);
-    template <typename _T> inline Mat _clip_HistoEq (const Mat& src, const Mat& histCmf  , const double step);
+    Mat histoPmf(const Mat& src,const uint32 bins, const double step, const double lowLmtval);
+    Mat histoCmf(const Mat& src,const uint32 bins, const double step, const double lowLmtval);
+    Mat clip_HistoPmf(const Mat& src, const uint32 clipVal,const uint32 bins, const double step, const double lowLmtval);
+    Mat clip_HistoCmf(const Mat& src, const uint32 clipVal,const uint32 bins, const double step, const double lowLmtval, const bool normalz=false);
+    Mat clip_HistoEqual(const Mat& src, const Mat& histCmf, const double step, const double maxval=255.0, const double minval=0.0);
+    template <typename _T> inline Mat _histoPmf(const Mat& src, const uint32 bins, const double step, const double lowLmtVal);
+    template <typename _T> inline Mat _histoCmf(const Mat& src, const uint32 bins, const double step, const double lowLmtVal);
+    template <typename _T> inline Mat _clip_HistoPmf(const Mat& src, const uint32 clipVal, const uint32 bins, const double step, const double lowLmtVal);
+    template <typename _T> inline Mat _clip_HistoCmf(const Mat& src, const uint32 clipVal, const uint32 bins, const double step, const double lowLmtVal, const bool normalz=false);
+    template <typename _T> inline Mat _clip_HistoEq (const Mat& src, const Mat& histCmf  , const double step, const double maxval=255.0, const double minval=0.0 );
 
     // gamma function
     Mat gamma(const Mat& src, const double gmval);
@@ -334,7 +334,7 @@ namespace  imgproc{
     }
 
 
-    template <typename _T> inline Mat _histoPmf(const Mat& src, const uint32 bins, const double step, const double low_clipval){
+    template <typename _T> inline Mat _histoPmf(const Mat& src, const uint32 bins, const double step, const double lowLmtVal){
 
         Mat A = Mat::zeros(1, bins, src.getChannel(), DTYP::DOUBLE);
         double *tarDat_pt = A.getDataPtr<double>();
@@ -345,7 +345,7 @@ namespace  imgproc{
 
         for(m=0 ; m < ch ; ++m){
             for(k=m ; k < src.getLength() ; k+=ch ){
-                d = uint32((srcDat_pt[k]-low_clipval)/step);
+                d = uint32((srcDat_pt[k]-lowLmtVal)/step);
                 d = (d < 0) ? 0 : (d >= bins) ? bins-1: d;  // bin index range : 0 ~ bins-1
                 tarDat_pt[d*ch+m]++;
             }
@@ -353,9 +353,9 @@ namespace  imgproc{
         return A;
     }
 
-    template <typename _T> inline Mat _histoCmf(const Mat& src, const uint32 bins, const double step, const double low_clipval){
+    template <typename _T> inline Mat _histoCmf(const Mat& src, const uint32 bins, const double step, const double lowLmtVal){
 
-        Mat cmf = _histoPmf<_T>(src, bins, step, low_clipval);
+        Mat cmf = _histoPmf<_T>(src, bins, step, lowLmtVal);
 
         double *srcDat_pt = cmf.getDataPtr<double>();
         uint32 ch = cmf.getChannel();
@@ -364,17 +364,16 @@ namespace  imgproc{
             for( k=ch+m ; k < cmf.getLength() ; k+= ch)  // getLength() == bins*ch
                 srcDat_pt[k] += srcDat_pt[k-ch];
         }
-
         return cmf;
     }
 
-    template <typename _T> inline Mat _clip_HistoPmf(const Mat& src,const uint32 clipVal, const uint32 bins, const double step, const double low_clipval){
+    template <typename _T> inline Mat _clip_HistoPmf(const Mat& src,const uint32 clipVal, const uint32 bins, const double step, const double lowLmtVal){
 
-        Mat pmf = _histoPmf<_T>(src, bins, step, low_clipval );
+        Mat pmf = _histoPmf<_T>(src, bins, step, lowLmtVal );
         double *srcDat_pt = pmf.getDataPtr<double>();
 
         uint32 ch = pmf.getChannel();
-        uint32 sum_clipped ;
+        uint32 sum_clipped, quot, rem ;
         uint32 binval;
         uint32 k, m;
 
@@ -388,18 +387,23 @@ namespace  imgproc{
                     srcDat_pt[k] = clipVal;
                 }
             }
-            sum_clipped /= bins;
+            quot = sum_clipped / bins;
+            rem  = sum_clipped % bins;
             // distributing the clipped sum
             for( k=m ; k < pmf.getLength() ; k+= ch){
-                srcDat_pt[k] += sum_clipped;
+                srcDat_pt[k] += quot;
+            }
+            // distributing remainders to higher numbered bins
+            for( k=(bins-rem)*ch+m ; k < pmf.getLength() ; k+= ch){
+                srcDat_pt[k]++;
             }
         }
         return pmf;
     }
 
-    template <typename _T> inline Mat _clip_HistoCmf(const Mat& src,const uint32 clipVal, const uint32 bins, const double step, const double low_clipval){
+    template <typename _T> inline Mat _clip_HistoCmf(const Mat& src,const uint32 clipVal, const uint32 bins, const double step, const double lowLmtVal, const bool normalz){
 
-        Mat cmf = _clip_HistoPmf<_T>(src, clipVal, bins, step, low_clipval);
+        Mat cmf = _clip_HistoPmf<_T>(src, clipVal, bins, step, lowLmtVal);
         double *srcDat_pt = cmf.getDataPtr<double>();
         uint32 ch = cmf.getChannel();
         uint32 m, k;
@@ -409,11 +413,21 @@ namespace  imgproc{
             for(k=ch+m ; k < cmf.getLength() ; k+= ch) // getLength() == bins*ch
                 srcDat_pt[k] += srcDat_pt[k-ch];
         }
-
+        // normalizing
+        if(normalz){
+            double denom;
+            uint32 cmf_size = cmf.getLength();
+            for( m = 0 ; m < ch ; ++m){
+                denom = srcDat_pt[cmf_size-ch+m];
+                for(k=m ; k < cmf_size-ch ; k+= ch)
+                    srcDat_pt[k] /= denom;
+                srcDat_pt[cmf_size-ch+m]=1.0;
+            }
+        }
         return cmf;
     }
 
-    template <typename _T> inline Mat _clip_HistoEq(const Mat& src, const Mat& histCmf, const double step ){
+    template <typename _T> inline Mat _clip_HistoEq(const Mat& src, const Mat& histCmf, const double step, const double maxval, const double minval ){
 
         if( src.getChannel()!= 1 || histCmf.getChannel()!=1){
             fprintf(stderr, "imgproc::_clip_HistoEq() : Channels of src and histCmf are to be 1.\n");
@@ -429,30 +443,49 @@ namespace  imgproc{
         double d0, d1, d2, d3;
         int32 i0, i1;
         double mp1, mp2, mv;
-        int32 halfstep = step / 2;
-        int32 lowlmt = halfstep;
-        int32 upplmt = (bins-1)*step + halfstep;
-        for(uint32 i=0; i < src.getLength(); i++){
-            d0 = srcDat_pt[i];
-            if( d0 < lowlmt ){
-                tarDat_pt[i] = _T(mapDat_pt[0]);
-            }else if( d0 >= upplmt ){
-                tarDat_pt[i] = _T(mapDat_pt[bins-1]);
-            }else {
-                d1 = floor(d0 / step);
-                d3 = d0 - d1*step;
-                if( d3 < halfstep ){
-                    i0 = d1-1;
-                    i1 = d1;
-                    d2 = halfstep + d3;
-                }else{
-                    i0 = d1;
-                    i1 = d1+1;
-                    d2 = d3 - halfstep;
+        double halfstep = step / 2;
+        double lowlmt = halfstep;
+        double upplmt = (bins-1)*step + halfstep;
+        uint32 ch_leastbin ;
+        uint32 ch_mostbin ;
+        uint32 ch = src.getChannel();
+        for(uint32 c=0; c < ch ; ++c){
+            ch_leastbin = c;
+            ch_mostbin  = (bins-1)*ch +c;
+            for(uint32 i=c; i < src.getLength(); i+=ch){
+                d0 = srcDat_pt[i];
+                if( d0 < minval ){
+                    mp1 = minval;
+                    mp2 = minval;
+                    d2  = 0;
+                }else if( d0 > maxval){
+                    mp1 = maxval;
+                    mp2 = maxval;
+                    d2  = 0;
+                }else if( d0 < lowlmt ){
+                    mp1 = minval;
+                    mp2 = mapDat_pt[ch_leastbin];
+                    d2  = halfstep;
+                }else if( d0 >= upplmt ){
+                    mp1 = mapDat_pt[ch_mostbin];
+                    mp2 = maxval;
+                    d2  = halfstep;
+                }else {
+                    d1 = floor(d0 / step);
+                    d3 = d0 - d1*step;
+                    if( d3 < halfstep ){
+                        i1 = d1*ch+c;
+                        i0 = i1-ch;
+                        d2 = halfstep + d3;
+                    }else{
+                        i0 = d1*ch+c;
+                        i1 = i0+ch;
+                        d2 = d3 - halfstep;
+                    }
+                    mp1 = mapDat_pt[i0];
+                    mp2 = mapDat_pt[i1];
                 }
-                mp1 = mapDat_pt[i0];
-                mp2 = mapDat_pt[i1];
-                mv  = (mp2-mp1)/d2;
+                mv  = (mp2-mp1)*d2/step;
                 tarDat_pt[i] = _T(mp1 + mv);
             }
         }

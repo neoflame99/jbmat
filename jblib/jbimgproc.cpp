@@ -453,21 +453,18 @@ Mat Yxy2rgb(const Mat& YxyIm){
 }
 
 
-Mat histoPmf(const Mat& src, const uint32 bins, const double step, const double low_clipval){
+Mat histoPmf(const Mat& src, const uint32 bins, const double step, const double lowLmtVal){
     uint32 ch_src  = src.getChannel();
 
     if( src.isEmpty() ){
         fprintf(stderr,"histoPmf : src argument is empty matrix\n");
-        return Mat();
-    }else if( ch_src != 1) {
-        fprintf(stderr,"histoPmf : src is not 1 channel matrix\n");
         return Mat();
     }else if( bins < 1) {
         fprintf(stderr,"histoPmf : 'bins' should be larger than or equal 1 \n");
         return Mat();
     }
 
-    Mat A = Mat::zeros(1, bins, src.getChannel(), DTYP::DOUBLE);
+    Mat A = Mat::zeros(1, bins, ch_src, DTYP::DOUBLE);
     uint32 ch = A.getChannel();
     elemptr tarDat_pt = A.getElptr();
     elemptr srcDat_pt = src.getElptr();
@@ -477,7 +474,7 @@ Mat histoPmf(const Mat& src, const uint32 bins, const double step, const double 
     if(src.getDatType()==DTYP::DOUBLE){
         for(m=0 ; m < ch ; ++m){
             for(k=m ; k < src.getLength() ; k+=ch ){
-                d = uint32((srcDat_pt.f64_ptr[k]-low_clipval)/step);
+                d = uint32((srcDat_pt.f64_ptr[k]-lowLmtVal)/step);
                 d = (d < 0) ? 0 : (d >= bins) ? bins-1: d;  // bin index range : 0 ~ bins-1
                 tarDat_pt.f64_ptr[d*ch+m]++;
             }
@@ -485,7 +482,7 @@ Mat histoPmf(const Mat& src, const uint32 bins, const double step, const double 
     }else if(src.getDatType()==DTYP::FLOAT){
         for(m=0 ; m < ch ; ++m){
             for(k=m ; k < src.getLength() ; k+=ch ){
-                d = uint32((srcDat_pt.f32_ptr[k]-low_clipval)/step);
+                d = uint32((srcDat_pt.f32_ptr[k]-lowLmtVal)/step);
                 d = (d < 0) ? 0 : (d >= bins) ? bins-1: d;  // bin index range : 0 ~ bins-1
                 tarDat_pt.f64_ptr[d*ch+m]++;
             }
@@ -493,7 +490,7 @@ Mat histoPmf(const Mat& src, const uint32 bins, const double step, const double 
     }else if(src.getDatType()==DTYP::INT){
         for(m=0 ; m < ch ; ++m){
             for(k=m ; k < src.getLength() ; k+=ch ){
-                d = uint32((srcDat_pt.int_ptr[k]-low_clipval)/step);
+                d = uint32((srcDat_pt.int_ptr[k]-lowLmtVal)/step);
                 d = (d < 0) ? 0 : (d >= bins) ? bins-1: d;  // bin index range : 0 ~ bins-1
                 tarDat_pt.f64_ptr[d*ch+m]++;
             }
@@ -501,7 +498,7 @@ Mat histoPmf(const Mat& src, const uint32 bins, const double step, const double 
     }else if(src.getDatType()==DTYP::UCHAR){
         for(m=0 ; m < ch ; ++m){
             for(k=m ; k < src.getLength() ; k+=ch ){
-                d = uint32((srcDat_pt.uch_ptr[k]-low_clipval)/step);
+                d = uint32((srcDat_pt.uch_ptr[k]-lowLmtVal)/step);
                 d = (d < 0) ? 0 : (d >= bins) ? bins-1: d;  // bin index range : 0 ~ bins-1
                 tarDat_pt.f64_ptr[d*ch+m]++;
             }
@@ -513,14 +510,10 @@ Mat histoPmf(const Mat& src, const uint32 bins, const double step, const double 
     return A;
 }
 
-Mat histoCmf(const Mat& src, const uint32 bins, const double step, const double low_clipval){
-    uint32 ch  = src.getChannel();
 
+Mat histoCmf(const Mat& src, const uint32 bins, const double step, const double lowLmtVal){
     if( src.isEmpty() ){
         fprintf(stderr,"histoCmf : src argument is empty matrix\n");
-        return Mat();
-    }else if( ch != 1) {
-        fprintf(stderr,"histoCmf : src is not 1 channel matrix\n");
         return Mat();
     }else if( bins < 1) {
         fprintf(stderr,"histoCmf : 'bins' should be larger than or equal 1 \n");
@@ -530,7 +523,8 @@ Mat histoCmf(const Mat& src, const uint32 bins, const double step, const double 
         return Mat();
     }
 
-    Mat cmf = histoPmf(src, bins, step, low_clipval);
+    Mat cmf = histoPmf(src, bins, step, lowLmtVal);
+    if( cmf.isEmpty()) return cmf;
 
     double *srcDat_pt = cmf.getDataPtr<double>();
     uint32 ch_cmf = cmf.getChannel();
@@ -543,14 +537,9 @@ Mat histoCmf(const Mat& src, const uint32 bins, const double step, const double 
     return cmf;
 }
 
-
-Mat clip_HistoPmf(const Mat& src,const uint32 clipVal,const uint32 bins, const double step, const double low_clipval){
-    uint32 ch  = src.getChannel();
+Mat clip_HistoPmf(const Mat& src,const uint32 clipVal,const uint32 bins, const double step, const double lowLmtVal){
     if( src.isEmpty() ){
         fprintf(stderr,"clip_histoPmf : src argument is empty matrix\n");
-        return Mat();
-    }else if( ch != 1) {
-        fprintf(stderr,"clip_histoPmf : src is not 1 channel matrix\n");
         return Mat();
     }else if( bins < 1) {
         fprintf(stderr,"clip_histoPmf : 'bins' should be larger than or equal 1 \n");
@@ -563,11 +552,12 @@ Mat clip_HistoPmf(const Mat& src,const uint32 clipVal,const uint32 bins, const d
         return Mat();
     }
 
-    Mat pmf = histoPmf(src, bins, step, low_clipval );
+    Mat pmf = histoPmf(src, bins, step, lowLmtVal );
+    if( pmf.isEmpty()) return pmf;
     double *srcDat_pt = pmf.getDataPtr<double>();
 
     uint32 ch_pmf = pmf.getChannel();
-    uint32 sum_clipped ;
+    uint32 sum_clipped, quot, rem ;
     uint32 binval;
     uint32 k, m;
 
@@ -581,23 +571,24 @@ Mat clip_HistoPmf(const Mat& src,const uint32 clipVal,const uint32 bins, const d
                 srcDat_pt[k] = clipVal;
             }
         }
-        sum_clipped /= bins;
+        quot = sum_clipped / bins;
+        rem  = sum_clipped % bins;
         // distributing the clipped sum
         for( k=m ; k < pmf.getLength() ; k+= ch_pmf){
-            srcDat_pt[k] += sum_clipped;
+            srcDat_pt[k] += quot;
+        }
+        // distributing remainders to higher numbered bins
+        for( k=(bins-rem)*ch_pmf+m ; k < pmf.getLength() ; k+= ch_pmf){
+            srcDat_pt[k]++;
         }
     }
     return pmf;
 }
 
-Mat clip_HistoCmf(const Mat& src,const uint32 clipVal,const uint32 bins, const double step, const double low_clipval){
-    uint32 ch  = src.getChannel();
 
+Mat clip_HistoCmf(const Mat& src,const uint32 clipVal,const uint32 bins, const double step, const double lowLmtVal, const bool normalz){
     if( src.isEmpty() ){
         fprintf(stderr,"clip_histoCmf : src argument is empty matrix\n");
-        return Mat();
-    }else if( ch != 1) {
-        fprintf(stderr,"clip_histoCmf : src is not 1 channel matrix\n");
         return Mat();
     }else if( bins < 1) {
         fprintf(stderr,"clip_histoPmf : 'bins' should be larger than or equal 1 \n");
@@ -610,7 +601,9 @@ Mat clip_HistoCmf(const Mat& src,const uint32 clipVal,const uint32 bins, const d
         return Mat();
     }
 
-    Mat cmf = clip_HistoPmf(src, clipVal, bins, step, low_clipval);
+    Mat cmf = clip_HistoPmf(src, clipVal, bins, step, lowLmtVal);
+    if(cmf.isEmpty()) return cmf;
+
     double *srcDat_pt = cmf.getDataPtr<double>();
     uint32 ch_cmf = cmf.getChannel();
     uint32 m, k;
@@ -620,24 +613,29 @@ Mat clip_HistoCmf(const Mat& src,const uint32 clipVal,const uint32 bins, const d
         for(k=ch_cmf+m ; k < cmf.getLength() ; k+= ch_cmf) // getLength() == bins*ch
             srcDat_pt[k] += srcDat_pt[k-ch_cmf];
     }
+    // normalizing
+    if(normalz){
+        double denom;
+        uint32 cmf_size = cmf.getLength();
+        for( m = 0 ; m < ch_cmf ; ++m){
+            denom = srcDat_pt[cmf_size-ch_cmf+m];
+            for(k=m ; k < cmf_size-ch_cmf ; k+= ch_cmf)
+                srcDat_pt[k] /= denom;
+            srcDat_pt[cmf_size-ch_cmf+m]=1.0;
+        }
+    }
     return cmf;
 }
 
-Mat clip_HistoEq(const Mat& src,const Mat& histCmf, const double step){
+Mat clip_HistoEq(const Mat& src,const Mat& histCmf, const double step, const double maxval, const double minval){
     uint32 ch  = src.getChannel();
 
     if( src.isEmpty() ){
         fprintf(stdout,"histoEqual : src argument is empty matrix\n");
         return Mat();
-    }else if( ch != 1) {
-        fprintf(stdout,"histoEqual : src is not 1 channel matrix\n");
-        return Mat();
     }else if( histCmf.isEmpty()){
         fprintf(stdout,"histCmf is empty \n");
         return Mat();
-    }else if( src.getChannel()!= 1 || histCmf.getChannel()!=1){
-       fprintf(stderr, "imgproc::clip_HistoEq() : Channels of src and histCmf are to be 1.\n");
-       return Mat();
     }else if( src.getDatType()==DTYP::CMPLX ){
         fprintf(stderr, " Unsupported DTYP in clip_HistoEqual func.\n");
         return Mat();
@@ -655,107 +653,173 @@ Mat clip_HistoEq(const Mat& src,const Mat& histCmf, const double step){
     double d0, d1, d2, d3;
     int32 i0, i1;
     double mp1, mp2, mv;
-    int32 halfstep = step / 2;
-    int32 lowlmt = halfstep;
-    int32 upplmt = (bins-1)*step + halfstep;
+    double halfstep = step / 2;
+    double lowlmt = halfstep;
+    double upplmt = (bins-1)*step + halfstep;
+    uint32 ch_leastbin ;
+    uint32 ch_mostbin ;
     if(src.getDatType()==DTYP::DOUBLE){
-        for(uint32 i=0; i < src.getLength(); i++){
-            d0 = srcDat_pt.f64_ptr[i];
-            if( d0 < lowlmt ){
-                tarDat_pt.f64_ptr[i] = (mapDat_pt[0]);
-            }else if( d0 >= upplmt ){
-                tarDat_pt.f64_ptr[i] = (mapDat_pt[bins-1]);
-            }else {
-                d1 = floor(d0 / step);
-                d3 = d0 - d1*step;
-                if( d3 < halfstep ){
-                    i0 = d1-1;
-                    i1 = d1;
-                    d2 = halfstep + d3;
-                }else{
-                    i0 = d1;
-                    i1 = d1+1;
-                    d2 = d3 - halfstep;
+        for(uint32 c=0; c < ch; ++c){
+            ch_leastbin = c;
+            ch_mostbin  = (bins-1)*ch +c;
+            for(uint32 i=c; i < src.getLength(); i+=ch){
+                d0 = srcDat_pt.f64_ptr[i];
+                if( d0 < minval ){
+                    mp1 = minval;
+                    mp2 = minval;
+                    d2  = 0;
+                }else if( d0 > maxval){
+                    mp1 = maxval;
+                    mp2 = maxval;
+                    d2  = 0;
+                }else if( d0 < lowlmt ){
+                    mp1 = minval;
+                    mp2 = mapDat_pt[ch_leastbin];
+                    d2  = halfstep;
+                }else if( d0 >= upplmt ){
+                    mp1 = mapDat_pt[ch_mostbin];
+                    mp2 = maxval;
+                    d2  = halfstep;
+                }else {
+                    d1 = floor(d0 / step);
+                    d3 = d0 - d1*step;
+                    if( d3 < halfstep ){
+                        i1 = d1*ch+c;
+                        i0 = i1-ch;
+                        d2 = halfstep + d3;
+                    }else{
+                        i0 = d1*ch+c;
+                        i1 = i0+ch;
+                        d2 = d3 - halfstep;
+                    }
+                    mp1 = mapDat_pt[i0];
+                    mp2 = mapDat_pt[i1];
                 }
-                mp1 = mapDat_pt[i0];
-                mp2 = mapDat_pt[i1];
-                mv  = (mp2-mp1)/d2;
+                mv  = (mp2-mp1)*d2/step;
                 tarDat_pt.f64_ptr[i] = (mp1 + mv);
             }
         }
     }else if(src.getDatType()==DTYP::FLOAT){
-        for(uint32 i=0; i < src.getLength(); i++){
-            d0 = srcDat_pt.f32_ptr[i];
-            if( d0 < lowlmt ){
-                tarDat_pt.f32_ptr[i] = float(mapDat_pt[0]);
-            }else if( d0 >= upplmt ){
-                tarDat_pt.f32_ptr[i] = float(mapDat_pt[bins-1]);
-            }else {
-                d1 = floor(d0 / step);
-                d3 = d0 - d1*step;
-                if( d3 < halfstep ){
-                    i0 = d1-1;
-                    i1 = d1;
-                    d2 = halfstep + d3;
-                }else{
-                    i0 = d1;
-                    i1 = d1+1;
-                    d2 = d3 - halfstep;
+        for(uint32 c=0; c < ch; ++c){
+            ch_leastbin = c;
+            ch_mostbin  = (bins-1)*ch +c;
+            for(uint32 i=c; i < src.getLength(); i+=ch){
+                d0 = srcDat_pt.f32_ptr[i];
+                if( d0 < minval ){
+                    mp1 = minval;
+                    mp2 = minval;
+                    d2  = 0;
+                }else if( d0 > maxval){
+                    mp1 = maxval;
+                    mp2 = maxval;
+                    d2  = 0;
+                }else if( d0 < lowlmt ){
+                    mp1 = minval;
+                    mp2 = mapDat_pt[ch_leastbin];
+                    d2  = halfstep;
+                }else if( d0 >= upplmt ){
+                    mp1 = mapDat_pt[ch_mostbin];
+                    mp2 = maxval;
+                    d2  = halfstep;
+                }else {
+                    d1 = floor(d0 / step);
+                    d3 = d0 - d1*step;
+                    if( d3 < halfstep ){
+                        i1 = d1*ch+c;
+                        i0 = i1-ch;
+                        d2 = halfstep + d3;
+                    }else{
+                        i0 = d1*ch+c;
+                        i1 = i0+ch;
+                        d2 = d3 - halfstep;
+                    }
+                    mp1 = mapDat_pt[i0];
+                    mp2 = mapDat_pt[i1];
                 }
-                mp1 = mapDat_pt[i0];
-                mp2 = mapDat_pt[i1];
-                mv  = (mp2-mp1)/d2;
-                tarDat_pt.f32_ptr[i] = float(mp1 + mv);
+                mv  = (mp2-mp1)*d2/step;
+                tarDat_pt.f32_ptr[i] = (mp1 + mv);
             }
         }
     }else if(src.getDatType()==DTYP::INT){
-        for(uint32 i=0; i < src.getLength(); i++){
-            d0 = srcDat_pt.int_ptr[i];
-            if( d0 < lowlmt ){
-                tarDat_pt.int_ptr[i] = int32(mapDat_pt[0]);
-            }else if( d0 >= upplmt ){
-                tarDat_pt.int_ptr[i] = int32(mapDat_pt[bins-1]);
-            }else {
-                d1 = floor(d0 / step);
-                d3 = d0 - d1*step;
-                if( d3 < halfstep ){
-                    i0 = d1-1;
-                    i1 = d1;
-                    d2 = halfstep + d3;
-                }else{
-                    i0 = d1;
-                    i1 = d1+1;
-                    d2 = d3 - halfstep;
+        for(uint32 c=0; c < ch; ++c){
+            ch_leastbin = c;
+            ch_mostbin  = (bins-1)*ch +c;
+            for(uint32 i=c; i < src.getLength(); i+=ch){
+                d0 = srcDat_pt.int_ptr[i];
+                if( d0 < minval ){
+                    mp1 = minval;
+                    mp2 = minval;
+                    d2  = 0;
+                }else if( d0 > maxval){
+                    mp1 = maxval;
+                    mp2 = maxval;
+                    d2  = 0;
+                }else if( d0 < lowlmt ){
+                    mp1 = minval;
+                    mp2 = mapDat_pt[ch_leastbin];
+                    d2  = halfstep;
+                }else if( d0 >= upplmt ){
+                    mp1 = mapDat_pt[ch_mostbin];
+                    mp2 = maxval;
+                    d2  = halfstep;
+                }else {
+                    d1 = floor(d0 / step);
+                    d3 = d0 - d1*step;
+                    if( d3 < halfstep ){
+                        i1 = d1*ch+c;
+                        i0 = i1-ch;
+                        d2 = halfstep + d3;
+                    }else{
+                        i0 = d1*ch+c;
+                        i1 = i0+ch;
+                        d2 = d3 - halfstep;
+                    }
+                    mp1 = mapDat_pt[i0];
+                    mp2 = mapDat_pt[i1];
                 }
-                mp1 = mapDat_pt[i0];
-                mp2 = mapDat_pt[i1];
-                mv  = (mp2-mp1)/d2;
-                tarDat_pt.int_ptr[i] = int32(mp1 + mv);
+                mv  = (mp2-mp1)*d2/step;
+                tarDat_pt.int_ptr[i] = (mp1 + mv);
             }
         }
     }else if(src.getDatType()==DTYP::UCHAR){
-        for(uint32 i=0; i < src.getLength(); i++){
-            d0 = srcDat_pt.uch_ptr[i];
-            if( d0 < lowlmt ){
-                tarDat_pt.uch_ptr[i] = uchar(mapDat_pt[0]);
-            }else if( d0 >= upplmt ){
-                tarDat_pt.uch_ptr[i] = uchar(mapDat_pt[bins-1]);
-            }else {
-                d1 = floor(d0 / step);
-                d3 = d0 - d1*step;
-                if( d3 < halfstep ){
-                    i0 = d1-1;
-                    i1 = d1;
-                    d2 = halfstep + d3;
-                }else{
-                    i0 = d1;
-                    i1 = d1+1;
-                    d2 = d3 - halfstep;
+        for(uint32 c=0; c < ch; ++c){
+            ch_leastbin = c;
+            ch_mostbin  = (bins-1)*ch +c;
+            for(uint32 i=c; i < src.getLength(); i+=ch){
+                d0 = srcDat_pt.uch_ptr[i];
+                if( d0 < minval ){
+                    mp1 = minval;
+                    mp2 = minval;
+                    d2  = 0;
+                }else if( d0 > maxval){
+                    mp1 = maxval;
+                    mp2 = maxval;
+                    d2  = 0;
+                }else if( d0 < lowlmt ){
+                    mp1 = minval;
+                    mp2 = mapDat_pt[ch_leastbin];
+                    d2  = halfstep;
+                }else if( d0 >= upplmt ){
+                    mp1 = mapDat_pt[ch_mostbin];
+                    mp2 = maxval;
+                    d2  = halfstep;
+                }else {
+                    d1 = floor(d0 / step);
+                    d3 = d0 - d1*step;
+                    if( d3 < halfstep ){
+                        i1 = d1*ch+c;
+                        i0 = i1-ch;
+                        d2 = halfstep + d3;
+                    }else{
+                        i0 = d1*ch+c;
+                        i1 = i0+ch;
+                        d2 = d3 - halfstep;
+                    }
+                    mp1 = mapDat_pt[i0];
+                    mp2 = mapDat_pt[i1];
                 }
-                mp1 = mapDat_pt[i0];
-                mp2 = mapDat_pt[i1];
-                mv  = (mp2-mp1)/d2;
-                tarDat_pt.uch_ptr[i] = uchar(mp1 + mv);
+                mv  = (mp2-mp1)*d2/step;
+                tarDat_pt.uch_ptr[i] = (mp1 + mv);
             }
         }
     }
