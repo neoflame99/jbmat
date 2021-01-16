@@ -627,6 +627,7 @@ Mat clip_HistoCmf(const Mat& src,const uint32 clipVal,const uint32 bins, const d
     return cmf;
 }
 
+
 Mat clip_HistoEq(const Mat& src,const Mat& histCmf, const double step, const double maxval, const double minval){
     uint32 ch  = src.getChannel();
 
@@ -647,179 +648,128 @@ Mat clip_HistoEq(const Mat& src,const Mat& histCmf, const double step, const dou
     Mat A = src.copy();
     elemptr srcDat_pt = src.getElptr();
     elemptr tarDat_pt = A.getElptr();
-    double *mapDat_pt = histCmf.getDataPtr<double>();
 
-    uint32 bins = histCmf.getRowColSize();
-    double d0, d1, d2, d3;
-    int32 i0, i1;
+    Mat cmf     = histCmf.copy();
+    uint32 ch_cmf = cmf.getChannel();
+    uint32 cmf_sz = cmf.getLength();
+    uint32 c, i;
+    double* mapDat_pt = cmf.getDataPtr<double>();
+    double leastbin_val;
+    double scale_rat;
+    // stratching cmf to fit full range
+    for( c=0; c < ch_cmf; c++ ){
+        leastbin_val = mapDat_pt[c];
+        for(i=c; i < cmf_sz; i += ch_cmf ){
+            mapDat_pt[i] -= leastbin_val;
+        }
+        scale_rat = (maxval-minval)/mapDat_pt[cmf_sz-ch+c];
+        for(i=c; i < cmf_sz; i += ch_cmf ){
+            mapDat_pt[i] *= scale_rat;
+        }
+    }
+
+    uint32 bins = cmf.getRowColSize();
+    double d0, d1, d2;
+    int32  i0, i1;
     double mp1, mp2, mv;
-    double halfstep = step / 2;
-    double lowlmt = halfstep;
-    double upplmt = (bins-1)*step + halfstep;
+    double lowlmt = 0;
+    double upplmt = (bins-1)*step;
     uint32 ch_leastbin ;
     uint32 ch_mostbin ;
     if(src.getDatType()==DTYP::DOUBLE){
-        for(uint32 c=0; c < ch; ++c){
+        for( c=0; c < ch; ++c){
             ch_leastbin = c;
             ch_mostbin  = (bins-1)*ch +c;
-            for(uint32 i=c; i < src.getLength(); i+=ch){
+            for( i=c; i < src.getLength(); i+=ch){
                 d0 = srcDat_pt.f64_ptr[i];
-                if( d0 < minval ){
-                    mp1 = minval;
-                    mp2 = minval;
-                    d2  = 0;
-                }else if( d0 > maxval){
-                    mp1 = maxval;
-                    mp2 = maxval;
-                    d2  = 0;
-                }else if( d0 < lowlmt ){
-                    mp1 = minval;
-                    mp2 = mapDat_pt[ch_leastbin];
-                    d2  = halfstep;
-                }else if( d0 >= upplmt ){
-                    mp1 = mapDat_pt[ch_mostbin];
-                    mp2 = maxval;
-                    d2  = halfstep;
+                if( d0 <= lowlmt ){
+                    tarDat_pt.f64_ptr[i] = mapDat_pt[ch_leastbin];
+                }else if( d0 >= upplmt){
+                    tarDat_pt.f64_ptr[i] = mapDat_pt[ch_mostbin];
                 }else {
                     d1 = floor(d0 / step);
-                    d3 = d0 - d1*step;
-                    if( d3 < halfstep ){
-                        i1 = d1*ch+c;
-                        i0 = i1-ch;
-                        d2 = halfstep + d3;
-                    }else{
-                        i0 = d1*ch+c;
-                        i1 = i0+ch;
-                        d2 = d3 - halfstep;
-                    }
+                    d2 = d0 - d1*step;
+
+                    i0 = d1*ch+c;
+                    i1 = i0+ch;
                     mp1 = mapDat_pt[i0];
                     mp2 = mapDat_pt[i1];
+
+                    mv  = (mp2-mp1)*d2/step;
+                    tarDat_pt.f64_ptr[i] = (mp1 + mv);
                 }
-                mv  = (mp2-mp1)*d2/step;
-                tarDat_pt.f64_ptr[i] = (mp1 + mv);
             }
         }
     }else if(src.getDatType()==DTYP::FLOAT){
-        for(uint32 c=0; c < ch; ++c){
+        for( c=0; c < ch; ++c){
             ch_leastbin = c;
             ch_mostbin  = (bins-1)*ch +c;
-            for(uint32 i=c; i < src.getLength(); i+=ch){
+            for( i=c; i < src.getLength(); i+=ch){
                 d0 = srcDat_pt.f32_ptr[i];
-                if( d0 < minval ){
-                    mp1 = minval;
-                    mp2 = minval;
-                    d2  = 0;
-                }else if( d0 > maxval){
-                    mp1 = maxval;
-                    mp2 = maxval;
-                    d2  = 0;
-                }else if( d0 < lowlmt ){
-                    mp1 = minval;
-                    mp2 = mapDat_pt[ch_leastbin];
-                    d2  = halfstep;
-                }else if( d0 >= upplmt ){
-                    mp1 = mapDat_pt[ch_mostbin];
-                    mp2 = maxval;
-                    d2  = halfstep;
+                if( d0 <= lowlmt ){
+                    tarDat_pt.f32_ptr[i] = mapDat_pt[ch_leastbin];
+                }else if( d0 >= upplmt){
+                    tarDat_pt.f32_ptr[i] = mapDat_pt[ch_mostbin];
                 }else {
                     d1 = floor(d0 / step);
-                    d3 = d0 - d1*step;
-                    if( d3 < halfstep ){
-                        i1 = d1*ch+c;
-                        i0 = i1-ch;
-                        d2 = halfstep + d3;
-                    }else{
-                        i0 = d1*ch+c;
-                        i1 = i0+ch;
-                        d2 = d3 - halfstep;
-                    }
+                    d2 = d0 - d1*step;
+
+                    i0 = d1*ch+c;
+                    i1 = i0+ch;
                     mp1 = mapDat_pt[i0];
                     mp2 = mapDat_pt[i1];
+
+                    mv  = (mp2-mp1)*d2/step;
+                    tarDat_pt.f32_ptr[i] = (mp1 + mv);
                 }
-                mv  = (mp2-mp1)*d2/step;
-                tarDat_pt.f32_ptr[i] = (mp1 + mv);
             }
         }
     }else if(src.getDatType()==DTYP::INT){
-        for(uint32 c=0; c < ch; ++c){
+        for( c=0; c < ch; ++c){
             ch_leastbin = c;
             ch_mostbin  = (bins-1)*ch +c;
-            for(uint32 i=c; i < src.getLength(); i+=ch){
+            for( i=c; i < src.getLength(); i+=ch){
                 d0 = srcDat_pt.int_ptr[i];
-                if( d0 < minval ){
-                    mp1 = minval;
-                    mp2 = minval;
-                    d2  = 0;
-                }else if( d0 > maxval){
-                    mp1 = maxval;
-                    mp2 = maxval;
-                    d2  = 0;
-                }else if( d0 < lowlmt ){
-                    mp1 = minval;
-                    mp2 = mapDat_pt[ch_leastbin];
-                    d2  = halfstep;
-                }else if( d0 >= upplmt ){
-                    mp1 = mapDat_pt[ch_mostbin];
-                    mp2 = maxval;
-                    d2  = halfstep;
+                if( d0 <= lowlmt ){
+                    tarDat_pt.int_ptr[i] = mapDat_pt[ch_leastbin];
+                }else if( d0 >= upplmt){
+                    tarDat_pt.int_ptr[i] = mapDat_pt[ch_mostbin];
                 }else {
                     d1 = floor(d0 / step);
-                    d3 = d0 - d1*step;
-                    if( d3 < halfstep ){
-                        i1 = d1*ch+c;
-                        i0 = i1-ch;
-                        d2 = halfstep + d3;
-                    }else{
-                        i0 = d1*ch+c;
-                        i1 = i0+ch;
-                        d2 = d3 - halfstep;
-                    }
+                    d2 = d0 - d1*step;
+
+                    i0 = d1*ch+c;
+                    i1 = i0+ch;
                     mp1 = mapDat_pt[i0];
                     mp2 = mapDat_pt[i1];
+
+                    mv  = (mp2-mp1)*d2/step;
+                    tarDat_pt.int_ptr[i] = (mp1 + mv);
                 }
-                mv  = (mp2-mp1)*d2/step;
-                tarDat_pt.int_ptr[i] = (mp1 + mv);
             }
         }
     }else if(src.getDatType()==DTYP::UCHAR){
-        for(uint32 c=0; c < ch; ++c){
+        for( c=0; c < ch; ++c){
             ch_leastbin = c;
             ch_mostbin  = (bins-1)*ch +c;
-            for(uint32 i=c; i < src.getLength(); i+=ch){
+            for( i=c; i < src.getLength(); i+=ch){
                 d0 = srcDat_pt.uch_ptr[i];
-                if( d0 < minval ){
-                    mp1 = minval;
-                    mp2 = minval;
-                    d2  = 0;
-                }else if( d0 > maxval){
-                    mp1 = maxval;
-                    mp2 = maxval;
-                    d2  = 0;
-                }else if( d0 < lowlmt ){
-                    mp1 = minval;
-                    mp2 = mapDat_pt[ch_leastbin];
-                    d2  = halfstep;
-                }else if( d0 >= upplmt ){
-                    mp1 = mapDat_pt[ch_mostbin];
-                    mp2 = maxval;
-                    d2  = halfstep;
+                if( d0 <= lowlmt ){
+                    tarDat_pt.uch_ptr[i] = mapDat_pt[ch_leastbin];
+                }else if( d0 >= upplmt){
+                    tarDat_pt.uch_ptr[i] = mapDat_pt[ch_mostbin];
                 }else {
                     d1 = floor(d0 / step);
-                    d3 = d0 - d1*step;
-                    if( d3 < halfstep ){
-                        i1 = d1*ch+c;
-                        i0 = i1-ch;
-                        d2 = halfstep + d3;
-                    }else{
-                        i0 = d1*ch+c;
-                        i1 = i0+ch;
-                        d2 = d3 - halfstep;
-                    }
+                    d2 = d0 - d1*step;
+
+                    i0 = d1*ch+c;
+                    i1 = i0+ch;
                     mp1 = mapDat_pt[i0];
                     mp2 = mapDat_pt[i1];
+
+                    mv  = (mp2-mp1)*d2/step;
+                    tarDat_pt.uch_ptr[i] = (mp1 + mv);
                 }
-                mv  = (mp2-mp1)*d2/step;
-                tarDat_pt.uch_ptr[i] = (mp1 + mv);
             }
         }
     }
