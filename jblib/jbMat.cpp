@@ -1333,7 +1333,7 @@ Mat& Mat::divScalar(const uchar scalar){
     return *this;
 }
 
-Mat Mat::max(){
+Mat Mat::max() const{
     if(isEmpty()) return Mat();
 
     uint32 ch = getChannel();
@@ -1394,7 +1394,7 @@ Mat Mat::max(){
     return A;
 }
 
-Mat Mat::min(){
+Mat Mat::min() const{
     if(isEmpty()) return Mat();
 
     uint32 ch = getChannel();
@@ -1455,13 +1455,13 @@ Mat Mat::min(){
     return A;
 }
 
-Mat Mat::mean(){
+Mat Mat::mean() const{
     if(isEmpty()) return Mat();
 
     return (sum()/getRowColSize());
 }
 
-Mat Mat::sum(){
+Mat Mat::sum() const{
     if(isEmpty()) return Mat();
     uint32 ch = getChannel();
     uint32 k, m, n;
@@ -1504,7 +1504,7 @@ Mat Mat::sum(){
     }
 }
 
-Mat Mat::var(){
+Mat Mat::var() const{
     if(isEmpty()) return Mat();
 
     uint32 k, m, n;
@@ -1561,7 +1561,7 @@ Mat Mat::var(){
     return A;
 }
 
-Mat Mat::std(){
+Mat Mat::std() const{
     if(isEmpty()) return Mat();
 
     Mat V = var();
@@ -1570,7 +1570,7 @@ Mat Mat::std(){
     return V;
 }
 
-Mat Mat::sqrtm(){
+Mat Mat::sqrtm() const{
     if(isEmpty()) return Mat();
 
     uint32 k=0;
