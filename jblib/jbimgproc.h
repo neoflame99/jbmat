@@ -50,7 +50,7 @@ namespace imgproc {
     template <typename _T> inline Mat _clip_HistoEq (const Mat& src, const Mat& histCmf  , const double step, const double maxval=255.0, const double minval=0.0 );
 
     // gamma function
-    Mat gamma(const Mat& src, const double gmval);
+    bool gamma(const Mat& src, const double gmval, Mat& des);
     template <typename _T> inline Mat _gamma(const Mat& src, const double gmval);
 
     // tone mapping functions
@@ -64,21 +64,6 @@ namespace imgproc {
     template <typename _T> inline Mat _nakaSigTm(const Mat& Im, const Mat& localmean, const double globalmean, const double Imax);
     template <typename _T> inline Mat _nakaSig3MeanTm(const Mat& Im, const Mat& smLocalMean, const Mat& lgLocalMean, const double globalMean, const double Imax);
     template <typename _T> inline Mat _logRetinexTm(const Mat& Im, const Mat& localmean);
-
-    // fft
-    void fft_dit2(_complex* dat, int32 len, bool backward=false);
-    void fft_czt( _complex *dat, int32 len, bool inverse=false);
-    void fft(_complex* dat, int32 len);
-    void ifft(_complex* dat, int32 len);
-    void fft2d(_complex* dat, int32 r_len, int32 c_len);
-    void ifft2d(_complex* dat, int32 r_len, int32 c_len);
-    inline void bitrev_permute(_complex* dat, int32 len);
-
-    void fft_dif4(_complex *dat, int32 len, bool backward=false);
-    void permute_radix4(_complex *a, int32 len);
-    inline int32 digit4_rev(int x, int32 ldn, int32 radbit, int32 andBit);
-    void fft_compositN(_complex *dat, int32 len, std::vector<int32>&fac, bool backward=false);
-    void factorizeN(int32 N, std::vector<int32>& fac );
 
     // image resizing
     float cubic1d(float ma1, float a0, float a1, float a2, float t);
