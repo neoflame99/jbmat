@@ -10,6 +10,9 @@
 #include <cstdint>
 #include <float.h>
 #include <math.h>
+#include <string>
+#include <sstream>
+#include <ostream>
 
 #define U08 uint8_t
 #define I32 int32_t
@@ -31,13 +34,13 @@ namespace jmat {
     enum class DTYP {UCHAR=0 , INT=1 , FLOAT=2, DOUBLE=3, CMPLX=4};
 
     typedef struct _complex{
-        double re;
-        double im;
+        double re=0.0;
+        double im=0.0;
         // constructor
+        _complex() = default;
         _complex(double r):re(r),im(0){} // type conversion constructor
         _complex(double r, double i):re(r),im(i){}
-        _complex():re(0),im(0){}
-        _complex(const _complex& ot):re(ot.re),im(ot.im){} // copy constructor
+        _complex(const _complex&  ot):re(ot.re),im(ot.im){} // copy constructor
         _complex(const _complex&& ot):re(ot.re),im(ot.im){} // move constructor
 
         // operator override
@@ -84,6 +87,19 @@ namespace jmat {
         friend bool operator==(const _complex& lhs,const double rhs);
         friend bool operator==(const double lhs, const _complex& rhs);
         inline bool operator==(const _complex& rhs) { return (re<=rhs.re+DBL_EPSILON && re >=rhs.re-DBL_EPSILON && im<=rhs.im+DBL_EPSILON && im >=rhs.im-DBL_EPSILON)? true : false; }
+
+        //friend std::ostream& operator<<(std::ostream& ss, const _complex& c);
+
+        // conversion operator
+        operator std::string() const{
+            std::stringstream ss;
+            ss.flags(std::ios::scientific | std::ios::showbase );
+            ss.precision(3);
+            ss.width(6);
+            ss << re <<" + " << im << " i " ;
+            return ss.str();
+        }
+
 
         inline void set_val(double r=0, double i=0) { re= r; im = i; }
         inline void zero() {set_val(0,0);}
@@ -237,6 +253,11 @@ namespace jmat {
     inline bool operator==(const double lhs, const _complex& rhs){
         return (rhs.re <= lhs+DBL_EPSILON && rhs.re >= lhs-DBL_EPSILON && rhs.im == 0.0) ? true : false;
     }
+
+    //std::ostream& operator<<(std::ostream& s, const _complex& c){
+    //    s << c.re << " + " << c.im << " i ";
+    //    return s;
+    //}
 
 #pragma pack (push, 1)               // 구조체를 1바이트 크기로 정렬
     typedef struct _bgr_d{
