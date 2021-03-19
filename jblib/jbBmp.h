@@ -12,31 +12,31 @@ using namespace jmat;
 enum BI_CMPRESS {bi_rgb=0, bi_bitfields=3};
 
 #pragma pack (push, 1)               // 구조체를 1바이트 크기로 정렬
-typedef struct _BitmapFileHeader     // BMP 비트맵 파일 헤더 구조체
+typedef struct _BitmapFileHeader     // BMP file header
 {
-    unsigned short bfType;           // BMP 파일 매직 넘버
-    unsigned int   bfSize;           // 파일 크기
-    unsigned short bfReserved1;      // 예약
-    unsigned short bfReserved2;      // 예약
-    unsigned int   bfOffset;        // 비트맵 데이터의 시작 위치
+    unsigned short bfType;           // BMP file id
+    unsigned int   bfSize;           // file size
+    unsigned short bfReserved1;      //
+    unsigned short bfReserved2;      //
+    unsigned int   bfOffset;         // bitmap data starting point
 } BmpFileheader;
 
-typedef struct _BitmapInfoHeader     // BMP 비트맵 정보 헤더 구조체(DIB 헤더)
+typedef struct _BitmapInfoHeader     // BMP info header, basic version
 {
-    unsigned int   biSize;           // 현재 구조체의 크기
-    int            biWidth;          // 비트맵 이미지의 가로 크기
-    int            biHeight;         // 비트맵 이미지의 세로 크기
-    unsigned short biPlanes;         // 사용하는 색상판의 수
-    unsigned short biBitCount;       // 픽셀 하나를 표현하는 비트 수
-    unsigned int   biCompression;    // 압축 방식
-    unsigned int   biSizeImage;      // 비트맵 이미지의 픽셀 데이터 크기(including padding)
-    int            biXPelsPerMeter;  // 그림의 가로 해상도(미터당 픽셀)
-    int            biYPelsPerMeter;  // 그림의 세로 해상도(미터당 픽셀)
-    unsigned int   biClrUsed;        // 색상 테이블에서 실제 사용되는 색상 수
-    unsigned int   biClrImportant;   // 비트맵을 표현하기 위해 필요한 색상 인덱스 수
+    unsigned int   biSize;           // size of info header
+    int            biWidth;          // width of bitmap image
+    int            biHeight;         // height of bitmap image
+    unsigned short biPlanes;         // number of color planes
+    unsigned short biBitCount;       // bits per pixel
+    unsigned int   biCompression;    // compression type
+    unsigned int   biSizeImage;      // storage size of image(including padding)
+    int            biXPelsPerMeter;  // resolution of horizontal(meter per pixel)
+    int            biYPelsPerMeter;  // resolution of vertical(meter per pixel)
+    unsigned int   biClrUsed;        // number of colors in color palette
+    unsigned int   biClrImportant;   // number of color indices for bitmap
 } BmpInfoheader;
 
-typedef struct _BitmapV3InfoHeader     // BMP 비트맵 정보 헤더 구조체(DIB 헤더)
+typedef struct _BitmapV3InfoHeader     // info header version 3
 {
     BmpInfoheader  bmpInfoHeader;
     unsigned int   biRedBitField;
@@ -45,13 +45,13 @@ typedef struct _BitmapV3InfoHeader     // BMP 비트맵 정보 헤더 구조체(
     unsigned int   biAlpBitField;
 } BmpV3Infoheader;
 
-typedef struct _rgbT      // 24비트 비트맵 이미지의 픽셀 구조체
+typedef struct _rgbT      // 24 bits per pixel, 24 color depth
 {
     uchar blu;
     uchar grn;
     uchar red;
 } rgbT;
-typedef struct _rgbQ      // 32비트 비트맵 이미지의 픽셀 구조체
+typedef struct _rgbQ      // 32 bits per pixel, 32 color depth
 {
     rgbT  rgbt;
     uchar alp;
