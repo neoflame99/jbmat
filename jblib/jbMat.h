@@ -179,13 +179,13 @@ public:
     void  changeDType(const DTYP dt);
     void  printMat() ;
     void  printMat(const std::string objname);
-    Mat   max() ;
-    Mat   min() ;
-    Mat   sum() ;
-    Mat   mean();
-    Mat   std() ;
-    Mat   var() ;
-    Mat   sqrtm();
+    Mat   max() const;
+    Mat   min() const;
+    Mat   sum() const;
+    Mat   mean() const;
+    Mat   std() const;
+    Mat   var() const;
+    Mat   sqrtm() const;
 
     inline elemptr getRowElptr(uint32 r=0) const;
     inline elemptr getElptr() const { return elptr; }

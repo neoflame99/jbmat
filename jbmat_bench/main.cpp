@@ -4,6 +4,7 @@
 #include "../jblib/qimmat.h"
 #include "../jblib/jbimgproc.h"
 #include "../jblib/jbBmp.h"
+#include "../jblib/jbfft.h"
 
 #include <QImage>
 #include <QString>

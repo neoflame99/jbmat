@@ -15,14 +15,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        main.cpp \
+    ../jblib/jbfft.cpp \
     ../jblib/jbMat.cpp \
     ../jblib/jbmath.cpp \
     ../jblib/qimmat.cpp \
     ../jblib/jbimgproc.cpp \
-    ../jblib/jbBmp.cpp
+    ../jblib/jbBmp.cpp \
+        main.cpp
 
 HEADERS += \
+    ../jblib/jbfft.h \
     ../jblib/types.h \
     ../jblib/satcast.h \
     ../jblib/jbMat.h \
