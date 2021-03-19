@@ -14,40 +14,47 @@
 #include <vector>
 #include <float.h>
 #include <assert.h>
-#include "types.h"
 #include <math.h>
-#include <string.h>
 #include <string>
-
+#include <stdexcept>
+#include "types.h"
+#include <iostream>
 
 namespace jmat {
 
 typedef union _elemptr{
-    uchar*  uch_ptr;
-    int*    int_ptr;
-    float*  f32_ptr;
-    double* f64_ptr;
-    cmplx*  cmx_ptr;
+    uchar*  uch_ptr = nullptr;
+    int*    int_ptr ;
+    float*  f32_ptr ;
+    double* f64_ptr ;
+    cmplx*  cmx_ptr ;
 }elemptr;
 
 typedef struct _matRect{
     int32 sR, sC;
     int32 eR, eC;
-    _matRect(int32 sr=0, int32 sc=0, int32 er=0, int32 ec=0 ):sR(sr),sC(sc),eR(er),eC(ec){};
-    _matRect(std::initializer_list<int32> list){
-        std::vector<int32> v;
-        v.push_back(0);
-        v.push_back(0);
-        v.push_back(0);
-        v.push_back(0);
-        v.insert(v.begin(),list.begin(),list.end());
-        sR = v.at(0);
-        sC = v.at(1);
-        eR = v.at(2);
-        eC = v.at(3);
-     };
+    _matRect() = default;
+    _matRect(int32 sr, int32 sc, int32 er, int32 ec ):sR(sr),sC(sc),eR(er),eC(ec){}
+    //_matRect(std::initializer_list<int32> list){
+    //    std::vector<int32> v(4);
+    //    v.insert(v.begin(),list.begin(),list.end());
+    //    sR = v.at(0);
+    //    sC = v.at(1);
+    //    eR = v.at(2);
+    //    eC = v.at(3);
+    // };
     inline void set(int32 sr=0, int32 sc=0, int32 er=0, int32 ec=0){
        sR= sr; sC=sc; eR= er; eC=ec;
+    }
+    bool inline operator== (const _matRect& other){
+        return (this->sR == other.sR && this->sC == other.sC && this->eR == other.eR && this->eC == other.eC );
+    }
+    _matRect& operator<< (const int32 v){
+        sR = sC;
+        sC = eR;
+        eR = eC;
+        eC = v;
+        return *this;
     }
 }matRect;
 
@@ -72,8 +79,8 @@ private: // member fields
 
 private: // initializing methods
     inline void sync_data_ptr(){ elptr.uch_ptr = dat_ptr = mA.get(); }
-    void alloc(const uint32 len);
-    void init(const uint32 r, const uint32 c, const uint32 ch,const DTYP dt,const bool do_alloc=true);
+    inline void init(const uint32 r, const uint32 c, const uint32 ch,const DTYP dt,const bool do_alloc=true);
+    inline void alloc(const uint32 len);
 
 public: // constructors and destructor
     Mat();
@@ -81,7 +88,8 @@ public: // constructors and destructor
     Mat(const DTYP dt, const uint32 r, const uint32 c, const uint32 ch, const std::string name);
     Mat(const DTYP dt, const uint32 rc);
     Mat(const shr_ptr ma, const DTYP dt, const uint32 r, const uint32 c, const uint32 ch );
-    Mat(const Mat& mat);
+    Mat(const Mat& mat); // copy constructor
+    Mat(Mat&& mat);      // move constructor
     Mat(const std::initializer_list<double> list );
     Mat(const std::initializer_list<int32 > list );
     Mat(const std::initializer_list<float > list );
@@ -108,7 +116,8 @@ public:
     friend Mat operator*(const double scalar, const Mat& A);
     friend Mat operator/(const double scalar, const Mat& A);
 
-    Mat& operator= (Mat&& other );
+    Mat& operator= (const Mat& other ); // copy assignment
+    Mat& operator= (Mat&& other );      // move assignment
     Mat& operator+=(const Mat& other );
     Mat& operator+=(const double scalar);
     Mat& operator-=(const Mat& other );
@@ -117,6 +126,9 @@ public:
     Mat& operator*=(const double scalar);
     Mat& operator/=(const Mat& other );
     Mat& operator/=(const double scalar);
+
+    template <typename _T> inline _T& operator[](const uint32 i);
+    template <typename _T> inline _T  operator[](const uint32 i) const;
 
     Mat& plusMat (const Mat& other);
     Mat& minusMat(const Mat& other);
@@ -180,10 +192,10 @@ public:
 private: // other private methods
 
 public : // static methods
-    static Mat ones (uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
-    static Mat zeros(uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
+    static Mat  ones (uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
+    static Mat  zeros(uint32 r, uint32 c, uint32 ch= 1, DTYP dt = DTYP::DOUBLE);
     static bool sliceCopyMat(const Mat& src, const matRect& srcSlice,const Mat& des, const matRect& desSlice );
-    static Mat repeat(const Mat& src, const uint32 rp_r, const uint32 rp_c, const uint32 rp_ch);
+    static Mat  repeat(const Mat& src, const uint32 rp_r, const uint32 rp_c, const uint32 rp_ch);
     template <typename _T> inline static Mat _repeat(const Mat& src, const uint32 r, const uint32 c, const uint32 ch);
     static Mat extractChannel(const Mat& src, const uint32 ch=0);
 
@@ -210,7 +222,33 @@ private: // private template methods
     template <typename _Tslf, typename _Totr> void _multiply_scalar(_Tslf* self, _Totr scalar, uint32 len );
     template <typename _Tslf, typename _Totr> void _dividing_scalar  (_Tslf* self, _Totr scalar, uint32 len );
     template <typename _Tslf, typename _Totr> void _divided_by_scalar(_Tslf* self, _Totr scalar, uint32 len );
+    template <typename _O, typename _T, typename _R> inline _O _dividing (_T a, _R b);
+
 };
+
+// initializing
+inline void Mat::init(const uint32 r,const uint32 c,const uint32 ch,const DTYP dt,const bool do_alloc){
+    row = r;
+    col = c;
+    Nch = ch;
+    stepCol   = Nch;
+    stepRow   = col*stepCol;
+    length    = row*stepRow;
+    lenRowCol = row*col;
+
+    datT = dt;
+    switch(datT){
+    case DTYP::UCHAR  : byteStep = 1; break;
+    case DTYP::INT    : byteStep = 4; break;
+    case DTYP::FLOAT  : byteStep = 4; break;
+    case DTYP::DOUBLE : byteStep = 8; break;
+    case DTYP::CMPLX  : byteStep = sizeof(cmplx); break;
+    }
+    byteLen = length*byteStep;
+    if(do_alloc)
+        alloc(byteLen);
+    sync_data_ptr();
+}
 
 //-- shallow copy version & using shared_ptr
 inline void Mat::alloc(const uint32 len){
@@ -250,9 +288,25 @@ template <> inline cmplx* Mat::getDataPtr() const{
 }
 template <typename _T> inline _T* Mat::getRowPtr(const uint32 r) const{
     assert( r < row);
+    if( r >= row ) throw std::out_of_range("r is out of range ");
     _T* ptr = ((_T*)dat_ptr)+(r*stepRow);
     return ptr;
 }
+
+template <typename _T> inline _T& Mat::operator[](const uint32 idx){
+    assert( dat_ptr!=nullptr );
+    assert( idx < byteLen );
+    if( idx >= byteLen ) throw std::out_of_range("idx is out of range ");
+    return ((_T*)dat_ptr)[idx];
+}
+template <typename _T> inline _T Mat::operator[](const uint32 idx) const {
+    assert( dat_ptr!=nullptr );
+    assert( idx < byteLen );
+    if( idx >= byteLen ) throw std::out_of_range("idx is out of range ");
+    return ((_T*)dat_ptr)[idx];
+}
+
+// array arithmetic methods
 template <typename _Tslf, typename _Totr> void Mat::_plus_mat(_Tslf* self, _Totr* other, uint32 len){
     for(uint32 k=0; k < len; k++ )
         self[k] += other[k];
@@ -269,7 +323,6 @@ template <typename _Tslf, typename _Totr> void Mat::_divide_mat(_Tslf* self, _To
     for(uint32 k=0; k < len; k++ )
         self[k] /= other[k];
 }
-
 template <typename _Tslf, typename _Totr> void Mat::_plus_scalar(_Tslf* self, _Totr scalar, uint32 len){
     for(uint32 k=0; k < len ; k++)
         self[k] += scalar;
@@ -284,13 +337,13 @@ template <typename _Tslf, typename _Totr> void Mat::_multiply_scalar(_Tslf* self
 }
 template <typename _Tslf, typename _Totr> void Mat::_divided_by_scalar(_Tslf* self, _Totr scalar, uint32 len){
     for(uint32 k=0; k < len ; k++)
-        self[k] = self[k] / scalar;
+        self[k] /= scalar;
 }
 template <typename _Tslf, typename _Totr> void Mat::_dividing_scalar(_Tslf* self, _Totr scalar, uint32 len){
     for(uint32 k=0; k < len ; k++)
         self[k] = scalar / self[k];
 }
-
+/*
 template <typename _T> inline void Mat::_print(_T* mdat){
     const int32 bufsz = 2049;
     char buf[bufsz]="\0";
@@ -323,7 +376,7 @@ template <typename _T> inline void Mat::_print(_T* mdat){
             strncat(buf,"]",2);
             fprintf(stdout,"%s\n",buf);
         }
-    }else{        
+    }else{
         int32 val;
         for( i = 0; i < length; i += stepRow){ // rows
             snprintf(buf,bufsz,"[");
@@ -349,21 +402,84 @@ template <typename _T> inline void Mat::_print(_T* mdat){
         }
     }
 }
+*/
+template <typename _T> inline void Mat::_print(_T* mdat){
+    uint32 i,j,k;
+    std::stringstream ss;
+
+
+    const double neg_max_double = -DBL_EPSILON ;
+    const double pos_min_double =  DBL_EPSILON ;
+
+    if(datT==DTYP::DOUBLE || datT==DTYP::FLOAT){
+        ss.precision(3);
+        ss.width(6);
+        ss.setf(std::ios::scientific);
+        double val;
+        for( i = 0; i < length; i += stepRow){ // rows
+            ss << "[";
+            for( j=0; j < stepRow; j+= stepCol ){ // columns
+                ss << " (";
+                for( k =0; k < Nch; ++k){
+                    val = mdat[i+j+k];
+                    if( val >= neg_max_double && val <= pos_min_double)
+                        val = 0.0;
+
+                    ss << val ;
+                    if( k < Nch-1) {
+                        ss << ",";
+                    }
+                }
+                ss << ") ";
+            }
+            ss << "]";
+            std::cout << ss.str();
+        }
+    }else{        
+        ss.width(5);
+        int32 val;
+        for( i = 0; i < length; i += stepRow){ // rows
+            ss << "[";
+            for( j=0; j < stepRow; j+= stepCol){ // columns
+                ss << " (";
+                for( k = 0 ; k < Nch; k++){
+                    val = mdat[i+j+k];
+                    if(val > 100000){
+                        ss.setf(std::ios::scientific);
+                        ss << (double)val;
+                    }else{
+                        ss.flags ( std::ios::right | std::ios::dec | std::ios::showbase );
+                        ss << val;
+                    }
+                    if( k < Nch-1){
+                        ss << ",";
+                    }
+                }
+                ss << ") ";
+            }
+            ss << "] ";
+            std::cout << ss.str();
+        }
+    }
+}
 template <> inline void Mat::_print<cmplx>(cmplx* mdat){
-    const int32 bufsz = 2049;
-    char buf[bufsz]="\0";
+    const int32 bufsz = 32;
     char tmp[bufsz];
     const double neg_max_double = -DBL_EPSILON ;
     const double pos_min_double =  DBL_EPSILON ;
     uint32 i,j, k;
+    std::stringstream ss;
+    std::string sign;
 
+    ss.precision(2);
+    ss.width(5);
+    ss.setf(std::ios::scientific);
     if(datT==DTYP::CMPLX){
         cmplx val;
         for( i = 0; i < lenRowCol; i += col){ // rows
-            snprintf(buf,bufsz,"[");
+            ss << "[";
             for( j=0; j < col; j++){          // columns
-                snprintf(tmp,bufsz," (");
-                strncat(buf,tmp,bufsz);
+                ss << " (";
                 for( k = 0 ; k < Nch; k++){
                     val = mdat[i+j+k];
                     if( val.re >= neg_max_double && val.re <= pos_min_double)
@@ -372,15 +488,15 @@ template <> inline void Mat::_print<cmplx>(cmplx* mdat){
                         val.im = 0.0;
 
                     snprintf(tmp,bufsz,"% 5.2g %+5.2gi",val.re, val.im);
-                    strncat(buf,tmp,bufsz);
-                    if( k < Nch-1)
-                        strncat(buf, ",", 2);
+                    ss << tmp;
+                    if( k < Nch-1){
+                        ss << ",";
+                    }
                 }
-                snprintf(tmp,bufsz,") ");
-                strncat(buf,tmp,bufsz);
+                ss << ") ";
             }
-            strncat(buf,"]",2);
-            fprintf(stdout,"%s\n",buf);
+            ss << "]";
+            std::cout << ss.str();
         }
     }
 }
@@ -408,7 +524,7 @@ template <> inline Mat Mat::_max<cmplx>() {
 
     uint32 ch = getChannel();
     uint32 k, m, n;
-    cmplx  large, tmp;
+    cmplx  tmp;
     double *large_mag_ch;
     double  large_mag, tmp_mag;
 
@@ -458,7 +574,7 @@ template <> inline Mat Mat::_min<cmplx>() {
 
     uint32 ch = getChannel();
     uint32 k, m, n;
-    cmplx  large, tmp;
+    cmplx  tmp;
     double *large_mag_ch;
     double  large_mag, tmp_mag;
 
@@ -506,8 +622,6 @@ template <> inline Mat Mat::_mean<cmplx>() {
     uint32 ch    = getChannel();
 
     Mat A = Mat::zeros(1,1,ch,DTYP::CMPLX);
-    cmplx sum;
-    cmplx tmp;
     uint32 k, m, n;
     n = 0;
     for(m = 0 ; m < length; m+=ch){

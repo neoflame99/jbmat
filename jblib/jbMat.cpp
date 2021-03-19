@@ -13,28 +13,6 @@ namespace jmat {
 
 
 
-void Mat::init(const uint32 r,const uint32 c,const uint32 ch,const DTYP dt,const bool do_alloc){
-    row = r;
-    col = c;
-    Nch = ch;
-    stepCol   = Nch;
-    stepRow   = col*stepCol;
-    length    = row*stepRow;
-    lenRowCol = row*col;
-
-    datT = dt;
-    switch(datT){
-    case DTYP::UCHAR  : byteStep = 1; break;
-    case DTYP::INT    : byteStep = 4; break;
-    case DTYP::FLOAT  : byteStep = 4; break;
-    case DTYP::DOUBLE : byteStep = 8; break;
-    case DTYP::CMPLX  : byteStep = sizeof(cmplx); break;
-    }
-    byteLen = length*byteStep;
-    if(do_alloc)
-        alloc(byteLen);
-    sync_data_ptr();
-}
 Mat::Mat(){
     init(0,0,0,DTYP::UCHAR,true);
 }
@@ -51,7 +29,7 @@ Mat::Mat(const DTYP dt, const uint32 r, const uint32 c, const uint32 ch, const s
     init(r, c, ch, dt, true);
     obj_name = name;
 }
-Mat::Mat(const Mat& mat){
+Mat::Mat(const Mat& mat){ // copy constructor
     row = mat.row;
     col = mat.col;
     Nch = mat.Nch;
@@ -73,6 +51,23 @@ Mat::Mat(const Mat& mat){
     */
 #ifdef _DEBUG_MODE_
     fprintf(stdout,"copy constructor\n");
+#endif
+}
+Mat::Mat(Mat&& mat){ // move constructor
+    std::swap(row      ,mat.row);
+    std::swap(col      ,mat.col);
+    std::swap(Nch      ,mat.Nch);
+    std::swap(length   ,mat.length);
+    std::swap(stepCol  ,mat.stepCol);
+    std::swap(stepRow  ,mat.stepRow);
+    std::swap(lenRowCol,mat.lenRowCol);
+    std::swap(byteStep ,mat.byteStep);
+    std::swap(byteLen  ,mat.byteLen);
+    std::swap(datT     ,mat.datT);
+    std::swap(mA       ,mat.mA);
+    sync_data_ptr();
+#ifdef _DEBUG_MODE_
+    fprintf(stdout,"move constructor\n");
 #endif
 }
 
@@ -134,27 +129,39 @@ void Mat::setRowCol(const uint32 r,const uint32 c,const uint32 ch){
     }
 }
 
-/*
+
 //-- overloading operators : it calls copy constructor
-Mat& Mat::operator=( Mat other){
+Mat& Mat::operator=( const Mat& other){
 //The parameter to the ‘operator=()’ is passed by value which calls copy constructor
 //to create an object local to the ‘operator=()’.
 //Than the value of the temp object is swapped with ‘*this’ object
+// ---
+// --- Mat a(DTYP::INT,5,3,1);
+// --- Mat b;
+// --- b = a; -> copy assignment
 //
-    std::swap(row,other.row);
-    std::swap(col,other.col);
-    std::swap(Nch,other.Nch);
-
-    std::swap(length,other.length);
-    std::swap(lenRowCol,other.lenRowCol);
-    std::swap(mA,other.mA); // swapping mA pointer
-
+    row      = other.row;
+    col      = other.col;
+    Nch      = other.Nch;
+    length   = other.length;
+    stepCol  = other.stepCol;
+    stepRow  = other.stepRow;
+    lenRowCol= other.lenRowCol;
+    byteStep = other.byteStep;
+    byteLen  = other.byteLen;
+    datT     = other.datT;
+    mA       = other.mA;
+    sync_data_ptr();
     return *this;
 }
-*/
 
-// rvalue reference
+
+// move assignment
 Mat& Mat::operator=(Mat&& other){
+// --- Mat a(DTYP::INT,5,3,1);
+// --- Mat b(DTYP::INT,5,3,1);
+// --- Mat c;
+// --- c = b + a;
 
 #ifdef _DEBUG_MODE_
     fprintf(stdout,"rvalue referance Assign operator\n");
