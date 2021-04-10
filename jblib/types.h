@@ -259,6 +259,17 @@ namespace jmat {
     //    return s;
     //}
 
+#pragma pack (push, 1)
+    struct Point {
+        int32 x=0;
+        int32 y=0;
+    };
+    struct Size {
+        int32 width =0;
+        int32 height=0;
+    };
+#pragma pack (pop)
+
 #pragma pack (push, 1)               // 구조체를 1바이트 크기로 정렬
     typedef struct _bgr_d{
         double b, g, r;

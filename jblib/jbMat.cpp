@@ -426,19 +426,19 @@ void Mat::changeDType(const DTYP dt){
         byteStep = sizeof(float);
     }else if( dt== DTYP::INT){
         switch (datT) {
-        case DTYP::DOUBLE: for( ; k < length ; ++k ){ t_elptr.int_ptr[k] = (int32) elptr.f64_ptr[k]; } break;
-        case DTYP::FLOAT : for( ; k < length ; ++k ){ t_elptr.int_ptr[k] = (int32) elptr.f32_ptr[k]; } break;
+        case DTYP::DOUBLE: for( ; k < length ; ++k ){ t_elptr.int_ptr[k] = (int32) sat_cast<int32>(elptr.f64_ptr[k]); } break;
+        case DTYP::FLOAT : for( ; k < length ; ++k ){ t_elptr.int_ptr[k] = (int32) sat_cast<int32>(elptr.f32_ptr[k]); } break;
         case DTYP::UCHAR : for( ; k < length ; ++k ){ t_elptr.int_ptr[k] = (int32) elptr.uch_ptr[k]; } break;
-        case DTYP::CMPLX : for( ; k < length ; ++k ){ t_elptr.int_ptr[k] = (int32) elptr.cmx_ptr[k].re; } break;
+        case DTYP::CMPLX : for( ; k < length ; ++k ){ t_elptr.int_ptr[k] = (int32) sat_cast<int32>(elptr.cmx_ptr[k].re); } break;
         case DTYP::INT   : ;
         }
         byteStep = sizeof(int);
     }else if( dt== DTYP::UCHAR){
         switch (datT) {
-        case DTYP::DOUBLE: for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] = (uchar) elptr.f64_ptr[k]; } break;
-        case DTYP::FLOAT : for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] = (uchar) elptr.f32_ptr[k]; } break;
-        case DTYP::INT   : for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] = (uchar) elptr.int_ptr[k]; } break;
-        case DTYP::CMPLX : for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] = (uchar) elptr.cmx_ptr[k].re; } break;
+        case DTYP::DOUBLE: for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] =  sat_cast<uchar>(elptr.f64_ptr[k]); } break;
+        case DTYP::FLOAT : for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] =  sat_cast<uchar>(elptr.f32_ptr[k]); } break;
+        case DTYP::INT   : for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] =  sat_cast<uchar>(elptr.int_ptr[k]); } break;
+        case DTYP::CMPLX : for( ; k < length ; ++k ){ t_elptr.uch_ptr[k] =  sat_cast<uchar>(elptr.cmx_ptr[k].re); } break;
         case DTYP::UCHAR : ;
         }
         byteStep = sizeof(uchar);
@@ -1596,6 +1596,28 @@ Mat Mat::sqrtm() const{
             for(; k < V.length; ++k)  V.at<double>(k) = sqrt(elptr.int_ptr[k]);
         }else if( datT == DTYP::UCHAR){
             for(; k < V.length; ++k)  V.at<double>(k) = sqrt(elptr.uch_ptr[k]);
+        }
+        return V;
+    }
+}
+
+Mat Mat::powm(double p) const{
+    if(isEmpty()) return Mat();
+
+    uint32 k=0;
+    if( datT == DTYP::CMPLX ){
+        fprintf(stderr, "pow() cann't power for CMPLX type\n");
+        return Mat();
+    }else{
+        Mat V = Mat::zeros(row, col, Nch, DTYP::DOUBLE);
+        if( datT == DTYP::DOUBLE ){
+            for(; k < V.length; ++k)  V.at<double>(k) = std::pow(elptr.f64_ptr[k], p);
+        }else if( datT == DTYP::FLOAT){
+            for(; k < V.length; ++k)  V.at<double>(k) = std::pow(elptr.f32_ptr[k], p);
+        }else if( datT == DTYP::INT  ){
+            for(; k < V.length; ++k)  V.at<double>(k) = std::pow(elptr.int_ptr[k], p);
+        }else if( datT == DTYP::UCHAR){
+            for(; k < V.length; ++k)  V.at<double>(k) = std::pow(elptr.uch_ptr[k], p);
         }
         return V;
     }

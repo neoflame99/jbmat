@@ -14,11 +14,14 @@
 #include <vector>
 #include <float.h>
 #include <assert.h>
-#include <math.h>
+#include <cmath>
 #include <string>
 #include <stdexcept>
 #include "types.h"
+#include "satcast.h"
 #include <iostream>
+#include <type_traits>
+
 
 namespace jmat {
 
@@ -31,18 +34,10 @@ typedef union _elemptr{
 }elemptr;
 
 typedef struct _matRect{
-    int32 sR, sC;
-    int32 eR, eC;
+    int32 sR=0, sC=0;
+    int32 eR=0, eC=0;
     _matRect() = default;
     _matRect(int32 sr, int32 sc, int32 er, int32 ec ):sR(sr),sC(sc),eR(er),eC(ec){}
-    //_matRect(std::initializer_list<int32> list){
-    //    std::vector<int32> v(4);
-    //    v.insert(v.begin(),list.begin(),list.end());
-    //    sR = v.at(0);
-    //    sC = v.at(1);
-    //    eR = v.at(2);
-    //    eC = v.at(3);
-    // };
     inline void set(int32 sr=0, int32 sc=0, int32 er=0, int32 ec=0){
        sR= sr; sC=sc; eR= er; eC=ec;
     }
@@ -57,6 +52,26 @@ typedef struct _matRect{
         return *this;
     }
 }matRect;
+struct matRect2{
+    int32 x=0, y=0;
+    int32 width=0, height=0;
+    matRect2() = default;
+    matRect2(int32 x, int32 y, int32 w, int32 h ):x(x),y(y),width(w),height(h){}
+    inline void set(int32 x=0, int32 y=0, int32 w=0, int32 h=0){
+       this->x= x; this->y=y; this->width= w; this->height=h;
+    }
+    bool inline operator== (const matRect2& other){
+        return (this->x == other.x && this->y == other.y && this->width == other.width && this->height == other.height );
+    }
+    matRect2& operator<< (const int32 v){
+        x = y;
+        y = width;
+        width = height;
+        height = v;
+        return *this;
+    }
+};
+
 
 class Mat;
 
@@ -186,9 +201,12 @@ public:
     Mat   std() const;
     Mat   var() const;
     Mat   sqrtm() const;
+    Mat   powm(double p) const;
 
     inline elemptr getRowElptr(uint32 r=0) const;
     inline elemptr getElptr() const { return elptr; }
+    template <typename T, typename U=int32 >  const T* ptr(U r=0) const ;
+    template <typename T, typename U=int32 >  T* ptr(U r=0) ;
 private: // other private methods
 
 public : // static methods
@@ -200,8 +218,10 @@ public : // static methods
     static Mat extractChannel(const Mat& src, const uint32 ch=0);
 
 public : // public template methods
-    template <typename _T> _T& at(uint32 i=0) const;
-    template <typename _T> _T& at(uint32 r, uint32 c, uint32 nch=0) const;
+    template <typename _T> const _T& at(uint32 i=0) const;
+    template <typename _T> const _T& at(uint32 r, uint32 c, uint32 nch=0) const;
+    template <typename _T> _T& at(uint32 i=0) ;
+    template <typename _T> _T& at(uint32 r, uint32 c, uint32 nch=0) ;
     template <typename _T=uchar> _T* getDataPtr() const;
     template <typename _T=uchar> _T* getRowPtr(const uint32 r=0) const;
     template <typename _T> Mat _max() ;
@@ -269,12 +289,33 @@ inline elemptr Mat::getRowElptr(uint32 r) const{
     }
     return ptrs;
 }
+template <typename T, typename U > const T* Mat::ptr(U r) const{
+    assert( r < row);
+    U64 offset = r*stepRow*byteStep;
+    return (T*)( dat_ptr+offset);
+}
+template <typename T, typename U > T* Mat::ptr(U r){
+    assert( r < row);
+    U64 offset = r*stepRow*byteStep;
+    return (T*)( dat_ptr+offset);
+}
 
-template <typename _T> inline _T& Mat::at(uint32 i) const {
+
+template <typename _T> inline const _T& Mat::at(uint32 i) const {
     assert(!isEmpty() && i < length);
     return ((_T *)dat_ptr)[i];
 }
-template <typename _T> inline _T& Mat::at(uint32 r, uint32 c, uint32 ch) const {
+template <typename _T> inline const _T& Mat::at(uint32 r, uint32 c, uint32 ch) const {
+    uint32 i = r*stepRow + c*stepCol + ch;
+    assert(!isEmpty() && i < length);
+
+    return ((_T *)dat_ptr)[i];
+}
+template <typename _T> inline _T& Mat::at(uint32 i) {
+    assert(!isEmpty() && i < length);
+    return ((_T *)dat_ptr)[i];
+}
+template <typename _T> inline _T& Mat::at(uint32 r, uint32 c, uint32 ch) {
     uint32 i = r*stepRow + c*stepCol + ch;
     assert(!isEmpty() && i < length);
 
