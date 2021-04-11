@@ -205,8 +205,15 @@ public:
 
     inline elemptr getRowElptr(uint32 r=0) const;
     inline elemptr getElptr() const { return elptr; }
-    template <typename T, typename U=int32 >  const T* ptr(U r=0) const ;
-    template <typename T, typename U=int32 >  T* ptr(U r=0) ;
+    template <typename T, typename U=int32,
+              typename = typename std::enable_if<std::is_arithmetic<T>::value || std::is_same<T,cmplx>::value>::type, // check whether T is primitive or a cmplx class type
+              typename = typename std::enable_if<std::is_integral<U>::value>::type >   // check whether U is integral
+      const T* ptr(U r=0) const ;
+    template <typename T, typename U=int32,
+              typename = typename std::enable_if<std::is_arithmetic<T>::value || std::is_same<T,cmplx>::value>::type, // check whether T is primitive or a cmplx class type
+              typename = typename std::enable_if<std::is_integral<U>::value>::type >   // check whether U is integral
+      T* ptr(U r=0) ;
+
 private: // other private methods
 
 public : // static methods
@@ -289,13 +296,13 @@ inline elemptr Mat::getRowElptr(uint32 r) const{
     }
     return ptrs;
 }
-template <typename T, typename U > const T* Mat::ptr(U r) const{
-    assert( r < row);
+template <typename T, typename U, typename, typename > const T* Mat::ptr(U r) const{
+    assert( long(r) < long(row) );
     U64 offset = r*stepRow*byteStep;
     return (T*)( dat_ptr+offset);
 }
-template <typename T, typename U > T* Mat::ptr(U r){
-    assert( r < row);
+template <typename T, typename U, typename, typename > T* Mat::ptr(U r){
+    assert( long(r) < long(row) );
     U64 offset = r*stepRow*byteStep;
     return (T*)( dat_ptr+offset);
 }
