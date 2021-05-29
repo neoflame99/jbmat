@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <cmath>
 #include <string>
+#include <cstring>
 #include <stdexcept>
 #include "types.h"
 #include "satcast.h"
@@ -77,8 +78,8 @@ class Mat;
 
 class Mat{
 private: // member fields
-    shr_ptr mA;
-    uchar   *dat_ptr;
+    shr_ptr mA = nullptr;
+    uchar   *dat_ptr=nullptr;
     elemptr elptr;
     DTYP    datT;
 
@@ -194,7 +195,7 @@ public:
     void  changeDType(const DTYP dt);
     void  printMat() ;
     void  printMat(const std::string objname);
-    Mat   max() const;
+    Mat   max(int32 d=-1) const;
     Mat   min() const;
     Mat   sum() const;
     Mat   mean() const;
@@ -279,7 +280,14 @@ inline void Mat::init(const uint32 r,const uint32 c,const uint32 ch,const DTYP d
 
 //-- shallow copy version & using shared_ptr
 inline void Mat::alloc(const uint32 len){
-    mA = len==0 ? nullptr : shr_ptr (new uchar[len], std::default_delete<uchar[]>());
+    if( len!=0 ){
+        try{
+            mA = shr_ptr (new uchar[len], std::default_delete<uchar[]>());
+        }catch(std::bad_alloc& e){
+            mA = nullptr;
+            std::cerr << e.what() << std::endl;
+        }
+    }
 }
 
 inline elemptr Mat::getRowElptr(uint32 r) const{

@@ -76,7 +76,7 @@ Mat::Mat( const std::initializer_list<double> list ){
     init(list.size(),1,1,DTYP::DOUBLE, true);
 
     if(elptr.f64_ptr !=nullptr){
-        memcpy(elptr.f64_ptr, list.begin(), list.size()*sizeof(double));
+        std::memcpy(elptr.f64_ptr, list.begin(), list.size()*sizeof(double));
     }
 }
 Mat::Mat( const std::initializer_list<float> list ){
@@ -84,7 +84,7 @@ Mat::Mat( const std::initializer_list<float> list ){
     init(list.size(),1,1,DTYP::FLOAT, true);
 
     if(elptr.f32_ptr!=nullptr){
-        memcpy(elptr.f32_ptr, list.begin(), list.size()*sizeof(float));
+        std::memcpy(elptr.f32_ptr, list.begin(), list.size()*sizeof(float));
     }
 }
 Mat::Mat( const std::initializer_list<int32> list ){
@@ -92,7 +92,7 @@ Mat::Mat( const std::initializer_list<int32> list ){
     init(list.size(),1,1,DTYP::INT, true);
 
     if(elptr.int_ptr!=nullptr){
-        memcpy(elptr.int_ptr, list.begin(), list.size()*sizeof(int32));
+        std::memcpy(elptr.int_ptr, list.begin(), list.size()*sizeof(int32));
     }
 }
 Mat::Mat( const std::initializer_list<uchar> list ){
@@ -100,7 +100,7 @@ Mat::Mat( const std::initializer_list<uchar> list ){
     init(list.size(),1,1,DTYP::UCHAR, true);
 
     if(elptr.uch_ptr!=nullptr){
-        memcpy(elptr.uch_ptr, list.begin(), list.size()*sizeof(uchar));
+        std::memcpy(elptr.uch_ptr, list.begin(), list.size()*sizeof(uchar));
     }
 }
 Mat::Mat( const std::initializer_list<cmplx> list ){
@@ -1340,63 +1340,138 @@ Mat& Mat::divScalar(const uchar scalar){
     return *this;
 }
 
-Mat Mat::max() const{
+Mat Mat::max(int32 d) const{
     if(isEmpty()) return Mat();
 
     uint32 ch = getChannel();
-    uint32 k, m, n;
     elemptr Aptrs;
-    Mat  A(getDatType(),1,1,ch);
+    Mat A;
+    switch(d){
+    case 0 : A = Mat(getDatType(), 1, ch, 1); break;// finding maximum values in each channel
+    case 1 : A = Mat(getDatType(),ch, this->col, 1); break; // finding maximum values in column direction
+    case 2 : A = Mat(getDatType(),ch, this->row, 1); break; // finding maximum values in row direction
+    default: A = Mat(getDatType(), 1, 1, 1); break;
+    }
+    //Mat  A(getDatType(),1,ch,1);
     Aptrs.uch_ptr = A.getDataPtr();
-    k=0;
     if(datT == DTYP::DOUBLE){
-        for(; k<ch; ++k) { Aptrs.f64_ptr[k]= elptr.f64_ptr[k]; }
-        for(m = ch ; m < length; m+=ch ){
-            for(k=0, n=m ; k < ch; ++k, ++n){
-                if( Aptrs.f64_ptr[k] < elptr.f64_ptr[n])
-                    Aptrs.f64_ptr[k] = elptr.f64_ptr[n];
+        if(d==0){
+            for(uint32 k=0; k < ch; ++k) { Aptrs.f64_ptr[k]= elptr.f64_ptr[k]; }
+            for(uint32 m = ch ; m < length; m+=ch ){
+                for(uint32 k=0, n=m ; k < ch; ++k, ++n){
+                    if( Aptrs.f64_ptr[k] < elptr.f64_ptr[n])
+                        Aptrs.f64_ptr[k] = elptr.f64_ptr[n];
+                }
             }
+        }else if(d==1){
+
+        }else if(d==2){
+
+        }else {
+            double tmax = elptr.f64_ptr[0];
+            for(uint32 k=1; k < length; ++k){
+                if(tmax < elptr.f64_ptr[k] )
+                    tmax = elptr.f64_ptr[k];
+            }
+            Aptrs.f64_ptr[0] = tmax;
         }
     }else if(datT == DTYP::FLOAT){
-        for(; k<ch; ++k) { Aptrs.f32_ptr[k]= elptr.f32_ptr[k]; }
-        for(m = ch ; m < length; m+=ch ){
-            for(k=0, n=m ; k < ch; ++k, ++n){
-                if( Aptrs.f32_ptr[k] < elptr.f32_ptr[n])
-                    Aptrs.f32_ptr[k] = elptr.f32_ptr[n];
+        if(d==0){
+            for(uint32 k=0; k < ch; ++k) { Aptrs.f32_ptr[k]= elptr.f32_ptr[k]; }
+            for(uint32 m = ch ; m < length; m+=ch ){
+                for(uint32 k=0, n=m ; k < ch; ++k, ++n){
+                    if( Aptrs.f32_ptr[k] < elptr.f32_ptr[n])
+                        Aptrs.f32_ptr[k] = elptr.f32_ptr[n];
+                }
             }
+        }else if(d==1){
+
+        }else if(d==2){
+
+        }else{
+            float tmax = elptr.f32_ptr[0];
+            for(uint32 k=1; k < length; ++k){
+                if(tmax < elptr.f32_ptr[k] )
+                    tmax = elptr.f32_ptr[k];
+            }
+            Aptrs.f32_ptr[0] = tmax;
         }
     }else if(datT == DTYP::INT){
-        for(; k<ch; ++k) { Aptrs.int_ptr[k]= elptr.int_ptr[k]; }
-        for(m = ch ; m < length; m+=ch ){
-            for(k=0, n=m ; k < ch; ++k, ++n){
-                if( Aptrs.int_ptr[k] < elptr.int_ptr[n])
-                    Aptrs.int_ptr[k] = elptr.int_ptr[n];
+        if(d==0){
+            for(uint32 k=0; k<ch; ++k) { Aptrs.int_ptr[k]= elptr.int_ptr[k]; }
+            for(uint32 m = ch ; m < length; m+=ch ){
+                for(uint32 k=0, n=m ; k < ch; ++k, ++n){
+                    if( Aptrs.int_ptr[k] < elptr.int_ptr[n])
+                        Aptrs.int_ptr[k] = elptr.int_ptr[n];
+                }
             }
+        }else if(d==1){
+
+        }else if(d==2){
+
+        }else{
+            int32 tmax = elptr.int_ptr[0];
+            for(uint32 k=1; k < length; ++k){
+                if(tmax < elptr.int_ptr[k] )
+                    tmax = elptr.int_ptr[k];
+            }
+            Aptrs.int_ptr[0] = tmax;
         }
     }else if(datT == DTYP::UCHAR){
-        for(; k<ch; ++k) { Aptrs.uch_ptr[k]= elptr.uch_ptr[k]; }
-        for(m = ch ; m < length; m+=ch ){
-            for(k=0, n=m ; k < ch; ++k, ++n){
-                if( Aptrs.uch_ptr[k] < elptr.uch_ptr[n])
-                    Aptrs.uch_ptr[k] = elptr.uch_ptr[n];
+        if(d==0){
+            for(uint32 k=0; k<ch; ++k) { Aptrs.uch_ptr[k]= elptr.uch_ptr[k]; }
+            for(uint32 m = ch ; m < length; m+=ch ){
+                for(uint32 k=0, n=m ; k < ch; ++k, ++n){
+                    if( Aptrs.uch_ptr[k] < elptr.uch_ptr[n])
+                        Aptrs.uch_ptr[k] = elptr.uch_ptr[n];
+                }
             }
+        }else if(d==1){
+
+        }else if(d==2){
+
+        }else{
+            uchar tmax = elptr.uch_ptr[0];
+            for(uint32 k=1; k < length; ++k){
+                if(tmax < elptr.uch_ptr[k] )
+                    tmax = elptr.uch_ptr[k];
+            }
+            Aptrs.uch_ptr[0] = tmax;
         }
     }else if(datT == DTYP::CMPLX){
         cmplx   cl, tmp;
-        double *larg_mag_ch, tmp_mag;
-        larg_mag_ch = new double[ch];
-        for(; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; larg_mag_ch[k] = cl.square();}
-        for(m = ch ; m < length; m+=ch ){
-            for(k=0, n=m ; k < ch; ++k, ++n){
-                tmp       = elptr.cmx_ptr[n];
-                tmp_mag   = tmp.square();
-                if( larg_mag_ch[k] < tmp_mag){
-                    Aptrs.cmx_ptr[k] = tmp;
-                    larg_mag_ch[k]   = tmp_mag;
+        double  tmp_mag;
+        if(d==0){
+            double *larg_mag_ch = new double[ch];
+            for(uint32 k=0; k<ch; ++k) { cl = elptr.cmx_ptr[k]; Aptrs.cmx_ptr[k]= cl; larg_mag_ch[k] = cl.square();}
+            for(uint32 m = ch ; m < length; m+=ch ){
+                for(uint32 k=0, n=m ; k < ch; ++k, ++n){
+                    tmp       = elptr.cmx_ptr[n];
+                    tmp_mag   = tmp.square();
+                    if( larg_mag_ch[k] < tmp_mag){
+                        Aptrs.cmx_ptr[k] = tmp;
+                        larg_mag_ch[k]   = tmp_mag;
+                    }
                 }
             }
+            delete [] larg_mag_ch;
+        }else if(d==1){
+
+        }else if(d==2){
+
+        }else {
+            cmplx tmax = elptr.cmx_ptr[0];
+            double larg_mag = tmax.square();
+            for(uint32 k=1; k < length; ++k){
+                tmp     = elptr.cmx_ptr[k];
+                tmp_mag = tmp.square();
+                if( larg_mag < tmp_mag){
+                    tmax = tmp;
+                    larg_mag = tmp_mag;
+                }
+            }
+            Aptrs.cmx_ptr[0] = tmax;
         }
-        delete [] larg_mag_ch;
     }
     return A;
 }
@@ -1407,7 +1482,7 @@ Mat Mat::min() const{
     uint32 ch = getChannel();
     uint32 k, m, n;
     elemptr Aptrs;
-    Mat  A(getDatType(),1,1,ch);
+    Mat  A(getDatType(),1,ch,1);
     Aptrs.uch_ptr = A.getDataPtr();
     k=0;
     if(datT == DTYP::DOUBLE){
@@ -1474,7 +1549,7 @@ Mat Mat::sum() const{
     uint32 k, m, n;
     n=0;
     if(datT == DTYP::CMPLX){
-        Mat  B = Mat::zeros(1,1,ch,DTYP::CMPLX);
+        Mat  B = Mat::zeros(1,ch, 1,DTYP::CMPLX);
         cmplx* Bptr = B.getDataPtr<cmplx>();
 
         for(m = 0 ; m < length; m+=ch ){
@@ -1483,7 +1558,7 @@ Mat Mat::sum() const{
         }
         return B;
     }else{
-        Mat  A = Mat::zeros(1,1,ch,DTYP::DOUBLE);
+        Mat  A = Mat::zeros(1,ch, 1,DTYP::DOUBLE);
         double* Aptr = A.getDataPtr<double>();
 
         if(datT == DTYP::DOUBLE){
@@ -1517,7 +1592,7 @@ Mat Mat::var() const{
     uint32 k, m, n;
     uint32 ch = getChannel();
     Mat avg   = mean();
-    Mat A     = Mat::zeros(1,1,ch,DTYP::DOUBLE);
+    Mat A     = Mat::zeros(1,ch,1 ,DTYP::DOUBLE);
     uint32 Div= getRowColSize() -1;
     n = 0;
     if(datT==DTYP::CMPLX){
@@ -1572,7 +1647,7 @@ Mat Mat::std() const{
     if(isEmpty()) return Mat();
 
     Mat V = var();
-    for(uint32 k=0; k < V.getChannel(); ++k)  // standard deviation
+    for(uint32 k=0; k < V.getLength(); ++k)  // standard deviation
         V.at<double>(k) = sqrt(V.at<double>(k));
     return V;
 }
